@@ -17,3 +17,4 @@ Accepted records:
 - [0009 — Locale-aware determination language pipeline](0009-locale-aware-determination-language-pipeline.md)
 - [0010 — Transient determination experience](0010-transient-determination-experience.md)
 - [0011 — Persistent public record](0011-persistent-public-record.md)
+- [0012 — Sharing and social preview](0012-sharing-and-social-preview.md)

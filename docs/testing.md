@@ -8,7 +8,7 @@ Tests protect product behavior, safety, taste-critical states, and operational i
 
 Every product-changing task must run one documented canonical verification workflow. The workflow will grow with the application but must remain reproducible locally and in CI.
 
-At version `0.8.0`, use Node.js 24, install dependencies and the Playwright Chromium browser, then run:
+At version `0.9.0`, use Node.js 24, install dependencies and the Playwright Chromium browser, then run:
 
 ```sh
 npm ci
@@ -36,7 +36,9 @@ Provider and orchestration tests exercise the exact non-persistent Luna Structur
 
 The filing browser journey covers all phases from a blank alias through an issued determination, direct correction back to review, draft and determination refresh recovery, exclusion of rejected witness text, unavailable direct navigation, keyboard radio behavior, reduced motion, axe-core accessibility, and mobile and desktop visual references. It continues through informed publication, public rendering, categorical reporting, private owner recovery, unpublishing, restoration, permanent deletion, and non-enumerating unavailable rendering. Session tests reject expired or altered facts, assessment, prose, identity, and versions. Browser controls remain disabled until validated state has loaded, and the browser test server explicitly clears provider credentials so ordinary verification cannot make a paid call.
 
-Public-record integration tests run schema version `1` against isolated in-memory PGlite databases. They prove atomic rollback, publication idempotency, snapshot revalidation, credential hashing, wrong-credential rejection, owner and Bureau transition authority, report idempotency, expiry without implicit deletion, and hard-delete cascade semantics using PostgreSQL constraints and transactions. Browser tests use an ignored file-backed PGlite database so the production server boundary is exercised without an external account. Public and management pages are checked for `noindex`, `no-store`, accessibility, and separate public and private addresses.
+Public-record integration tests run schema version `1` against isolated in-memory PGlite databases. They prove atomic rollback, publication idempotency, snapshot revalidation, credential hashing, wrong-credential rejection, owner and Bureau transition authority, report idempotency, expiry without implicit deletion, and hard-delete cascade semantics using PostgreSQL constraints and transactions. Browser tests use one isolated temporary file-backed PGlite database per Playwright run so the production server boundary is exercised without an external account or stale local state. Public and management pages are checked for `noindex`, `no-store`, accessibility, and separate public and private addresses.
+
+Sharing tests prove the descriptor allowlist, exclusion of identifying and owner data, locale-owned metadata copy, canonical-origin validation, native-share success and cancellation, clipboard fallback, and manual address selection. Browser coverage inspects canonical, Open Graph, and social-card tags; fetches the dynamic PNG; verifies its dimensions, content type, revision, and `no-store` policy; and confirms that a fresh image request and record metadata become unavailable after unpublishing. Mobile, desktop, pseudo-localized, accessibility, and 1200 by 630 visual references protect the complete share surface.
 
 Visual references use the self-hosted production fonts, disable motion, and are shared across supported test platforms with a one-percent pixel-difference tolerance for platform rasterization. Reference images change only after manual inspection at the affected viewport.
 

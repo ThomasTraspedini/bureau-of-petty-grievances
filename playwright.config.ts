@@ -1,4 +1,12 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { defineConfig, devices } from "@playwright/test";
+
+const embeddedTestDatabasePath = join(
+  tmpdir(),
+  `bureau-playwright-public-records-${String(process.pid)}`,
+);
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -24,7 +32,8 @@ export default defineConfig({
       ...process.env,
       OPENAI_API_KEY: "",
       DATABASE_URL: "",
-      BUREAU_EMBEDDED_DATABASE_PATH: ".data/playwright-public-records",
+      BUREAU_PUBLIC_ORIGIN: "http://127.0.0.1:4173",
+      BUREAU_EMBEDDED_DATABASE_PATH: embeddedTestDatabasePath,
     },
     url: "http://127.0.0.1:4173/en",
     reuseExistingServer: !process.env.CI,

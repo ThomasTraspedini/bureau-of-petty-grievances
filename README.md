@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.8.0` adds the persistent public-record capability to the complete production Chronology journey. After receiving a determination, a filer may explicitly publish the validated localized snapshot at an unlisted, unguessable address for 180 days.
+Version `0.9.0` turns each available public Chronology determination into a deliberate share object. The public page now offers native device sharing, resilient public-link copying, localized record-specific social metadata, and a deterministic procedural preview image.
 
-The public record has separate private owner authority for unpublishing, restoration, and permanent deletion. Visitors can submit categorical reports without adding personal text, and Bureau operators can review and act on those reports. Public pages remain dynamic, `noindex`, and uncached; sharing controls, social previews, and consultation remain later capabilities.
+Preview content is limited to bounded non-identifying facts and never includes the separate private owner credential. Public pages and images remain dynamic, `noindex`, lifecycle-aware, and uncached. Owner lifecycle controls and categorical reporting remain operational; public consultation is the next capability.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -25,7 +25,7 @@ npm run dev
 
 Open `http://localhost:3000/en`. The root route redirects to the explicit English locale; the production filing begins at `/en/file/respondent`.
 
-The example environment enables an ignored embedded PostgreSQL-compatible store for local development. A deployed full Node.js server should instead set `DATABASE_URL` to a PostgreSQL connection string; the initial managed target is Supabase. The application applies its idempotent schema migration when the record repository starts.
+The example environment enables an ignored embedded PostgreSQL-compatible store for local development. A deployed full Node.js server should instead set `DATABASE_URL` to a PostgreSQL connection string; the initial managed target is Supabase. It must also set `BUREAU_PUBLIC_ORIGIN` to the bare public HTTPS origin used by canonical metadata and sharing. The application applies its idempotent schema migration when the record repository starts.
 
 Provider configuration is optional because the complete deterministic fallback supports the production journey. Copy `.env.example` to an ignored local environment file and set `OPENAI_API_KEY` to use the adapter; `BUREAU_OPENAI_MODEL` defaults to `gpt-5.6-luna`. The one-fixture paid smoke test is deliberate and separate from ordinary verification:
 

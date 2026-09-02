@@ -27,8 +27,8 @@ Exactly one capability must be selectable: either one `in_progress` capability o
 | C05 | Locale-aware generative pipeline | The Bureau produces grounded structured language through locale-specific guidance, validation, bounded retries, and a complete deterministic fallback. | C04 | complete |
 | C06 | Determination experience | A completed filing resolves into a polished, localized determination with procedural identity, fact reconstruction, designed loading, failure, and reveal states. | C05 | complete |
 | C07 | Persistent public record | Determinations persist behind unguessable public identifiers with explicit lifecycle, unlisted rendering, reporting, unpublishing, and deletion behavior. | C06 | complete |
-| C08 | Sharing and social preview | A determination becomes a recognizable share object with localized social metadata and no exposure of private access credentials. | C07 | ready |
-| C09 | Public consultation | Visitors can contribute one of the three approved positions without an account, with atomic results and proportionate repeat-response resistance. | C07 | queued |
+| C08 | Sharing and social preview | A determination becomes a recognizable share object with localized social metadata and no exposure of private access credentials. | C07 | complete |
+| C09 | Public consultation | Visitors can contribute one of the three approved positions without an account, with atomic results and proportionate repeat-response resistance. | C07 | ready |
 | C10 | Evaluation access and cost control | Evaluators enter without visible friction while credits, idempotency, rate limits, global budget, refund, alerts, and kill switches protect paid actions. | C07 | queued |
 | C11 | Standard access and successor invitations | Standard users can redeem filing access and authorize one successor without exposing invitation credentials on public records. | C10 | queued |
 | C12 | Observability and learning | Product and operational events reveal journey health, failures, cost, and behavior without collecting raw personal case content. | C10 | queued |

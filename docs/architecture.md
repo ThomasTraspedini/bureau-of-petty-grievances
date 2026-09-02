@@ -2,7 +2,7 @@
 
 ## Status
 
-The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, and persistent public records described in decisions 0006 through 0011. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, and persistence boundaries.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, and sharing described in decisions 0006 through 0012. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, and persistence boundaries.
 
 ## Application foundation
 
@@ -57,7 +57,7 @@ The localized `/{locale}/determination` route is a client-restored private resul
 
 The procedural reference is random and non-sensitive but explicitly transient. Its year and six-character suffix combine with the assessment visual seed only for curated presentation variation. The responsive record includes a semantic text equivalent for the visual timeline, uses locale-aware date, time, and number formatting, exposes no provider diagnostics, and is marked `noindex`. Loading exists only during real work, terminal failure preserves review and retry, and reduced motion collapses the single reveal.
 
-Later capabilities still own credits, access authorization, consultation, dedicated sharing controls, and social previews.
+Later capabilities still own credits, access authorization, and consultation.
 
 ## Persistent public-record boundary
 
@@ -70,6 +70,16 @@ PostgreSQL owns relational identity, status, expiry, report metadata, and unique
 The localized `/{locale}/record/{publicId}` route renders only published, unexpired snapshots. The document is rendered on the server; its small interactive reporting island receives only the public identifier and localized interface copy, so non-rendered snapshot fields are not serialized into the public client payload. The separate `/manage` route receives an owner credential from the URL fragment, immediately removes it from browser history, retains it only in tab storage, and sends it only in protected server actions. Published routes and owner routes use dynamic rendering, `noindex`, `nofollow`, and `no-store`; unavailable results use one non-enumerating 404 presentation.
 
 Publication, status change, hard deletion with report cascade, categorical reporting, report resolution, and Bureau unpublishing are explicit database operations. A failed publication preserves the transient result and cannot expose a partial record. Reports contain record identity, a categorical reason, lifecycle status, and timestamps only; the operator command never prints the determination snapshot.
+
+## Sharing boundary
+
+`src/domain/public-record/public-record-sharing.ts` derives a versioned share descriptor from an available public record. Its explicit allowlist contains department, disposition, procedural reference, offence, discrepancy minutes, mitigation, and presentation variant only. Feature-owned locale copy turns those language-neutral values into visible preview, share payload, metadata, and accessible image text without admitting aliases, witness prose, exact times, relationship or impact context, generated determination sections, public identifiers as copy, or owner credentials.
+
+The public route builds its canonical address only from a validated server-side `BUREAU_PUBLIC_ORIGIN`. HTTPS is required except for configured loopback development and test servers. Production with missing or invalid origin configuration uses the same non-enumerating unavailable state; request headers do not become canonical authority.
+
+The available page exposes a small client sharing island. It attempts the native Web Share API, preserves user cancellation, falls back to the Clipboard API after unsupported or failed sharing, and focuses a read-only selectable public address after clipboard failure. The island receives one canonical public URL and bounded localized share copy; no owner credential or non-preview snapshot field is serialized to it.
+
+The localized social-image route renders a deterministic 1200 by 630 PNG from code. Its URL includes `updatedAt` as a lifecycle revision, and the handler verifies both current publication availability and the exact revision before rendering. The public page, metadata, and image are dynamic and `no-store`; unavailable metadata is generic and unavailable image requests return no asset. A process-global runtime repository promise ensures server actions, page metadata, public rendering, and image rendering share one embedded PGlite connection during local and browser verification. Production PostgreSQL remains the cross-process persistence authority.
 
 ## Prototype evidence
 

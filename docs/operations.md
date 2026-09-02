@@ -15,6 +15,8 @@ The product is designed to support a focused public evaluation without assuming 
 
 The application foundation produces a full Node.js server build on Node.js 24. This preserves the framework capabilities required for protected server actions and dynamic public records. The hosting provider remains deferred until preview isolation, cost, and operational needs can be evaluated together. Persistent records use portable PostgreSQL, with Supabase selected as the initial managed target; the application remains independent of Supabase authentication and SDKs.
 
+A deployed instance must set `BUREAU_PUBLIC_ORIGIN` to its bare public HTTPS origin. This non-secret setting is the sole authority for canonical record links, share payloads, and social-image addresses; forwarded request headers are intentionally ignored. Missing or invalid production configuration makes public records unavailable without exposing internal configuration details. Development and test use an explicit loopback origin.
+
 The rendered application has no required secrets because provider absence selects the complete deterministic fallback. When configured, the filing server action invokes the adapter using `OPENAI_API_KEY` and a configurable `BUREAU_OPENAI_MODEL` whose default is `gpt-5.6-luna`; credentials remain in ignored local or deployment configuration. Production font files are bundled locally. CI and local verification explicitly provide no provider credential, make no provider calls, and use the same repository command after installing dependencies and the Playwright Chromium browser.
 
 The production filing sends a reviewed draft to the server for runtime validation, deterministic assessment, language realization, and transient determination issuance. It does not automatically store content, reserve credit, or produce a public record. The safe draft remains in a locale-bearing, versioned browser envelope for no longer than 30 days and can be reset explicitly. The issued result uses a separate validated tab-scoped envelope with a 30-minute lifetime. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in either accepted path.
@@ -61,11 +63,13 @@ Logs and analytics must use record identifiers and categorical metadata, never r
 - Reporting and owner-controlled unpublishing must be operational, not decorative.
 - Deletion must remove or irreversibly detach public access and associated private content.
 - Lifecycle and retention remain configurable.
-- Social previews and caches require an invalidation path after unpublishing.
+- Social previews use revisioned, lifecycle-checked, `no-store` image URLs so application-controlled caches cannot preserve an available preview after unpublishing.
 - Backups, exports, and provider retention must be understood before public evaluation.
 - Provider data controls and retention must be reviewed before configuring a provider in a public deployment; `store: false` is necessary but not the whole deployment privacy review. A deployment can remain fully usable through deterministic fallback while that review is pending.
 
 Public record pages and management pages are always dynamic, `noindex`, `nofollow`, and `no-store`. The public identifier grants read access only. Owner authority uses a separate recovery-link fragment and a 256-bit credential whose SHA-256 digest is compared in constant time; losing that private link is intentionally unrecoverable without a future account system.
+
+Record metadata and social images contain only bounded non-identifying structured facts. Fresh requests stop returning record-specific metadata or imagery immediately after unpublishing, expiry, Bureau action, or deletion, and restoration creates a new revisioned image address. A third-party crawler may retain an earlier response despite `no-store`; no web application can universally revoke those external copies. Before enabling a named social platform in a public deployment, document and verify its current refresh or purge procedure. For a privacy report, unpublish first, request refresh through each supported platform, and communicate that already-delivered previews may remain outside Bureau control.
 
 The owner can unpublish, restore an owner-unpublished and unexpired record, or hard-delete its content, credential digest, and cascading reports. Bureau-unpublished records remain unavailable and cannot be restored by the owner. Expiry removes public access after 180 days but does not automatically destroy retained content. A later retention decision may add export or scheduled purge only after backup and operational review.
 

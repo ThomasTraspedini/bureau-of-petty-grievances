@@ -2,6 +2,23 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.9.0]
+
+### Added
+
+- Localized public-record sharing with native device share, explicit clipboard copy, cancellation handling, and a selectable-address fallback that always carries the read-only public URL.
+- Record-specific canonical, Open Graph, and social-card metadata derived from a versioned allowlist of non-identifying structured facts.
+- Deterministic 1200 by 630 procedural social-preview images with curated record accents, accessible descriptions, lifecycle revisions, and fresh availability checks.
+- Validated canonical-origin configuration that trusts one server-owned deployment setting, permits loopback development, and fails closed for invalid production configuration.
+- Domain privacy, origin, share-fallback, pseudo-localization, metadata, lifecycle, accessibility, responsive, end-to-end, and reviewed social-image coverage.
+- An accepted decision record defining browser fallback order, preview privacy, canonical authority, image production, and external crawler-cache limits.
+
+### Changed
+
+- Public record pages now present a recognizable share object before reporting controls while preserving unlisted, `noindex`, `no-store`, and separate owner-authority boundaries.
+- Browser verification uses an isolated temporary embedded database per run and shares one runtime repository instance across server actions, metadata, pages, and images.
+- Sharing and social preview are complete; public consultation is the next ready capability.
+
 ## [0.8.0]
 
 ### Added

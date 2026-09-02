@@ -132,6 +132,7 @@ describe("determination experience", () => {
     render(
       <PublicRecordExperience
         locale="en"
+        publicUrl={`https://bureau.example/en/record/rec_${"A".repeat(22)}`}
         messages={pseudo}
         record={{
           snapshotVersion: 1,
@@ -145,6 +146,9 @@ describe("determination experience", () => {
       />,
     );
     expect(screen.getByText(pseudo.PublicRecord.sessionLabel)).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: pseudo.Sharing.panelTitle }),
+    ).toBeVisible();
     expect(
       screen.getByRole("heading", { name: pseudo.PublicRecord.reportTitle }),
     ).toBeVisible();

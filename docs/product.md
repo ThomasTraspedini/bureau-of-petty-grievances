@@ -76,6 +76,14 @@ Public access lasts 180 days by default. Expiry makes content unavailable withou
 
 Visitors may report an available record using one localized categorical reason and no free-text allegation. A report is durable and idempotent, does not automatically remove the record, and can be reviewed and resolved by a Bureau operator without exposing case content in the operational queue.
 
+## Current sharing contract
+
+Every available public determination is a deliberate share object. Its public page offers the device share sheet where supported, a dedicated copy action, and a selectable address when browser clipboard access is unavailable. All paths use the same durable read-only public address. They never include the separate owner recovery credential or create an invitation.
+
+Localized canonical, Open Graph, and social-card metadata describe the department, fixed disposition, procedural reference, offence, discrepancy, and submitted mitigation category. A deterministic 1200 by 630 procedural image uses the record's curated visual variant. Metadata and imagery exclude the respondent alias, witness statement, exact clock times, full generated prose, relationship and impact context, visible public identity, and owner authority.
+
+Record HTML and preview images remain dynamic, `noindex`, and `no-store`. Image addresses carry the current lifecycle revision and are rejected after a status or revision change. External social crawlers can nevertheless retain a previously fetched preview outside Bureau control; the intentionally minimal preview limits that residual exposure.
+
 ## Emotional outcome
 
 The filer should feel understood, amused by the seriousness of the process, surprised by the specificity of the result, and safe sharing it.

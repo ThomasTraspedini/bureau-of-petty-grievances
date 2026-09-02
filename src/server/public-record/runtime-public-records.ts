@@ -6,14 +6,20 @@ import {
 } from "./sql-adapters";
 import { SqlPublicRecordRepository } from "./sql-public-record-repository";
 
-let repositoryPromise: Promise<PublicRecordRepository | null> | undefined;
+declare global {
+  var bureauPublicRecordRepositoryPromise:
+    Promise<PublicRecordRepository | null> | undefined;
+}
 
 export async function getRuntimePublicRecordRepository(): Promise<PublicRecordRepository | null> {
-  repositoryPromise ??= createRuntimeRepository();
-  const currentAttempt = repositoryPromise;
+  globalThis.bureauPublicRecordRepositoryPromise ??= createRuntimeRepository();
+  const currentAttempt = globalThis.bureauPublicRecordRepositoryPromise;
   const repository = await currentAttempt;
-  if (repository === null && repositoryPromise === currentAttempt) {
-    repositoryPromise = undefined;
+  if (
+    repository === null &&
+    globalThis.bureauPublicRecordRepositoryPromise === currentAttempt
+  ) {
+    globalThis.bureauPublicRecordRepositoryPromise = undefined;
   }
   return repository;
 }

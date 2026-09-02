@@ -14,7 +14,15 @@ import {
   serializeDeterminationSession,
 } from "@/features/determination/determination-session";
 
+declare global {
+  interface Window {
+    __bureauSharePayload?: ShareData;
+  }
+}
+
 const storageKey = "bpg:filing:chronology:en:v1";
+
+test.describe.configure({ mode: "serial" });
 
 const completeDraft = {
   respondent: "Marco",
@@ -301,6 +309,16 @@ test("publishes, reports, unpublishes, restores, and deletes a public record", a
   expect(publicAddress).not.toContain("owner=");
   expect(ownerAddress).toContain("#owner=own_");
 
+  await page.addInitScript(() => {
+    Object.defineProperty(window.navigator, "share", {
+      configurable: true,
+      value: (payload: ShareData) => {
+        window.__bureauSharePayload = payload;
+        return Promise.resolve();
+      },
+    });
+  });
+
   const publicResponse = await page.goto(publicAddress);
   expect(publicResponse?.headers()["cache-control"]).toContain("no-store");
   await expect(
@@ -317,6 +335,44 @@ test("publishes, reports, unpublishes, restores, and deletes a public record", a
   const publicSource = await page.content();
   expect(publicSource).not.toContain('"relationship":"friend"');
   expect(publicSource).not.toContain("ownerCredential");
+  const head = await page.locator("head").innerHTML();
+  expect(head).toContain("Premature departure — Bureau of Petty Grievances");
+  expect(head).toContain("summary_large_image");
+  expect(head).not.toContain("Marco");
+  expect(head).not.toContain("19:30");
+  expect(head).not.toContain("looking for his shoes");
+  expect(head).not.toContain("owner=");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    publicAddress,
+  );
+  const socialImageUrl = await page
+    .locator('meta[property="og:image"]')
+    .getAttribute("content");
+  if (socialImageUrl === null) {
+    throw new Error("Available records must emit a social image.");
+  }
+  expect(socialImageUrl).toContain("/social-image?v=");
+  const socialImage = await page.request.get(socialImageUrl);
+  expect(socialImage.status()).toBe(200);
+  expect(socialImage.headers()["content-type"]).toContain("image/png");
+  expect(socialImage.headers()["cache-control"]).toContain("no-store");
+  expect(socialImage.headers()["x-robots-tag"]).toContain("noimageindex");
+  expect((await socialImage.body()).byteLength).toBeGreaterThan(10_000);
+
+  await page.getByRole("button", { name: "Share determination" }).click();
+  await expect(
+    page.getByText("The device sharing options are open."),
+  ).toBeVisible();
+  const sharePayload: unknown = await page.evaluate(
+    () => window.__bureauSharePayload,
+  );
+  expect(sharePayload).toEqual({
+    title: "Bureau determination · CHR · 2026 · A1B2C3",
+    text: "Premature departure. A 24-minute discrepancy. Mitigation entered: dessert is usually brought.",
+    url: publicAddress,
+  });
+  expect(JSON.stringify(sharePayload)).not.toContain("owner=");
   await page
     .getByRole("radio", { name: "It exposes private information" })
     .check();
@@ -339,6 +395,13 @@ test("publishes, reports, unpublishes, restores, and deletes a public record", a
   expect(managementAccessibility.violations).toEqual([]);
   await page.getByRole("button", { name: "Unpublish the record" }).click();
   await expect(page.getByText("Unpublished by owner")).toBeVisible();
+  expect(
+    (
+      await page.request.get(socialImageUrl, {
+        headers: { "cache-control": "no-cache", pragma: "no-cache" },
+      })
+    ).status(),
+  ).toBe(404);
 
   const publicPage = await page.context().newPage();
   await publicPage.goto(publicAddress);
@@ -347,6 +410,13 @@ test("publishes, reports, unpublishes, restores, and deletes a public record", a
       name: "This determination is not publicly available.",
     }),
   ).toBeVisible();
+  const unavailableHead = await publicPage.locator("head").innerHTML();
+  expect(unavailableHead).toContain(
+    "Public record — Bureau of Petty Grievances",
+  );
+  expect(unavailableHead).not.toContain("Premature departure");
+  expect(unavailableHead).not.toContain("24-minute discrepancy");
+  await expect(publicPage.locator('meta[property="og:image"]')).toHaveCount(0);
   await publicPage.close();
 
   await page.getByRole("button", { name: "Restore public access" }).click();
@@ -448,6 +518,24 @@ test.describe("filing visual contract", () => {
     await page.goto(publicAddress);
     await expect(page).toHaveScreenshot("public-record-desktop.png", {
       fullPage: true,
+      animations: "disabled",
+      maxDiffPixelRatio: 0.01,
+    });
+  });
+
+  test("social preview image", async ({ page }) => {
+    const { publicAddress } = await publishFixedRecord(page);
+    await page.goto(publicAddress);
+    const socialImageUrl = await page
+      .locator('meta[property="og:image"]')
+      .getAttribute("content");
+    if (socialImageUrl === null) {
+      throw new Error("The social preview fixture must expose an image.");
+    }
+    await page.setContent(
+      `<style>*{box-sizing:border-box}html,body{margin:0}img{display:block;width:1200px;height:630px}</style><img src="${socialImageUrl}" alt="">`,
+    );
+    await expect(page.locator("img")).toHaveScreenshot("social-preview.png", {
       animations: "disabled",
       maxDiffPixelRatio: 0.01,
     });
