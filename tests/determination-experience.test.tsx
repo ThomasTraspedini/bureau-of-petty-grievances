@@ -13,8 +13,10 @@ import {
 import { DeterminationExperience } from "@/features/determination/determination-experience";
 import {
   DETERMINATION_SESSION_KEY,
+  parseDeterminationSession,
   serializeDeterminationSession,
 } from "@/features/determination/determination-session";
+import { PublicRecordExperience } from "@/features/public-record/public-record-experience";
 import { pseudoLocalizeCatalog } from "@/i18n/pseudo";
 import messages from "../messages/en.json";
 import { CHRONOLOGY_DETERMINATION_LANGUAGE_FIXTURES } from "./fixtures/chronology-determination-language";
@@ -70,6 +72,7 @@ describe("determination experience", () => {
         locale="en"
         copy={messages.Determination}
         navigation={messages.Navigation}
+        publicRecord={messages.PublicRecord}
       />,
     );
 
@@ -105,6 +108,7 @@ describe("determination experience", () => {
         locale="en"
         copy={pseudo.Determination}
         navigation={pseudo.Navigation}
+        publicRecord={pseudo.PublicRecord}
       />,
     );
 
@@ -112,5 +116,38 @@ describe("determination experience", () => {
       await screen.findByText(pseudo.Determination.chronologyBody),
     ).toBeVisible();
     expect(screen.getByText(pseudo.Determination.transientBody)).toBeVisible();
+  });
+
+  it("renders a public localized snapshot and expanded reporting controls", () => {
+    const fixture = determinationFixture();
+    const now = Date.parse("2026-09-02T12:05:00.000Z");
+    const restored = parseDeterminationSession(
+      serializeDeterminationSession(fixture.draft, fixture.determination, now),
+      now,
+    );
+    if (restored.status !== "restored") {
+      throw new Error("The public-record component fixture must restore.");
+    }
+    const pseudo = pseudoLocalizeCatalog(messages);
+    render(
+      <PublicRecordExperience
+        locale="en"
+        messages={pseudo}
+        record={{
+          snapshotVersion: 1,
+          publicId: `rec_${"A".repeat(22)}`,
+          status: "published",
+          publishedAt: "2026-09-02T12:05:00.000Z",
+          expiresAt: "2027-03-01T12:05:00.000Z",
+          updatedAt: "2026-09-02T12:05:00.000Z",
+          snapshot: restored.snapshot,
+        }}
+      />,
+    );
+    expect(screen.getByText(pseudo.PublicRecord.sessionLabel)).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: pseudo.PublicRecord.reportTitle }),
+    ).toBeVisible();
+    expect(screen.getByText(pseudo.PublicRecord.reportBody)).toBeVisible();
   });
 });

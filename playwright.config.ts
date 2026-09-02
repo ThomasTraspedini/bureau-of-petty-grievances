@@ -20,7 +20,12 @@ export default defineConfig({
   ],
   webServer: {
     command: "npm run start -- --hostname 127.0.0.1 --port 4173",
-    env: { ...process.env, OPENAI_API_KEY: "" },
+    env: {
+      ...process.env,
+      OPENAI_API_KEY: "",
+      DATABASE_URL: "",
+      BUREAU_EMBEDDED_DATABASE_PATH: ".data/playwright-public-records",
+    },
     url: "http://127.0.0.1:4173/en",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

@@ -4,6 +4,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 const nextConfig: NextConfig = {
   agentRules: false,
   poweredByHeader: false,
+  serverExternalPackages: ["@electric-sql/pglite"],
   typedRoutes: true,
 };
 

@@ -8,7 +8,7 @@ Tests protect product behavior, safety, taste-critical states, and operational i
 
 Every product-changing task must run one documented canonical verification workflow. The workflow will grow with the application but must remain reproducible locally and in CI.
 
-At version `0.6.0`, use Node.js 24, install dependencies and the Playwright Chromium browser, then run:
+At version `0.8.0`, use Node.js 24, install dependencies and the Playwright Chromium browser, then run:
 
 ```sh
 npm ci
@@ -26,7 +26,7 @@ The canonical workflow includes repository and prototype validation, formatting,
 
 ## Production application verification
 
-Vitest protects the typed locale allowlist, catalog pseudo-localization, placeholder preservation, explicit route navigation, honest shell content, adaptive Chronology fact variants, server-ready normalization, deterministic assessment, conservative content boundaries, 30-day draft lifecycle, transient determination lifecycle, storage tampering, recovery, and component validation. Playwright exercises the production build rather than a test-only rendering path.
+Vitest protects the typed locale allowlist, catalog pseudo-localization, placeholder preservation, explicit route navigation, honest shell content, adaptive Chronology fact variants, server-ready normalization, deterministic assessment, conservative content boundaries, 30-day draft lifecycle, transient determination lifecycle, storage tampering, public-record identity and lifecycle rules, PostgreSQL persistence, recovery, and component validation. Playwright exercises the production build rather than a test-only rendering path.
 
 Assessment tests cover every Chronology grammar, the 14/15- and 29/30-minute severity boundaries, one-level consequence escalation and its cap, non-cancelling mitigation, remedy families and prohibitions, personal and professional privacy constraints, timeline bounds, repeatability, and exclusion of aliases, prose, relationship, and exact clock times from presentation variation. Server-boundary tests prove that only runtime-validated input reaches assessment and issuance, fallback completes missing-provider operation, and unexpected failures become typed outcomes.
 
@@ -34,7 +34,9 @@ Determination-language tests cover matching filing and assessment commands, sche
 
 Provider and orchestration tests exercise the exact non-persistent Luna Structured Outputs request, response parsing, refusal and timeout normalization, missing configuration, one bounded retry, categorical correction feedback, fallback selection, and exclusion of raw provider text. Ordinary tests inject provider results and make no network call.
 
-The filing browser journey covers all phases from a blank alias through an issued determination, direct correction back to review, draft and determination refresh recovery, exclusion of rejected witness text, unavailable direct navigation, keyboard radio behavior, reduced motion, axe-core accessibility, and mobile and desktop visual references. Session tests reject expired or altered facts, assessment, prose, identity, and versions. Browser controls remain disabled until validated state has loaded, and the browser test server explicitly clears provider credentials so ordinary verification cannot make a paid call.
+The filing browser journey covers all phases from a blank alias through an issued determination, direct correction back to review, draft and determination refresh recovery, exclusion of rejected witness text, unavailable direct navigation, keyboard radio behavior, reduced motion, axe-core accessibility, and mobile and desktop visual references. It continues through informed publication, public rendering, categorical reporting, private owner recovery, unpublishing, restoration, permanent deletion, and non-enumerating unavailable rendering. Session tests reject expired or altered facts, assessment, prose, identity, and versions. Browser controls remain disabled until validated state has loaded, and the browser test server explicitly clears provider credentials so ordinary verification cannot make a paid call.
+
+Public-record integration tests run schema version `1` against isolated in-memory PGlite databases. They prove atomic rollback, publication idempotency, snapshot revalidation, credential hashing, wrong-credential rejection, owner and Bureau transition authority, report idempotency, expiry without implicit deletion, and hard-delete cascade semantics using PostgreSQL constraints and transactions. Browser tests use an ignored file-backed PGlite database so the production server boundary is exercised without an external account. Public and management pages are checked for `noindex`, `no-store`, accessibility, and separate public and private addresses.
 
 Visual references use the self-hosted production fonts, disable motion, and are shared across supported test platforms with a one-percent pixel-difference tolerance for platform rasterization. Reference images change only after manual inspection at the affected viewport.
 

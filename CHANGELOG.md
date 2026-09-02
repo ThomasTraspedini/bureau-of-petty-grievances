@@ -2,6 +2,23 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.8.0]
+
+### Added
+
+- Explicit publication of a validated transient determination as an immutable, versioned, localized PostgreSQL snapshot behind a random unlisted public identifier.
+- Separate 256-bit private owner recovery credentials, stored only as digests, with owner-controlled unpublishing, restoration, and permanent deletion.
+- Dynamic `noindex` and `no-store` public and management routes with non-enumerating unavailable, expired, unpublished, deleted, and persistence-failure states.
+- Categorical report submission without free text, durable idempotent report records, and operator commands for content-free review and transactional Bureau unpublishing.
+- Portable pooled PostgreSQL support targeting Supabase, a durable embedded local path, and provider-free PGlite integration and browser verification of migrations, transactions, rollback, lifecycle, and report behavior.
+- Public-record domain, persistence, component, pseudo-localization, accessibility, responsive, end-to-end, and reviewed mobile and desktop visual coverage.
+- An accepted decision record defining publication consent, identity separation, lifecycle authority, retention, cache, reporting, and persistence boundaries.
+
+### Changed
+
+- Determinations remain transient by default but can be deliberately preserved at a public address for 180 days without regeneration or silent translation.
+- The persistent public-record capability is complete; sharing and localized social preview are the next ready capability.
+
 ## [0.7.0]
 
 ### Added

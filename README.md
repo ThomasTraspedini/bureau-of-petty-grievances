@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.7.0` completes the production Chronology determination experience. A reviewed filing now resolves through deterministic assessment and bounded localized language into a responsive official determination with transient procedural identity, an accessible fact reconstruction, designed processing and recovery, and a restrained reveal.
+Version `0.8.0` adds the persistent public-record capability to the complete production Chronology journey. After receiving a determination, a filer may explicitly publish the validated localized snapshot at an unlisted, unguessable address for 180 days.
 
-The determination survives refresh in its current browser tab for 30 minutes but is not yet a persistent or public record. Provider and deterministic fallback results share the same complete presentation; later capabilities add record lifecycle, sharing, and public consultation.
+The public record has separate private owner authority for unpublishing, restoration, and permanent deletion. Visitors can submit categorical reports without adding personal text, and Bureau operators can review and act on those reports. Public pages remain dynamic, `noindex`, and uncached; sharing controls, social previews, and consultation remain later capabilities.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -25,10 +25,19 @@ npm run dev
 
 Open `http://localhost:3000/en`. The root route redirects to the explicit English locale; the production filing begins at `/en/file/respondent`.
 
+The example environment enables an ignored embedded PostgreSQL-compatible store for local development. A deployed full Node.js server should instead set `DATABASE_URL` to a PostgreSQL connection string; the initial managed target is Supabase. The application applies its idempotent schema migration when the record repository starts.
+
 Provider configuration is optional because the complete deterministic fallback supports the production journey. Copy `.env.example` to an ignored local environment file and set `OPENAI_API_KEY` to use the adapter; `BUREAU_OPENAI_MODEL` defaults to `gpt-5.6-luna`. The one-fixture paid smoke test is deliberate and separate from ordinary verification:
 
 ```sh
 npm run test:provider:live
+```
+
+Operators can inspect categorical reports or immediately unpublish a reported record without printing its content:
+
+```sh
+npm run records:operate -- list-reports
+npm run records:operate -- unpublish rec_0123456789abcdefghijkl
 ```
 
 ## Product principles

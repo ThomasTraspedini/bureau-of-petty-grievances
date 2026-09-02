@@ -15,6 +15,7 @@ dist/
 build/
 coverage/
 .turbo/
+.data/
 
 # Test artifacts
 playwright-report/

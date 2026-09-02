@@ -48,13 +48,15 @@ function fixedDeterminationSession(): string {
   if (command.status === "invalid") {
     throw new Error("The end-to-end assessment must match its filing.");
   }
+  const issuedAt = new Date();
+  issuedAt.setMilliseconds(0);
   return serializeDeterminationSession(
     completeDraft,
     {
       experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
       locale: "en",
       reference: "CHR · 2026 · A1B2C3",
-      issuedAt: "2026-09-02T12:00:00.000Z",
+      issuedAt: issuedAt.toISOString(),
       assessment,
       language: createEnglishChronologyFallback(command.command),
     },
@@ -73,6 +75,27 @@ async function openFixedDetermination(page: Page) {
   await expect(
     page.getByRole("heading", { name: "Review concerning Marco" }),
   ).toBeVisible();
+}
+
+async function publishFixedRecord(page: Page) {
+  await openFixedDetermination(page);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create the public record" }).click();
+  await expect(
+    page.getByRole("heading", { name: "The public record is available." }),
+  ).toBeVisible();
+  const publicAddress = await page
+    .getByRole("link", { name: "Open the public record" })
+    .getAttribute("href");
+  const ownerAddress = await page
+    .getByRole("link", { name: "Open owner controls" })
+    .getAttribute("href");
+  if (publicAddress === null || ownerAddress === null) {
+    throw new Error(
+      "Publication must return separate public and owner addresses.",
+    );
+  }
+  return { publicAddress, ownerAddress };
 }
 
 test("completes, corrects, and receives a Chronology determination", async ({
@@ -258,6 +281,8 @@ test("renders an accessible immediate determination under reduced motion", async
     "content",
     /noindex/u,
   );
+  const publicAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(publicAccessibility.violations).toEqual([]);
   const duration = await page
     .locator(".determination-record")
     .evaluate((element) =>
@@ -266,6 +291,84 @@ test("renders an accessible immediate determination under reduced motion", async
   expect(duration).toBeLessThan(0.001);
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
+});
+
+test("publishes, reports, unpublishes, restores, and deletes a public record", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const { publicAddress, ownerAddress } = await publishFixedRecord(page);
+  expect(publicAddress).not.toContain("owner=");
+  expect(ownerAddress).toContain("#owner=own_");
+
+  const publicResponse = await page.goto(publicAddress);
+  expect(publicResponse?.headers()["cache-control"]).toContain("no-store");
+  await expect(
+    page.getByRole("heading", { name: "Review concerning Marco" }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("Unlisted public record · noindex"),
+  ).toBeVisible();
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    /noindex/u,
+  );
+  expect(page.url()).not.toContain("owner=");
+  const publicSource = await page.content();
+  expect(publicSource).not.toContain('"relationship":"friend"');
+  expect(publicSource).not.toContain("ownerCredential");
+  await page
+    .getByRole("radio", { name: "It exposes private information" })
+    .check();
+  await page.getByRole("button", { name: "Send report" }).click();
+  await expect(
+    page.getByText("Report received for Bureau review."),
+  ).toBeVisible();
+
+  const ownerResponse = await page.goto(ownerAddress);
+  expect(ownerResponse?.headers()["cache-control"]).toContain("no-store");
+  await expect(page).not.toHaveURL(/owner=/u);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    /noindex/u,
+  );
+  await expect(
+    page.getByText("Published", { exact: true }).last(),
+  ).toBeVisible();
+  const managementAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(managementAccessibility.violations).toEqual([]);
+  await page.getByRole("button", { name: "Unpublish the record" }).click();
+  await expect(page.getByText("Unpublished by owner")).toBeVisible();
+
+  const publicPage = await page.context().newPage();
+  await publicPage.goto(publicAddress);
+  await expect(
+    publicPage.getByRole("heading", {
+      name: "This determination is not publicly available.",
+    }),
+  ).toBeVisible();
+  await publicPage.close();
+
+  await page.getByRole("button", { name: "Restore public access" }).click();
+  await expect(
+    page.getByText("Published", { exact: true }).last(),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Delete permanently" }).click();
+  await expect(page.getByText("This cannot be undone.")).toBeVisible();
+  await page
+    .getByRole("button", { name: "Confirm permanent deletion" })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "The public record was permanently deleted.",
+    }),
+  ).toBeVisible();
+  await page.goto(publicAddress);
+  await expect(
+    page.getByRole("heading", {
+      name: "This determination is not publicly available.",
+    }),
+  ).toBeVisible();
 });
 
 test.describe("filing visual contract", () => {
@@ -322,6 +425,42 @@ test.describe("filing visual contract", () => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await openFixedDetermination(page);
     await expect(page).toHaveScreenshot("determination-desktop.png", {
+      fullPage: true,
+      animations: "disabled",
+      maxDiffPixelRatio: 0.01,
+    });
+  });
+
+  test("mobile public record", async ({ page }) => {
+    const { publicAddress } = await publishFixedRecord(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(publicAddress);
+    await expect(page).toHaveScreenshot("public-record-mobile.png", {
+      fullPage: true,
+      animations: "disabled",
+      maxDiffPixelRatio: 0.01,
+    });
+  });
+
+  test("desktop public record", async ({ page }) => {
+    const { publicAddress } = await publishFixedRecord(page);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto(publicAddress);
+    await expect(page).toHaveScreenshot("public-record-desktop.png", {
+      fullPage: true,
+      animations: "disabled",
+      maxDiffPixelRatio: 0.01,
+    });
+  });
+
+  test("mobile owner controls", async ({ page }) => {
+    const { ownerAddress } = await publishFixedRecord(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(ownerAddress);
+    await expect(
+      page.getByText("Published", { exact: true }).last(),
+    ).toBeVisible();
+    await expect(page).toHaveScreenshot("owner-controls-mobile.png", {
       fullPage: true,
       animations: "disabled",
       maxDiffPixelRatio: 0.01,

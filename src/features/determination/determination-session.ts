@@ -2,6 +2,7 @@ import { assessChronologyFiling } from "@/domain/determination/chronology-assess
 import {
   determinationPresentationVariant,
   DETERMINATION_EXPERIENCE_VERSION,
+  DETERMINATION_TRANSIENT_LIFETIME_MS,
   isDeterminationReference,
   type ChronologyDeterminationSnapshot,
   type IssuedChronologyDetermination,
@@ -14,7 +15,8 @@ import {
 } from "@/domain/filing/chronology";
 
 export const DETERMINATION_SESSION_KEY = "bpg:determination:chronology:en:v1";
-export const DETERMINATION_SESSION_LIFETIME_MS = 30 * 60 * 1000;
+export const DETERMINATION_SESSION_LIFETIME_MS =
+  DETERMINATION_TRANSIENT_LIFETIME_MS;
 
 interface DeterminationSessionEnvelope {
   version: 1;

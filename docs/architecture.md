@@ -2,7 +2,7 @@
 
 ## Status
 
-The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, and the transient determination experience described in decisions 0006 through 0010. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, and provider boundaries.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, and persistent public records described in decisions 0006 through 0011. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, and persistence boundaries.
 
 ## Application foundation
 
@@ -17,7 +17,7 @@ Current source ownership is deliberately small:
 - `src/i18n` owns locale validation, catalogs, navigation, and test-only pseudo-localization support;
 - `src/domain` owns deterministic filing and assessment policy and remains independent of React, Next.js, server, and provider imports;
 - `src/providers` translates owned language commands into external requests and may not import application routes or feature views;
-- `src/server` orchestrates bounded provider attempts, validation, and fallback without moving provider concerns into domain policy.
+- `src/server` orchestrates bounded provider attempts, validation, fallback, and the owned persistence repository without moving provider or database concerns into domain policy.
 
 ## Adaptive filing boundary
 
@@ -25,7 +25,7 @@ The production Chronology journey lives at validated `/{locale}/file/{step}` rou
 
 `src/domain/filing` owns the framework-independent draft shape, three discriminated Chronology fact variants, normalization, structural limits, and conservative harmless-content boundaries. The filing feature owns route progress, responsive controls, review presentation, and a versioned device-local storage envelope. Stored drafts carry their locale and update time, expire after 30 days, and are runtime-validated before entering application state. Rejected witness text is excluded from storage while the rest of a safe draft remains recoverable.
 
-The reviewed filing crosses a server action and is validated again through the same domain boundary. Invalid input returns typed rejection. Accepted input continues through deterministic assessment and locale-aware language orchestration before returning a complete transient determination. The action does not persist content, reserve a credit, create a public identifier, or claim external investigation.
+The reviewed filing crosses a server action and is validated again through the same domain boundary. Invalid input returns typed rejection. Accepted input continues through deterministic assessment and locale-aware language orchestration before returning a complete transient determination. That action does not persist content, reserve a credit, create a public identifier, or claim external investigation; persistence requires a separate informed publication action.
 
 ## Deterministic assessment boundary
 
@@ -57,7 +57,19 @@ The localized `/{locale}/determination` route is a client-restored private resul
 
 The procedural reference is random and non-sensitive but explicitly transient. Its year and six-character suffix combine with the assessment visual seed only for curated presentation variation. The responsive record includes a semantic text equivalent for the visual timeline, uses locale-aware date, time, and number formatting, exposes no provider diagnostics, and is marked `noindex`. Loading exists only during real work, terminal failure preserves review and retry, and reduced motion collapses the single reveal.
 
-Later capabilities own persistence, idempotency, credits, durable identifiers, public records, consultation, and sharing.
+Later capabilities still own credits, access authorization, consultation, dedicated sharing controls, and social previews.
+
+## Persistent public-record boundary
+
+`src/domain/public-record` owns language-neutral identifier grammars, lifecycle states, report reasons, availability, and owner-transition rules. The server revalidates the complete normalized filing, deterministic assessment, localized language, procedural identity, and presentation variant before a transient snapshot may cross into persistence. Publication is rejected after the 30-minute transient lifetime.
+
+`src/server/public-record` owns repository contracts, cryptographic digests, atomic publication, idempotent replay, owner authorization, report recording, migrations, and failure normalization. Public identifiers use 128 random bits. Owner credentials use 256 random bits, travel only through client-private state or a URL fragment, and are retained only as SHA-256 digests. Constant-time comparison precedes every owner mutation.
+
+PostgreSQL owns relational identity, status, expiry, report metadata, and unique idempotency constraints; a versioned JSONB value owns the immutable validated determination snapshot. The portable production adapter uses a server-only `DATABASE_URL`, with Supabase as the initial managed target and prepared statements disabled for transaction-pooler compatibility. PGlite provides a repository-compatible embedded PostgreSQL runtime for local development and deterministic integration and browser tests.
+
+The localized `/{locale}/record/{publicId}` route renders only published, unexpired snapshots. The document is rendered on the server; its small interactive reporting island receives only the public identifier and localized interface copy, so non-rendered snapshot fields are not serialized into the public client payload. The separate `/manage` route receives an owner credential from the URL fragment, immediately removes it from browser history, retains it only in tab storage, and sends it only in protected server actions. Published routes and owner routes use dynamic rendering, `noindex`, `nofollow`, and `no-store`; unavailable results use one non-enumerating 404 presentation.
+
+Publication, status change, hard deletion with report cascade, categorical reporting, report resolution, and Bureau unpublishing are explicit database operations. A failed publication preserves the transient result and cannot expose a partial record. Reports contain record identity, a categorical reason, lifecycle status, and timestamps only; the operator command never prints the determination snapshot.
 
 ## Prototype evidence
 
@@ -166,7 +178,6 @@ Records should support explicit lifecycle states such as active, unpublished, ar
 
 ## Decisions intentionally deferred
 
-- persistence provider;
 - deployment provider;
 - analytics provider;
 - production model promotion and routing beyond the configurable `gpt-5.6-luna` default;

@@ -994,6 +994,188 @@ a {
   margin-top: 34px;
 }
 
+.public-record-panel {
+  margin-top: 24px;
+  padding: clamp(30px, 6vw, 58px);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.public-record-panel > h2 {
+  max-width: 720px;
+  margin-bottom: 16px;
+  font-size: clamp(32px, 4.5vw, 52px);
+  font-weight: 620;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+}
+
+.public-record-panel > p:not(.eyebrow),
+.public-record-success > p {
+  max-width: 720px;
+  color: var(--ink-soft);
+}
+
+.publication-consent {
+  display: flex;
+  max-width: 720px;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 28px 0 22px;
+  cursor: pointer;
+}
+
+.publication-consent input,
+.report-reasons input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 3px;
+  accent-color: var(--ink-strong);
+}
+
+.public-record-error,
+.public-record-report-status,
+.record-status {
+  max-width: 720px;
+  margin: 22px 0;
+  padding: 16px 18px;
+  border-left: 4px solid #a43b35;
+  background: #fff0ed;
+  color: #6f211d;
+}
+
+.public-record-error p {
+  margin: 6px 0 0;
+}
+
+.public-record-report-status,
+.record-status {
+  border-color: var(--record-accent, var(--apricot));
+  background: var(--ivory-light);
+  color: var(--ink);
+}
+
+.public-record-success {
+  margin-top: 28px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+
+.public-record-success h3 {
+  margin-bottom: 10px;
+  font-size: 27px;
+}
+
+.public-record-success dl {
+  display: grid;
+  gap: 1px;
+  margin: 26px 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--line);
+}
+
+.public-record-success dl > div {
+  min-width: 0;
+  padding: 18px;
+  background: var(--ivory-light);
+}
+
+.public-record-success dt {
+  margin-bottom: 6px;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.public-record-success dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.report-reasons {
+  display: grid;
+  gap: 10px;
+  max-width: 720px;
+  margin: 28px 0 22px;
+  padding: 0;
+  border: 0;
+}
+
+.report-reasons legend {
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.report-reasons label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 13px 15px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--ivory-light);
+  cursor: pointer;
+}
+
+.button-danger {
+  border-color: #8b302c;
+  background: transparent;
+  color: #722622;
+}
+
+.delete-confirmation {
+  width: 100%;
+  max-width: 720px;
+  padding: 18px;
+  border: 1px solid #bd7670;
+  border-radius: var(--radius-md);
+  background: #fff0ed;
+}
+
+.delete-confirmation p {
+  margin-bottom: 16px;
+  color: #6f211d;
+}
+
+.delete-confirmation .button + .button {
+  margin-left: 8px;
+}
+
+.record-state-page {
+  display: grid;
+  min-height: 100vh;
+  place-content: center;
+  justify-items: start;
+  padding: 32px;
+  background: var(--ivory);
+}
+
+.record-state-page .civic-seal {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 30px;
+}
+
+.record-state-page h1 {
+  max-width: 760px;
+}
+
+.record-state-page > p:not(.eyebrow) {
+  max-width: 620px;
+  margin-bottom: 28px;
+  color: var(--ink-soft);
+  font-size: 18px;
+}
+
 .site-header {
   border-bottom: 1px solid var(--line);
   background: rgb(246 241 231 / 94%);

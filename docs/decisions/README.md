@@ -16,3 +16,4 @@ Accepted records:
 - [0008 — Deterministic Chronology assessment policy](0008-deterministic-chronology-assessment-policy.md)
 - [0009 — Locale-aware determination language pipeline](0009-locale-aware-determination-language-pipeline.md)
 - [0010 — Transient determination experience](0010-transient-determination-experience.md)
+- [0011 — Persistent public record](0011-persistent-public-record.md)

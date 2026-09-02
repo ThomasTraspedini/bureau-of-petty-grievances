@@ -40,7 +40,7 @@ Chronology is the first enabled filing department. Its localized production jour
 
 The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review.
 
-Completion means that the server accepts the structured filing boundary, produces its deterministic assessment, and prepares a localized determination through the provider or complete fallback path. The issued result is available in the current browser tab for 30 minutes. It does not create a persistent record, public URL, access entitlement, or credit event.
+Completion means that the server accepts the structured filing boundary, produces its deterministic assessment, and prepares a localized determination through the provider or complete fallback path. The issued result is available in the current browser tab for 30 minutes. Completion alone does not publish a record, create an access entitlement, or consume a credit; publication is a separate explicit choice.
 
 ## Current deterministic assessment contract
 
@@ -64,7 +64,17 @@ The localized determination presents provider and fallback output through the sa
 
 The transient reference and curated presentation signature exclude aliases, witness prose, relationship context, and exact clock time. The result is validated again before restoration from tab-scoped session state. Missing, expired, or inconsistent state returns to the preserved review; a terminal internal failure offers retry without discarding the safe draft. Loading reflects actual pending work, adds no artificial delay, and the single determination reveal becomes immediate under reduced motion.
 
-The experience explicitly states that it is not persistent, published, open to consultation, or assigned a public record address. Those behaviors remain separate capabilities.
+The experience explicitly states that it is transient until the filer opts into a public record. Consultation and dedicated sharing behavior remain separate capabilities.
+
+## Current persistent public-record contract
+
+During the 30-minute transient window, a filer may explicitly publish the complete validated determination after reviewing which submitted information will become public. Publication atomically stores an immutable, versioned English snapshot behind an unguessable public identifier. It preserves the procedural reference and presentation while giving the record a distinct public address.
+
+The public address carries no authority. A separate private recovery address holds a 256-bit owner credential in its URL fragment; only its digest is retained server-side. The owner can immediately unpublish, restore an owner-unpublished record before expiry, or permanently delete the record and associated reports. A Bureau-unpublished record cannot be restored by the owner.
+
+Public access lasts 180 days by default. Expiry makes content unavailable without silently deleting it. Public pages are unlisted, `noindex`, dynamically rendered, and uncached so lifecycle changes take effect immediately. Every unavailable state deliberately avoids revealing whether a record expired, was unpublished, was deleted, never existed, or cannot currently be loaded.
+
+Visitors may report an available record using one localized categorical reason and no free-text allegation. A report is durable and idempotent, does not automatically remove the record, and can be reviewed and resolved by a Bureau operator without exposing case content in the operational queue.
 
 ## Emotional outcome
 

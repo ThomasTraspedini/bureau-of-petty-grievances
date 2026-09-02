@@ -36,6 +36,7 @@ export default async function DeterminationPage({
       locale={locale}
       copy={messages.Determination}
       navigation={messages.Navigation}
+      publicRecord={messages.PublicRecord}
     />
   );
 }

@@ -216,6 +216,84 @@ export function validateChronologyDraft(
   };
 }
 
+export function validateChronologyFiling(
+  value: unknown,
+  locale: unknown,
+): FilingValidationResult {
+  if (
+    !isRecord(value) ||
+    !hasExactly(value, [
+      "locale",
+      "department",
+      "respondent",
+      "relationship",
+      "offence",
+      "facts",
+      "impact",
+      "mitigation",
+      "statement",
+    ]) ||
+    value.locale !== "en" ||
+    value.department !== "chronology" ||
+    locale !== value.locale ||
+    typeof value.respondent !== "string" ||
+    !isRelationship(value.relationship) ||
+    value.relationship === "" ||
+    !isOffence(value.offence) ||
+    value.offence === "" ||
+    !isImpact(value.impact) ||
+    value.impact === "" ||
+    !isMitigation(value.mitigation) ||
+    value.mitigation === "" ||
+    typeof value.statement !== "string" ||
+    !isRecord(value.facts)
+  ) {
+    return invalidNormalizedFiling();
+  }
+
+  const draft = createEmptyChronologyDraft();
+  draft.respondent = value.respondent;
+  draft.relationship = value.relationship;
+  draft.offence = value.offence;
+  draft.impact = value.impact;
+  draft.mitigation = value.mitigation;
+  draft.statement = value.statement;
+  if (
+    value.offence === "premature_departure" &&
+    hasExactly(value.facts, ["declaredTime", "delayMinutes"]) &&
+    typeof value.facts.declaredTime === "string" &&
+    isSafeInteger(value.facts.delayMinutes)
+  ) {
+    draft.facts.prematureDeparture = {
+      declaredTime: value.facts.declaredTime,
+      delayMinutes: String(value.facts.delayMinutes),
+    };
+  } else if (
+    value.offence === "chronic_lateness" &&
+    hasExactly(value.facts, ["agreedTime", "delayMinutes"]) &&
+    typeof value.facts.agreedTime === "string" &&
+    isSafeInteger(value.facts.delayMinutes)
+  ) {
+    draft.facts.chronicLateness = {
+      agreedTime: value.facts.agreedTime,
+      delayMinutes: String(value.facts.delayMinutes),
+    };
+  } else if (
+    value.offence === "optimistic_estimate" &&
+    hasExactly(value.facts, ["estimatedMinutes", "actualMinutes"]) &&
+    isSafeInteger(value.facts.estimatedMinutes) &&
+    isSafeInteger(value.facts.actualMinutes)
+  ) {
+    draft.facts.optimisticEstimate = {
+      estimatedMinutes: String(value.facts.estimatedMinutes),
+      actualMinutes: String(value.facts.actualMinutes),
+    };
+  } else {
+    return invalidNormalizedFiling();
+  }
+  return validateChronologyDraft(draft, locale);
+}
+
 export function validateDraftField(
   field: FilingField,
   draft: ChronologyDraft,
@@ -382,6 +460,28 @@ function parseChronologyDraft(value: unknown): ChronologyDraft | null {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasExactly(
+  value: Record<string, unknown>,
+  keys: readonly string[],
+): boolean {
+  const actual = Object.keys(value);
+  return (
+    actual.length === keys.length &&
+    keys.every((key) => Object.hasOwn(value, key))
+  );
+}
+
+function isSafeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value);
+}
+
+function invalidNormalizedFiling(): FilingValidationResult {
+  return {
+    status: "invalid",
+    errors: [{ field: "respondent", code: "required" }],
+  };
 }
 
 function isRelationship(value: unknown): value is RelationshipCode | "" {
