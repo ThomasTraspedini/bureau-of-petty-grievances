@@ -2,6 +2,7 @@
 
 import { type SyntheticEvent, useEffect, useState, useTransition } from "react";
 
+import { type ChronologyAssessment } from "@/domain/determination/chronology-assessment";
 import {
   type ChronologyDraft,
   type FilingError,
@@ -38,7 +39,8 @@ type CompleteFiling = (
   locale: string,
   draft: unknown,
 ) => Promise<
-  { status: "accepted" } | { status: "rejected"; errors: FilingError[] }
+  | { status: "accepted"; assessment: ChronologyAssessment }
+  | { status: "rejected"; errors: FilingError[] }
 >;
 
 interface FilingJourneyProps {

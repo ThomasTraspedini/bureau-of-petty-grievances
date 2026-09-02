@@ -13,3 +13,4 @@ Accepted records:
 - [0005 — Interaction prototype direction](0005-interaction-prototype-direction.md)
 - [0006 — Application foundation stack](0006-application-foundation-stack.md)
 - [0007 — Adaptive filing boundaries](0007-adaptive-filing-boundaries.md)
+- [0008 — Deterministic Chronology assessment policy](0008-deterministic-chronology-assessment-policy.md)

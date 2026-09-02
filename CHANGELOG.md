@@ -2,6 +2,20 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.5.0]
+
+### Added
+
+- A versioned, framework-independent Chronology assessment covering every supported fact grammar with comparable discrepancies and explicit severity boundaries.
+- Inspectable consequence escalation, non-cancelling mitigation, offence-specific remedy families, private audience constraints, bounded duration, and prohibited punitive remedies.
+- Stable bounded timeline and visual-variation parameters derived without aliases, witness prose, relationship context, or exact clock times.
+- Domain boundary, invariant, repeatability, privacy, and server-integration coverage for deterministic assessment.
+
+### Changed
+
+- The reviewed filing server boundary now returns an assessment after runtime validation while remaining non-persistent and provider-free.
+- Deterministic determination is complete; the locale-aware generative pipeline is the next ready capability.
+
 ## [0.4.0]
 
 ### Added

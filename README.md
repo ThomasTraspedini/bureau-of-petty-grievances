@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.4.0` adds the complete production Chronology filing journey. A filer can follow three adaptive timing grammars, preserve a safe 30-day device-local draft, move through localized step routes, review and correct every fact, and complete server validation without the product pretending that a determination or public record already exists.
+Version `0.5.0` adds a versioned deterministic Chronology assessment. Every server-validated filing now produces inspectable discrepancy and severity, accepted consequence and mitigation, bounded non-binding remedy constraints, and stable non-sensitive presentation parameters without pretending that final determination language or a public record exists.
 
-The complete static interaction prototype remains available as evidence while determination and later capabilities are added vertically.
+The complete static interaction prototype remains available as evidence while locale-aware determination language and later capabilities are added vertically.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 

@@ -1,12 +1,17 @@
 "use server";
 
 import {
+  assessChronologyFiling,
+  type ChronologyAssessment,
+} from "@/domain/determination/chronology-assessment";
+import {
   type FilingError,
   validateChronologyDraft,
 } from "@/domain/filing/chronology";
 
 export type CompleteFilingResult =
-  { status: "accepted" } | { status: "rejected"; errors: FilingError[] };
+  | { status: "accepted"; assessment: ChronologyAssessment }
+  | { status: "rejected"; errors: FilingError[] };
 
 export async function completeFilingReview(
   locale: string,
@@ -17,5 +22,8 @@ export async function completeFilingReview(
     return { status: "rejected", errors: result.errors };
   }
 
-  return { status: "accepted" };
+  return {
+    status: "accepted",
+    assessment: assessChronologyFiling(result.filing),
+  };
 }

@@ -2,8 +2,13 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  assessChronologyFiling,
+  type ChronologyAssessment,
+} from "@/domain/determination/chronology-assessment";
+import {
   type FilingError,
   createEmptyChronologyDraft,
+  validateChronologyDraft,
 } from "@/domain/filing/chronology";
 import {
   FILING_DRAFT_STORAGE_KEY,
@@ -14,10 +19,11 @@ import { pseudoLocalizeCatalog } from "@/i18n/pseudo";
 import messages from "../messages/en.json";
 
 type TestCompleteResult =
-  { status: "accepted" } | { status: "rejected"; errors: FilingError[] };
+  | { status: "accepted"; assessment: ChronologyAssessment }
+  | { status: "rejected"; errors: FilingError[] };
 
 const completeFiling = vi.fn((): Promise<TestCompleteResult> =>
-  Promise.resolve({ status: "accepted" }),
+  Promise.resolve({ status: "accepted", assessment: completeAssessment() }),
 );
 
 function completeDraft() {
@@ -34,6 +40,14 @@ function completeDraft() {
     mitigation: "brings_dessert" as const,
     statement: "He said he was leaving while still looking for his shoes.",
   };
+}
+
+function completeAssessment(): ChronologyAssessment {
+  const result = validateChronologyDraft(completeDraft(), "en");
+  if (result.status === "invalid") {
+    throw new Error("The test fixture must remain a valid Chronology filing.");
+  }
+  return assessChronologyFiling(result.filing);
 }
 
 describe("filing journey", () => {

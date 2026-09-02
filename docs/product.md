@@ -40,7 +40,15 @@ Chronology is the first enabled filing department. Its localized production jour
 
 The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review.
 
-Completion currently means that the server accepted the structured filing boundary. It does not create a determination, persistent record, public URL, access entitlement, or credit event. Those outcomes remain separate roadmap capabilities.
+Completion currently means that the server accepted the structured filing boundary and produced a deterministic assessment. It does not create final determination language, a persistent record, public URL, access entitlement, or credit event. Those outcomes remain separate roadmap capabilities.
+
+## Current deterministic assessment contract
+
+Every accepted Chronology filing produces a versioned, language-neutral assessment before any generative wording. Premature departure and chronic lateness use the submitted delay; an optimistic estimate uses the difference between actual and estimated duration.
+
+Severity begins with explicit 15- and 30-minute boundaries. A concrete consequence raises severity by one level, while irritation alone is recorded without escalation. Required mitigation remains visible without cancelling the facts and limits the remedy to a private, non-binding protocol covering no more than three future occasions.
+
+The assessment selects an offence-specific remedy family and prohibits coercion, exclusion, material deprivation, monitoring, public humiliation, and health or safety restrictions. It also provides bounded timeline parameters and stable visual variation derived without the respondent alias, witness language, relationship, or exact clock time. These rules are inspectable domain policy, not localized determination prose.
 
 ## Emotional outcome
 
