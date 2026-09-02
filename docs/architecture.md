@@ -2,7 +2,23 @@
 
 ## Status
 
-The first complete interaction direction is now rendered as a repository-native prototype. The application stack remains unselected pending evaluation of that evidence and an explicit decision for the application-foundation capability. This document records system boundaries that remain valid across reasonable stack choices.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application now uses the accepted Next.js foundation described in decision 0006. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, and provider boundaries.
+
+## Application foundation
+
+The production shell uses Next.js 16 App Router, React, strict TypeScript, and `next-intl` on the Node.js 24 LTS line. npm owns the reproducible lockfile. Native CSS preserves the approved visual system, while `next/font/local` bundles the repository's Public Sans, Source Serif 4, and IBM Plex Mono files without an external font request.
+
+`/en` is the first enabled application route. The root redirects to it, unsupported paths resolve to a localized unavailable state, and the route locale controls the document language, catalog, metadata, and navigation. Catalog types are derived from the English reference catalog, and a pseudo-localization transform exercises content expansion without enabling an unevaluated public language.
+
+Current source ownership is deliberately small:
+
+- `src/app` adapts routes and framework rendering;
+- `src/features` owns vertical user-facing application surfaces;
+- `src/i18n` owns locale validation, catalogs, navigation, and test-only pseudo-localization support;
+- future `src/domain` code must remain independent of React, Next.js, server, and provider imports;
+- future `src/providers` adapters may not import application routes or feature views.
+
+ESLint enforces the domain and provider import direction before those later boundaries acquire implementation. This avoids speculative interfaces while making their allowed dependency direction explicit.
 
 ## Prototype evidence
 
@@ -111,11 +127,9 @@ Records should support explicit lifecycle states such as active, unpublished, ar
 
 ## Decisions intentionally deferred
 
-- application framework and runtime;
 - persistence provider;
 - deployment provider;
 - analytics provider;
-- concrete localization library and catalog format;
 - exact model and model-routing policy;
 - detailed rate-limit implementation.
 

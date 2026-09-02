@@ -8,13 +8,27 @@ Tests protect product behavior, safety, taste-critical states, and operational i
 
 Every product-changing task must run one documented canonical verification workflow. The workflow will grow with the application but must remain reproducible locally and in CI.
 
-At version `0.2.0`, run:
+At version `0.3.0`, use Node.js 24, install dependencies and the Playwright Chromium browser, then run:
+
+```sh
+npm ci
+npx playwright install chromium
+./scripts/validate-repository.sh
+```
+
+For subsequent checks with dependencies already installed, the canonical command remains:
 
 ```sh
 ./scripts/validate-repository.sh
 ```
 
-The canonical workflow now includes prototype syntax checks, focused interaction-state tests, locale-boundary checks, and repository validation. When the production application begins, it must grow to include formatting, linting, strict type checking, integration tests, relevant end-to-end tests, and a production build.
+The canonical workflow includes repository and prototype validation, formatting, linting and dependency-direction rules, strict type checking, focused Vitest component and locale tests, a production build, and Playwright checks. Browser checks cover explicit locale routing, localized metadata, unsupported routes, keyboard access, reduced motion, axe-core accessibility, and reviewed mobile and desktop visual references. CI invokes the same workflow on Node.js 24.
+
+## Application-foundation verification
+
+Vitest protects the typed locale allowlist, catalog pseudo-localization, placeholder preservation, explicit route navigation, and honest shell content. Playwright exercises the production build rather than a test-only rendering path.
+
+Visual references use the self-hosted production fonts, disable motion, and are shared across supported test platforms with a one-percent pixel-difference tolerance for platform rasterization. Reference images change only after manual inspection at the affected viewport.
 
 ## Prototype verification
 

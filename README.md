@@ -8,9 +8,20 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.2.1` presents a complete, interactive product prototype covering the primary journey on mobile and key desktop states. Its refined civic seal and institutional signature establish a Bureau with pre-digital continuity and a fully modern service, while the production application stack remains deliberately deferred.
+Version `0.3.0` adds the production application foundation: a localized, strictly typed Next.js shell on `/en`, using the accepted Bureau identity, self-hosted typography, responsive direction, and reduced-motion behavior. The complete static interaction prototype remains available as evidence while production capabilities are added vertically.
 
-[Review the interaction prototype](prototype/README.md) or serve the repository locally and open `/prototype/en/`.
+[Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
+
+## Run locally
+
+Use Node.js 24, then install dependencies and start the application:
+
+```sh
+npm ci
+npm run dev
+```
+
+Open `http://localhost:3000/en`. The root route redirects to the explicit English locale.
 
 ## Product principles
 
@@ -34,13 +45,13 @@ Version `0.2.1` presents a complete, interactive product prototype covering the 
 
 ## Repository validation
 
-Until the application stack is selected, the repository-level quality gate is:
+After installing the Playwright Chromium browser with `npx playwright install chromium`, run the canonical quality gate:
 
 ```sh
 ./scripts/validate-repository.sh
 ```
 
-The command verifies version metadata, required operating documents, repository hygiene, the public/private boundary, prototype syntax, focused interaction behavior, and localization boundaries. Production runtime checks will be added to the same workflow when the application foundation begins.
+The command verifies version metadata, repository hygiene, the public/private boundary, prototype behavior, formatting, linting, strict types, focused application tests, the production build, accessibility, reduced motion, localized routing, and mobile and desktop visual references. CI invokes the same command.
 
 ## Versioning
 

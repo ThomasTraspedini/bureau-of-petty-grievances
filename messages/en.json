@@ -1,0 +1,58 @@
+{
+  "Metadata": {
+    "title": "Bureau of Petty Grievances — Harmony, administered.",
+    "description": "Submit a harmless recurring grievance and receive a fair, shareable determination.",
+    "imageAlt": "Bureau of Petty Grievances — Harmony, administered."
+  },
+  "Navigation": {
+    "skipToContent": "Skip to the main content",
+    "brandName": "Bureau of Petty Grievances",
+    "brandInitial": "B",
+    "brandDescriptor": "Office for Interpersonal Continuity",
+    "locale": "English"
+  },
+  "Home": {
+    "eyebrow": "A public service for private peace",
+    "title": "Harmony, administered.",
+    "intro": "Submit a petty grievance. Receive a fair determination. Restore balance without making dinner awkward.",
+    "primaryAction": "Review the service standard",
+    "secondaryAction": "Inspect a representative determination",
+    "assuranceTitle": "Fair process, proportionate remedy",
+    "assuranceBody": "The Bureau considers submitted facts, requires mitigating context, and does not investigate outside your filing.",
+    "statusLabel": "Production application",
+    "statusTitle": "The Bureau’s service foundation is active.",
+    "statusBody": "The first production filing path is being established with the same standards for clarity, fairness, and preservation demonstrated in the approved interaction model.",
+    "statusMeta": "English service route · verified application shell",
+    "sampleKicker": "Representative determination",
+    "sampleTitle": "Review concerning Marco",
+    "sampleBody": "A recurring declaration of departure was submitted before the acts required to leave a building had begun.",
+    "sampleStatus": "Grievance upheld",
+    "sampleRemedyLabel": "Proportionate remedy 04-C",
+    "sampleRemedy": "The phrase “leaving now” is suspended until the respondent has shoes on and visual contact with the front door.",
+    "sampleMeta": "Chronology · Record BPG-CH-0427",
+    "standardsKicker": "Service standard",
+    "standardsTitle": "Exacting procedure without administrative burden.",
+    "standardOneIndex": "01",
+    "standardOneTitle": "Your work is preserved",
+    "standardOneBody": "Correction and recovery belong to the service, not to the filer.",
+    "standardTwoIndex": "02",
+    "standardTwoTitle": "Benevolence is binding",
+    "standardTwoBody": "Serious allegations, humiliation, and unnecessary personal details remain outside Bureau jurisdiction.",
+    "standardThreeIndex": "03",
+    "standardThreeTitle": "Locale is explicit",
+    "standardThreeBody": "Interface language and generated determination language remain distinct at every boundary.",
+    "departmentsLabel": "Institutional classifications",
+    "departmentChronology": "Chronology",
+    "departmentDigital": "Digital Conduct",
+    "departmentDomestic": "Domestic Affairs",
+    "departmentPlanning": "Social Planning",
+    "footerMission": "Nothing human is too small to improve.",
+    "footerStatus": "English is the enabled interface locale."
+  },
+  "NotFound": {
+    "eyebrow": "Record unavailable",
+    "title": "The Bureau cannot locate this route.",
+    "body": "The address may be incomplete or outside the enabled service locale.",
+    "action": "Return to the Bureau"
+  }
+}

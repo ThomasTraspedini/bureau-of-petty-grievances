@@ -13,7 +13,9 @@ The product is designed to support a focused public evaluation without assuming 
 - Hosting and persistence costs near zero at evaluation scale.
 - Generative spend bounded independently of expected traffic.
 
-The final hosting decision remains deferred until the stack and rendered interaction are approved.
+The application foundation produces a full Node.js server build on Node.js 24. This preserves the framework capabilities required for later protected server actions and dynamic public records. The hosting provider remains deferred until persistence, preview isolation, cost, and operational needs can be evaluated together.
+
+The current application has no secrets or required environment variables. Production font files are bundled locally. CI and local verification use the same repository command after installing dependencies and the Playwright Chromium browser.
 
 ## Cost controls
 

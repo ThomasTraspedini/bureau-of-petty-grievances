@@ -2,6 +2,20 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.3.0]
+
+### Added
+
+- A production Next.js application shell on the explicit `/en` locale route, preserving the approved Bureau identity, responsive composition, and self-hosted typography.
+- Typed `next-intl` catalogs, localized metadata and unavailable states, explicit locale validation, and pseudo-localization coverage.
+- Strict TypeScript, formatting, linting and dependency-direction rules, focused component tests, accessibility checks, reduced-motion checks, and reviewed mobile and desktop visual references.
+- A reproducible Node.js 24 and npm toolchain, production build, and CI workflow connected to the canonical repository validation command.
+
+### Changed
+
+- The application foundation capability is complete, and adaptive filing is now ready.
+- Architecture, testing, operations, and evaluator instructions now describe the production application foundation while preserving the prototype as interaction evidence.
+
 ## [0.2.2]
 
 ### Fixed

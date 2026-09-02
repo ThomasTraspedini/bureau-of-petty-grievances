@@ -21,8 +21,8 @@ Exactly one capability must be selectable: either one `in_progress` capability o
 | --- | --- | --- | --- | --- |
 | C00 | Project operating system | The repository has explicit product, decision, testing, internationalization, release, and agent contracts. | — | complete |
 | C01 | Product and interaction prototype | The complete primary journey is rendered on mobile and key desktop states, establishing interaction, visual identity, copy hierarchy, motion intent, and evidence for stack selection. | C00 | complete |
-| C02 | Application foundation | The approved stack runs a localized, strictly typed, automatically verified application shell that can host vertical product capabilities. | C01 | ready |
-| C03 | Adaptive filing | A filer can complete, review, correct, and preserve a localized adaptive grievance intake for the first enabled department. | C02 | queued |
+| C02 | Application foundation | The approved stack runs a localized, strictly typed, automatically verified application shell that can host vertical product capabilities. | C01 | complete |
+| C03 | Adaptive filing | A filer can complete, review, correct, and preserve a localized adaptive grievance intake for the first enabled department. | C02 | ready |
 | C04 | Deterministic determination | Validated structured facts produce an inspectable assessment, accepted factors, remedy constraints, and stable presentation parameters. | C03 | queued |
 | C05 | Locale-aware generative pipeline | The Bureau produces grounded structured language through locale-specific guidance, validation, bounded retries, and a complete deterministic fallback. | C04 | queued |
 | C06 | Determination experience | A completed filing resolves into a polished, localized determination with procedural identity, fact reconstruction, designed loading, failure, and reveal states. | C05 | queued |

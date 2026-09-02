@@ -1,0 +1,10 @@
+.next/
+coverage/
+docs/
+node_modules/
+playwright-report/
+prototype/
+public/
+scripts/
+test-results/
+*.md

@@ -19,6 +19,8 @@ required_files=(
   "README.md"
   "CHANGELOG.md"
   "VERSION"
+  "package.json"
+  "package-lock.json"
   "docs/product.md"
   "docs/roadmap.md"
   "docs/architecture.md"
@@ -34,6 +36,12 @@ done
 version="$(tr -d '[:space:]' < VERSION)"
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "VERSION must contain a SemVer-shaped X.Y.Z value"
 rg --fixed-strings --quiet "## [$version]" CHANGELOG.md || fail "CHANGELOG.md has no section for version $version"
+package_version="$(node -p "require('./package.json').version")"
+[[ "$package_version" == "$version" ]] || fail "package.json version must match VERSION"
+
+command -v npm >/dev/null 2>&1 || fail "npm is required"
+node_major="$(node -p "process.versions.node.split('.')[0]")"
+[[ "$node_major" == "24" ]] || fail "Node.js 24 is required; found $(node --version)"
 
 ready_count="$(rg --count '\| ready \|$' docs/roadmap.md || true)"
 in_progress_count="$(rg --count '\| in_progress \|$' docs/roadmap.md || true)"
@@ -61,5 +69,6 @@ if [[ -n "$tracked_forbidden" ]]; then
 fi
 
 ./scripts/validate-prototype.sh
+npm run verify:app
 
 printf 'Repository validation passed for version %s.\n' "$version"

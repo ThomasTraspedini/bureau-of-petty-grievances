@@ -19,8 +19,13 @@ coverage/
 # Test artifacts
 playwright-report/
 test-results/
+*.tsbuildinfo
 
 # Editor and operating-system state
 .idea/
 .vscode/
 *.swp
+.next/
+node_modules/
+playwright-report/
+test-results/
