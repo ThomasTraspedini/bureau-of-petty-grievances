@@ -1,0 +1,26 @@
+.DS_Store
+Thumbs.db
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.local
+
+# Dependencies and generated output
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+.turbo/
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Editor and operating-system state
+.idea/
+.vscode/
+*.swp
