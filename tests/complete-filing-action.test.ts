@@ -122,6 +122,53 @@ describe("controlled filing completion", () => {
     );
   });
 
+  it("observes a content-free provider outcome without changing the response", async () => {
+    const observations: unknown[] = [];
+    const repository = accessRepository({});
+    const result = await completeFilingReviewControlledWith(
+      "en",
+      completeDraft(),
+      idempotencyKey,
+      {
+        ...controlledDependencies(repository, {
+          generate: () =>
+            Promise.resolve({
+              status: "success" as const,
+              output: CHRONOLOGY_DETERMINATION_LANGUAGE_FIXTURES[0]?.language,
+              model: "test-model",
+              requestId: "provider-request",
+              usage: { inputTokens: 120, outputTokens: 60 },
+            }),
+        }),
+        monotonicNow: (() => {
+          let time = 1_000;
+          return () => {
+            time += 25;
+            return time;
+          };
+        })(),
+        observe: (observation) => observations.push(observation),
+      },
+    );
+
+    expect(result.status).toBe("accepted");
+    expect(observations).toEqual([
+      {
+        outcome: "accepted_provider",
+        accessKind: "evaluation",
+        durationMs: 25,
+        pathCode: "chronology_premature_departure",
+        attempts: 1,
+        providerAttempts: 1,
+        inputTokens: 120,
+        outputTokens: 60,
+        model: "test-model",
+      },
+    ]);
+    expect(JSON.stringify(observations)).not.toContain("Marco");
+    expect(JSON.stringify(observations)).not.toContain("Shoes");
+  });
+
   it("uses complete fallback without access and never calls the paid provider", async () => {
     const provider = vi.fn();
     const result = await completeFilingReviewControlledWith(

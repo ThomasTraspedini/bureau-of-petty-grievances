@@ -2,6 +2,7 @@
 
 import { randomBytes } from "node:crypto";
 import { cookies, headers } from "next/headers";
+import { after } from "next/server";
 
 import { createConfiguredOpenAIDeterminationLanguageProvider } from "@/providers/openai-determination-language";
 import {
@@ -14,6 +15,7 @@ import {
   completeFilingReviewControlledWith,
   type CompleteFilingResult,
 } from "@/server/determination/complete-filing-review";
+import { recordServerProductEvent } from "@/server/observability/runtime-product-analytics";
 
 export type { CompleteFilingResult };
 
@@ -21,6 +23,7 @@ export async function completeFilingReview(
   locale: string,
   draft: unknown,
   idempotencyKey: unknown,
+  journeyId?: unknown,
 ): Promise<CompleteFilingResult> {
   const requestTime = new Date();
   const requestCookies = await cookies();
@@ -36,5 +39,17 @@ export async function completeFilingReview(
     now: () => new Date(),
     randomReferencePart: () => randomBytes(3).toString("hex").toUpperCase(),
     randomAccessBytes: randomBytes,
+    monotonicNow: () => performance.now(),
+    observe: (observation) => {
+      after(() =>
+        recordServerProductEvent({
+          journeyId,
+          locale: "en",
+          department: "chronology",
+          name: "determination_completed",
+          properties: observation,
+        }),
+      );
+    },
   });
 }

@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.12.0` adds one-use standard filing authorizations with a fixed five-credit allowance and a deliberately finite successor chain. After using one provider-generation credit, the current holder may either keep the residual balance or transfer that exact balance to one successor; transfer never creates credits or simultaneous paid holders.
+Version `0.13.0` adds privacy-preserving product analytics for production learning. A typed event contract now measures the primary funnel, Chronology path selection, step loss and correction, generation reliability, latency and estimated cost, publication, sharing, consultation, reports, access, and successor propagation without collecting filing content or creating a persistent visitor profile.
 
-Private fragments are removed before exchange, raw credentials are never retained, and successor links remain separate from public records and case sharing. Standard access reuses the evaluation release's atomic reservations, filing idempotency, rate limits, hard global budget, refunds, alerts, and kill switches. Anonymous, exhausted, transferred, disabled, and unavailable paths remain complete through official deterministic language. Observability and learning are next.
+Collection is off by default. When explicitly configured, browser events use one tab-scoped journey identifier and a same-origin endpoint; server-side Mixpanel delivery strips IP enrichment, applies exact categorical allowlists, attaches release and pricing versions, and remains failure-isolated from product behavior. Autocapture, session replay, heatmaps, analytics cookies, raw URLs, public identifiers, credentials, prompts, and generated prose are excluded. Department expansion is next.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -58,6 +58,12 @@ npm run access:operate -- invitations disable
 
 See [operations](docs/operations.md) for top-up, extension, budget, revocation, and optional alert-delivery commands.
 
+Product analytics is optional and requires a complete server-only configuration. Review the [analytics contract and analysis runbook](docs/analytics.md), then verify configuration without printing secrets:
+
+```sh
+npm run analytics:operate -- status
+```
+
 ## Product principles
 
 - **Taste before technology.** Technology serves the experience and is never the product's message.
@@ -75,6 +81,7 @@ See [operations](docs/operations.md) for top-up, extension, budget, revocation, 
 - [Architecture constraints](docs/architecture.md)
 - [Testing strategy](docs/testing.md)
 - [Operations and release expectations](docs/operations.md)
+- [Product analytics and learning loop](docs/analytics.md)
 - [Decision records](docs/decisions/README.md)
 - [Agent operating contract](AGENTS.md)
 

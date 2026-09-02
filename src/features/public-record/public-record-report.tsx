@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { reportPublicRecord } from "@/app/[locale]/record/actions";
 import type { PublicRecordReportReason } from "@/domain/public-record/public-record";
 import type { MessageCatalog } from "@/i18n/catalogs";
+import { currentAnalyticsJourneyId } from "../observability/browser-product-analytics";
 
 import { createReportKey } from "./public-record-publication";
 
@@ -26,11 +27,15 @@ export function PublicRecordReport({
     reportKey.current ??= createReportKey();
     setState("reporting");
     try {
-      const result = await reportPublicRecord({
+      const input = {
         publicId,
         reportKey: reportKey.current,
         reason,
-      });
+      };
+      const journeyId = currentAnalyticsJourneyId();
+      const result = journeyId
+        ? await reportPublicRecord(input, journeyId)
+        : await reportPublicRecord(input);
       setState(result === "reported" ? "reported" : "failed");
     } catch {
       setState("failed");

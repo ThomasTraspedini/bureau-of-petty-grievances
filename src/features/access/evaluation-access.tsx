@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
+import { currentAnalyticsJourneyId } from "../observability/browser-product-analytics";
 
 import { CivicSeal } from "../application-shell/application-shell";
 
@@ -17,7 +18,10 @@ interface EvaluationAccessProps {
   locale: InterfaceLocale;
   copy: MessageCatalog["Access"];
   navigation: MessageCatalog["Navigation"];
-  exchangeToken: (token: unknown) => Promise<ExchangeResult>;
+  exchangeToken: (
+    token: unknown,
+    journeyId?: unknown,
+  ) => Promise<ExchangeResult>;
 }
 
 type AccessState = "exchanging" | Exclude<ExchangeResult["status"], "accepted">;
@@ -45,7 +49,11 @@ export function EvaluationAccess({
         window.clearTimeout(timer);
       };
     }
-    void exchangeToken(token)
+    const journeyId = currentAnalyticsJourneyId();
+    const exchange = journeyId
+      ? exchangeToken(token, journeyId)
+      : exchangeToken(token);
+    void exchange
       .then((result) => {
         if (result.status === "accepted") {
           window.location.replace(

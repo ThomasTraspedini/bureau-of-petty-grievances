@@ -14,6 +14,7 @@ import type {
   DeterminationLanguageProvider,
   ProviderRetryableFailureReason,
   ProviderTerminalFailureReason,
+  ProviderTokenUsage,
 } from "@/providers/determination-language-provider";
 
 export type DeterminationLanguageFallbackReason =
@@ -30,6 +31,7 @@ export type GenerateDeterminationLanguageResult =
       editorialPolicyVersion: typeof EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION;
       attempts: 1 | 2;
       provider: { model: string; requestId: string };
+      tokenUsage: ProviderTokenUsage;
     }
   | {
       status: "completed";
@@ -38,6 +40,8 @@ export type GenerateDeterminationLanguageResult =
       editorialPolicyVersion: typeof EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION;
       attempts: 1 | 2;
       reason: DeterminationLanguageFallbackReason;
+      tokenUsage: ProviderTokenUsage;
+      model?: string;
     }
   | {
       status: "rejected";
@@ -63,6 +67,8 @@ export async function generateDeterminationLanguage(
 
   let previousValidationIssues: readonly DeterminationLanguageValidationIssueCode[] =
     [];
+  let tokenUsage: ProviderTokenUsage = { inputTokens: 0, outputTokens: 0 };
+  let observedModel: string | undefined;
   for (const attempt of [1, 2] as const) {
     const providerResult = await input.provider.generate(
       commandResult.command,
@@ -71,6 +77,13 @@ export async function generateDeterminationLanguage(
         previousValidationIssues,
       },
     );
+    tokenUsage = addUsage(tokenUsage, providerResult.usage);
+    if (
+      providerResult.status === "success" ||
+      providerResult.status === "refusal"
+    ) {
+      observedModel = providerResult.model;
+    }
 
     if (providerResult.status === "success") {
       const validation = validateEnglishChronologyLanguage(
@@ -88,23 +101,38 @@ export async function generateDeterminationLanguage(
             model: providerResult.model,
             requestId: providerResult.requestId,
           },
+          tokenUsage,
         };
       }
       if (attempt === 1) {
         previousValidationIssues = validation.issues;
         continue;
       }
-      return fallbackResult(commandResult.command, attempt, "invalid_output");
+      return fallbackResult(
+        commandResult.command,
+        attempt,
+        "invalid_output",
+        tokenUsage,
+        observedModel,
+      );
     }
 
     if (providerResult.status === "refusal") {
-      return fallbackResult(commandResult.command, attempt, "refusal");
+      return fallbackResult(
+        commandResult.command,
+        attempt,
+        "refusal",
+        tokenUsage,
+        observedModel,
+      );
     }
     if (providerResult.status === "terminal_failure") {
       return fallbackResult(
         commandResult.command,
         attempt,
         providerResult.reason,
+        tokenUsage,
+        observedModel,
       );
     }
     if (attempt === 2) {
@@ -112,17 +140,27 @@ export async function generateDeterminationLanguage(
         commandResult.command,
         attempt,
         providerResult.reason,
+        tokenUsage,
+        observedModel,
       );
     }
   }
 
-  return fallbackResult(commandResult.command, 2, "provider_unavailable");
+  return fallbackResult(
+    commandResult.command,
+    2,
+    "provider_unavailable",
+    tokenUsage,
+    observedModel,
+  );
 }
 
 function fallbackResult(
   command: Parameters<typeof createEnglishChronologyFallback>[0],
   attempts: 1 | 2,
   reason: DeterminationLanguageFallbackReason,
+  tokenUsage: ProviderTokenUsage,
+  model?: string,
 ): GenerateDeterminationLanguageResult {
   return {
     status: "completed",
@@ -131,5 +169,18 @@ function fallbackResult(
     editorialPolicyVersion: EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
     attempts,
     reason,
+    tokenUsage,
+    ...(model ? { model } : {}),
+  };
+}
+
+function addUsage(
+  total: ProviderTokenUsage,
+  addition: ProviderTokenUsage | undefined,
+): ProviderTokenUsage {
+  if (!addition) return total;
+  return {
+    inputTokens: total.inputTokens + addition.inputTokens,
+    outputTokens: total.outputTokens + addition.outputTokens,
   };
 }

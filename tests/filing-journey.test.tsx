@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -237,12 +243,11 @@ describe("filing journey", () => {
       FILING_DRAFT_STORAGE_KEY,
       serializeDraft(completeDraft(), Date.now()),
     );
+    let resolveCompletion: ((result: { status: "failed" }) => void) | undefined;
     completeFiling.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
-          window.setTimeout(() => {
-            resolve({ status: "failed" });
-          }, 40);
+          resolveCompletion = resolve;
         }),
     );
 
@@ -268,6 +273,10 @@ describe("filing journey", () => {
         name: messages.Filing.processingTitle,
       }),
     ).toBeVisible();
+    if (!resolveCompletion) throw new Error("Completion was not requested");
+    act(() => {
+      resolveCompletion?.({ status: "failed" });
+    });
     expect(
       await screen.findByRole("heading", {
         name: messages.Filing.failureTitle,

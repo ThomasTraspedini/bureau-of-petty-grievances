@@ -14,6 +14,7 @@ import {
 } from "@/domain/public-record/public-consultation";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
+import { currentAnalyticsJourneyId } from "../observability/browser-product-analytics";
 
 type ConsultationCopy = MessageCatalog["Consultation"];
 type SubmissionState =
@@ -90,11 +91,15 @@ export function PublicRecordConsultation({
     });
 
     try {
-      const result = await submitPublicConsultation(locale, {
+      const input = {
         publicId,
         participationKey: key,
         position,
-      });
+      };
+      const journeyId = currentAnalyticsJourneyId();
+      const result = journeyId
+        ? await submitPublicConsultation(locale, input, journeyId)
+        : await submitPublicConsultation(locale, input);
       if (result.status === "unavailable") {
         setSubmissionState("unavailable");
         return;

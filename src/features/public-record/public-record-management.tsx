@@ -15,6 +15,7 @@ import type { InterfaceLocale } from "@/i18n/routing";
 
 import { CivicSeal } from "../application-shell/application-shell";
 import { DeterminationRecord } from "../determination/determination-record";
+import { currentAnalyticsJourneyId } from "../observability/browser-product-analytics";
 import { ownerSessionKey } from "./public-record-publication";
 
 type ManagementState =
@@ -85,11 +86,15 @@ export function PublicRecordManagement({
     setFailed(false);
     let result;
     try {
-      result = await applyOwnerRecordAction(
-        publicId,
-        state.ownerCredential,
-        action,
-      );
+      const journeyId = currentAnalyticsJourneyId();
+      result = journeyId
+        ? await applyOwnerRecordAction(
+            publicId,
+            state.ownerCredential,
+            action,
+            journeyId,
+          )
+        : await applyOwnerRecordAction(publicId, state.ownerCredential, action);
     } catch {
       setChanging(false);
       setFailed(true);

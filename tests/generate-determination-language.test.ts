@@ -84,12 +84,14 @@ describe("determination-language server orchestration", () => {
         output: { malformed: true },
         model: "gpt-5.6-luna",
         requestId: "resp_bad",
+        usage: { inputTokens: 300, outputTokens: 100 },
       },
       {
         status: "success",
         output: validLanguage(),
         model: "gpt-5.6-luna",
         requestId: "resp_good",
+        usage: { inputTokens: 200, outputTokens: 80 },
       },
     ]);
 
@@ -99,7 +101,11 @@ describe("determination-language server orchestration", () => {
       provider,
     });
 
-    expect(result).toMatchObject({ source: "provider", attempts: 2 });
+    expect(result).toMatchObject({
+      source: "provider",
+      attempts: 2,
+      tokenUsage: { inputTokens: 500, outputTokens: 180 },
+    });
     expect(provider.attempts).toEqual([
       { attempt: 1, previousValidationIssues: [] },
       { attempt: 2, previousValidationIssues: ["invalid_schema"] },

@@ -13,12 +13,14 @@ import {
   getPublicRecordWith,
 } from "@/server/public-record/public-record-service";
 import { getRuntimePublicRecordRepository } from "@/server/public-record/runtime-public-records";
+import { analyticsSubject } from "@/server/observability/runtime-product-analytics";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 interface PublicRecordPageProps {
   params: Promise<{ locale: string; publicId: string }>;
+  searchParams: Promise<{ via?: string | string[] }>;
 }
 
 export async function generateMetadata({
@@ -98,8 +100,10 @@ export async function generateMetadata({
 
 export default async function PublicRecordPage({
   params,
+  searchParams,
 }: PublicRecordPageProps) {
   const { locale, publicId } = await params;
+  const query = await searchParams;
   if (!hasLocale(routing.locales, locale)) notFound();
   const origin = getRuntimePublicRecordOrigin();
   if (origin.status !== "valid") notFound();
@@ -127,6 +131,8 @@ export default async function PublicRecordPage({
       consultationAggregate={
         consultation.status === "available" ? consultation.aggregate : null
       }
+      analyticsSubject={analyticsSubject("public_record", publicId)}
+      entrySurface={query.via === "share" ? "share" : "direct"}
     />
   );
 }

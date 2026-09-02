@@ -31,8 +31,8 @@ Exactly one capability must be selectable: either one `in_progress` capability o
 | C09 | Public consultation | Visitors can contribute one of the three approved positions without an account, with atomic results and proportionate repeat-response resistance. | C07 | complete |
 | C10 | Evaluation access and cost control | Evaluators enter without visible friction while credits, idempotency, rate limits, global budget, refund, alerts, and kill switches protect paid actions. | C07 | complete |
 | C11 | Standard access and successor invitations | Standard users can redeem filing access and transfer one finite residual allowance along a non-branching successor chain without exposing invitation credentials on public records. | C10 | complete |
-| C12 | Observability and learning | Product and operational events reveal journey health, failures, cost, and behavior without collecting raw personal case content. | C10 | ready |
-| C13 | Department expansion | Chronology, Digital Conduct, Domestic Affairs, and Social Planning each have polished adaptive logic and a distinct fact-visualization grammar within one Bureau identity. | C06 | queued |
+| C12 | Observability and learning | Product and operational events reveal journey health, failures, cost, and behavior without collecting raw personal case content. | C10 | complete |
+| C13 | Department expansion | Chronology, Digital Conduct, Domestic Affairs, and Social Planning each have polished adaptive logic and a distinct fact-visualization grammar within one Bureau identity. | C06 | ready |
 | C14 | Cross-journey resilience and refinement | Complete journeys meet the visual, responsive, accessibility, reduced-motion, pseudo-localization, recovery, and regression-testing bar across supported browsers. | C08, C09, C10 | queued |
 | C15 | Evaluation release | A stable hosted experience, clean-browser verification, evaluator-ready repository, and concise walkthrough make the complete evidence package accessible without coordination. | C14 | queued |
 

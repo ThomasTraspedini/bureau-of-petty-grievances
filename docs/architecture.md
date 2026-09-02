@@ -2,7 +2,7 @@
 
 ## Status
 
-The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, sharing, public consultation, evaluation cost control, and transferable standard access described in decisions 0006 through 0015. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, access, and persistence boundaries.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, sharing, public consultation, evaluation cost control, transferable standard access, and privacy-preserving product analytics described in decisions 0006 through 0016. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, access, persistence, and observability boundaries.
 
 ## Application foundation
 
@@ -113,6 +113,16 @@ The repository inserts a response only by selecting a currently published, unexp
 
 The public page server-renders the current aggregate, then a small localized client island owns submission, local recovery, live feedback, and the restrained result transition. It receives no owner authority and sends no aliases, witness prose, generated determination language, or other raw case content. Consultation cannot write to the determination snapshot and consumes no model call or filing credit. Its existing per-record browser key remains the proportionate repeat-response boundary; the C10 network limiter protects paid generation and evaluator exchange rather than turning public opinion into invasive identity.
 
+## Product-analytics boundary
+
+`src/domain/observability` owns analytics schema version `1`, identifier grammars, exact event-specific property validation, retention policy, and the stable analysis catalog. The schema has no open metadata field and admits only language-neutral product codes, categorical outcomes, bounded measurements, release metadata, and purpose-specific pseudonyms. It cannot represent filing answers, user-supplied prose, credentials, raw record identifiers, URLs, referrers, or network addresses.
+
+The browser holds one random `jrn_` identifier in tab-scoped `sessionStorage`. Explicit feature instrumentation posts small JSON envelopes to `/api/observability`; the route accepts only same-origin current events under four kilobytes and revalidates the complete contract. The localized layout resolves enablement at request time so deployment configuration and disclosure cannot be frozen into a build artifact. No provider token, browser SDK, analytics cookie, autocapture, replay, or heatmap enters the client boundary.
+
+`src/server/observability` owns explicit environment validation, event enrichment, HMAC pseudonymization, release and pricing metadata, token-based cost estimation, and failure isolation. Public-record and successor-invitation source values receive different HMAC purposes and are never delivered in clear text. The application stores no persistent analytics copy.
+
+`src/providers/mixpanel-product-analytics.ts` is the first replaceable adapter. It sends current events to the configured EU or US Mixpanel ingestion host with `ip=0`, a 750-millisecond timeout, event idempotency, and a server-only project token. Any invalid configuration disables the runtime; rejection, timeout, or provider failure is swallowed outside the product transaction. Mixpanel-side 180-day retention, disabled geolocation enrichment, and disabled automatic capture remain explicit deployment checks.
+
 ## Prototype evidence
 
 The interaction prototype establishes several implementation requirements without choosing a framework:
@@ -221,8 +231,8 @@ Records should support explicit lifecycle states such as active, unpublished, ar
 ## Decisions intentionally deferred
 
 - deployment provider;
-- analytics provider;
 - production model promotion and routing beyond the configurable `gpt-5.6-luna` default;
+- experimentation, warehouse export, qualitative-feedback capture, and analytics beyond the accepted explicit event contract;
 - account-backed access, payment, entitlement replenishment, and cross-device standard-session recovery;
 - hosting-specific proxy topology, scheduled alert delivery, and broader public-mutation abuse controls.
 

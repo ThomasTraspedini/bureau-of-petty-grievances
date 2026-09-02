@@ -10,6 +10,7 @@ import type { InterfaceLocale } from "@/i18n/routing";
 import { CivicSeal } from "../application-shell/application-shell";
 import { PublicRecordPublication } from "../public-record/public-record-publication";
 import { SuccessorTransfer } from "../access/successor-transfer";
+import { SurfaceObserver } from "../observability/surface-observer";
 import { DeterminationRecord } from "./determination-record";
 import {
   DETERMINATION_SESSION_KEY,
@@ -76,48 +77,51 @@ export function DeterminationExperience({
   }
 
   return (
-    <DeterminationRecord
-      snapshot={snapshot}
-      locale={locale}
-      copy={copy}
-      navigation={navigation}
-      sessionLabel={copy.sessionLabel}
-      boundaryTitle={copy.transientTitle}
-      boundaryBody={copy.transientBody}
-      actions={
-        <>
-          <a
-            className="button button-secondary"
-            href={`/${locale}/file/review`}
-          >
-            {copy.reviewAction}
-          </a>
-          <a className="button button-primary" href={`/${locale}`}>
-            {copy.homeAction}
-          </a>
-        </>
-      }
-      afterRecord={
-        <>
-          <PublicRecordPublication
-            snapshot={snapshot}
-            locale={locale}
-            copy={publicRecord}
-          />
-          {standardAccess &&
-          standardAccessCopy &&
-          issueInvitation &&
-          cancelInvitation ? (
-            <SuccessorTransfer
+    <>
+      <SurfaceObserver locale={locale} surface={{ name: "determination" }} />
+      <DeterminationRecord
+        snapshot={snapshot}
+        locale={locale}
+        copy={copy}
+        navigation={navigation}
+        sessionLabel={copy.sessionLabel}
+        boundaryTitle={copy.transientTitle}
+        boundaryBody={copy.transientBody}
+        actions={
+          <>
+            <a
+              className="button button-secondary"
+              href={`/${locale}/file/review`}
+            >
+              {copy.reviewAction}
+            </a>
+            <a className="button button-primary" href={`/${locale}`}>
+              {copy.homeAction}
+            </a>
+          </>
+        }
+        afterRecord={
+          <>
+            <PublicRecordPublication
+              snapshot={snapshot}
               locale={locale}
-              copy={standardAccessCopy}
-              summary={standardAccess}
-              issueInvitation={issueInvitation}
-              cancelInvitation={cancelInvitation}
+              copy={publicRecord}
             />
-          ) : null}
-        </>
-      }
-    />
+            {standardAccess &&
+            standardAccessCopy &&
+            issueInvitation &&
+            cancelInvitation ? (
+              <SuccessorTransfer
+                locale={locale}
+                copy={standardAccessCopy}
+                summary={standardAccess}
+                issueInvitation={issueInvitation}
+                cancelInvitation={cancelInvitation}
+              />
+            ) : null}
+          </>
+        }
+      />
+    </>
   );
 }

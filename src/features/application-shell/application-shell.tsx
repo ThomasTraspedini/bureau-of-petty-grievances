@@ -145,7 +145,11 @@ export function ApplicationShell({ locale, copy }: ApplicationShellProps) {
                 {home.primaryAction}
                 <span aria-hidden="true">→</span>
               </a>
-              <a className="button button-secondary" href="#example">
+              <a
+                className="button button-secondary"
+                href="#example"
+                data-analytics-example="true"
+              >
                 {home.secondaryAction}
               </a>
             </div>

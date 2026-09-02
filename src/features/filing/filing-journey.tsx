@@ -1,6 +1,12 @@
 "use client";
 
-import { type SyntheticEvent, useEffect, useState, useTransition } from "react";
+import {
+  type SyntheticEvent,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 
 import type { IssuedChronologyDetermination } from "@/domain/determination/determination-experience";
 import {
@@ -15,6 +21,7 @@ import {
 } from "@/domain/filing/chronology";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
+import type { AnalyticsPathCode } from "@/domain/observability/product-analytics";
 
 import { CivicSeal } from "../application-shell/application-shell";
 import {
@@ -36,6 +43,11 @@ import {
   nextFilingStep,
   previousFilingStep,
 } from "./filing-steps";
+import { SurfaceObserver } from "../observability/surface-observer";
+import {
+  currentAnalyticsJourneyId,
+  trackBrowserProductEvent,
+} from "../observability/browser-product-analytics";
 
 type FilingCopy = MessageCatalog["Filing"];
 type NavigationCopy = MessageCatalog["Navigation"];
@@ -44,6 +56,7 @@ type CompleteFiling = (
   locale: string,
   draft: unknown,
   idempotencyKey: unknown,
+  journeyId?: unknown,
 ) => Promise<
   | { status: "accepted"; determination: IssuedChronologyDetermination }
   | { status: "rejected"; errors: FilingError[] }
@@ -107,8 +120,10 @@ export function FilingJourney({
     null,
   );
   const [isPending, startTransition] = useTransition();
+  const stepStartedAt = useRef<number | null>(null);
 
   useEffect(() => {
+    stepStartedAt.current = Date.now();
     const timer = window.setTimeout(() => {
       const stored = parseStoredDraft(
         window.localStorage.getItem(FILING_DRAFT_STORAGE_KEY),
@@ -137,6 +152,7 @@ export function FilingJourney({
   const pathFor = (target: FilingStepCode) => `/${locale}/file/${target}`;
   const questionIndex = FILING_STEP_CODES.indexOf(step) + 1;
   const showProgress = questionIndex >= 1 && questionIndex <= 7;
+  const observedPathCode = analyticsPathCode(draft.offence);
 
   function updateDraft(update: (current: ChronologyDraft) => ChronologyDraft) {
     window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
@@ -159,9 +175,35 @@ export function FilingJourney({
       const issue = validateDraftField(field, draft);
       if (issue) {
         setError(issue);
+        trackBrowserProductEvent({
+          locale,
+          name: "filing_validation_failed",
+          properties: {
+            step,
+            reason: analyticsValidationReason(issue),
+          },
+        });
         return;
       }
     }
+    const completedPathCode = analyticsPathCode(draft.offence);
+    const completionProperties = {
+      step,
+      direction: returnToReview
+        ? ("review_correction" as const)
+        : ("forward" as const),
+      durationMs: Math.min(
+        3_600_000,
+        Math.max(0, Date.now() - (stepStartedAt.current ?? Date.now())),
+      ),
+    };
+    trackBrowserProductEvent({
+      locale,
+      name: "filing_step_completed",
+      properties: completedPathCode
+        ? { ...completionProperties, pathCode: completedPathCode }
+        : completionProperties,
+    });
     const next = nextFilingStep(step);
     if (returnToReview) {
       navigate("review");
@@ -184,12 +226,22 @@ export function FilingJourney({
     setGenerationFailed(false);
     setGenerationLimited(null);
     setServerError(false);
+    const pathCode = analyticsPathCode(localResult.filing.offence);
+    if (!pathCode) return;
+    trackBrowserProductEvent({
+      locale,
+      name: "filing_completion_requested",
+      properties: { pathCode },
+    });
     startTransition(async () => {
       try {
         const idempotencyKey = getOrCreateGenerationIdempotencyKey(
           window.sessionStorage,
         );
-        const result = await completeFiling(locale, draft, idempotencyKey);
+        const journeyId = currentAnalyticsJourneyId();
+        const result = journeyId
+          ? await completeFiling(locale, draft, idempotencyKey, journeyId)
+          : await completeFiling(locale, draft, idempotencyKey);
         if (result.status === "accepted") {
           window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
           window.sessionStorage.setItem(
@@ -234,6 +286,16 @@ export function FilingJourney({
 
   return (
     <div className="filing-shell" data-locale={locale}>
+      {hydrated ? (
+        <SurfaceObserver
+          locale={locale}
+          surface={
+            observedPathCode
+              ? { name: "filing", step, pathCode: observedPathCode }
+              : { name: "filing", step }
+          }
+        />
+      ) : null}
       <a className="skip-link" href="#filing-question">
         {copy.skipToContent}
       </a>
@@ -388,6 +450,31 @@ export function FilingJourney({
       </main>
     </div>
   );
+}
+
+function analyticsPathCode(
+  offence: ChronologyDraft["offence"],
+): AnalyticsPathCode | undefined {
+  switch (offence) {
+    case "premature_departure":
+      return "chronology_premature_departure";
+    case "chronic_lateness":
+      return "chronology_chronic_lateness";
+    case "optimistic_estimate":
+      return "chronology_optimistic_estimate";
+    default:
+      return undefined;
+  }
+}
+
+function analyticsValidationReason(
+  issue: FilingErrorCode,
+): "required" | "invalid" | "restricted_content" {
+  if (issue === "required") return "required";
+  if (issue === "restricted_content" || issue === "unnecessary_identifier") {
+    return "restricted_content";
+  }
+  return "invalid";
 }
 
 function DeterminationLimited({

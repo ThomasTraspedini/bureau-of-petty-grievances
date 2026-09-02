@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import type { StandardAccessSummary } from "@/domain/access/standard-access";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
+import { currentAnalyticsJourneyId } from "../observability/browser-product-analytics";
 
 import { CivicSeal } from "../application-shell/application-shell";
 import { SuccessorTransfer } from "./successor-transfer";
@@ -37,7 +38,10 @@ export function StandardAccess({
   locale: InterfaceLocale;
   copy: MessageCatalog["StandardAccess"];
   navigation: MessageCatalog["Navigation"];
-  exchangeToken: (token: unknown) => Promise<
+  exchangeToken: (
+    token: unknown,
+    journeyId?: unknown,
+  ) => Promise<
     | { status: "accepted"; summary: StandardAccessSummary }
     | {
         status:
@@ -63,7 +67,12 @@ export function StandardAccess({
       "",
       `${window.location.pathname}${window.location.search}`,
     );
-    const operation = token ? exchangeToken(token) : getStatus();
+    const journeyId = currentAnalyticsJourneyId();
+    const operation = token
+      ? journeyId
+        ? exchangeToken(token, journeyId)
+        : exchangeToken(token)
+      : getStatus();
     void operation
       .then((result) => {
         if (result.status === "accepted" || result.status === "available") {

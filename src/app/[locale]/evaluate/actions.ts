@@ -2,6 +2,7 @@
 
 import { randomBytes } from "node:crypto";
 import { cookies, headers } from "next/headers";
+import { after } from "next/server";
 
 import {
   EVALUATION_SESSION_COOKIE,
@@ -11,6 +12,7 @@ import {
 } from "@/server/access/access-control-service";
 import { createNetworkDigest } from "@/server/access/network-identity";
 import { getRuntimeAccessControlRepository } from "@/server/access/runtime-access-control";
+import { recordServerProductEvent } from "@/server/observability/runtime-product-analytics";
 
 export type ExchangeEvaluationTokenActionResult =
   | { status: "accepted" }
@@ -20,6 +22,7 @@ export type ExchangeEvaluationTokenActionResult =
 
 export async function exchangeEvaluationToken(
   token: unknown,
+  journeyId?: unknown,
 ): Promise<ExchangeEvaluationTokenActionResult> {
   const now = new Date();
   const result = await exchangeEvaluationTokenWith(
@@ -32,6 +35,15 @@ export async function exchangeEvaluationToken(
       now: () => now,
       randomBytes,
     },
+  );
+  after(() =>
+    recordServerProductEvent({
+      journeyId,
+      locale: "en",
+      department: "chronology",
+      name: "access_redeemed",
+      properties: { kind: "evaluation", outcome: result.status },
+    }),
   );
   if (result.status !== "accepted") return result;
 

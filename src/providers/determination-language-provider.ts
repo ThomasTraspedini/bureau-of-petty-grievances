@@ -7,21 +7,34 @@ export type ProviderRetryableFailureReason =
 export type ProviderTerminalFailureReason =
   "configuration" | "request_rejected";
 
+export interface ProviderTokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+}
+
 export type DeterminationLanguageProviderResult =
   | {
       status: "success";
       output: unknown;
       model: string;
       requestId: string;
+      usage?: ProviderTokenUsage;
     }
-  | { status: "refusal"; model: string; requestId: string }
+  | {
+      status: "refusal";
+      model: string;
+      requestId: string;
+      usage?: ProviderTokenUsage;
+    }
   | {
       status: "retryable_failure";
       reason: ProviderRetryableFailureReason;
+      usage?: ProviderTokenUsage;
     }
   | {
       status: "terminal_failure";
       reason: ProviderTerminalFailureReason;
+      usage?: ProviderTokenUsage;
     };
 
 export interface DeterminationLanguageProviderAttempt {

@@ -3,11 +3,14 @@
 import { useRef, useState } from "react";
 
 import type { PublicRecordShareDescriptor } from "@/domain/public-record/public-record-sharing";
+import type { AnalyticsSubject } from "@/domain/observability/product-analytics";
+import type { InterfaceLocale } from "@/i18n/routing";
 
 import type {
   LocalizedPublicRecordShare,
   PublicRecordSharingCopy,
 } from "./public-record-sharing-copy";
+import { trackBrowserProductEvent } from "../observability/browser-product-analytics";
 
 type SharingStatus = "idle" | "shared" | "cancelled" | "copied" | "manual";
 
@@ -16,25 +19,35 @@ export function PublicRecordSharing({
   localized,
   publicUrl,
   copy,
+  locale = "en",
+  analyticsSubject,
 }: {
   descriptor: PublicRecordShareDescriptor;
   localized: LocalizedPublicRecordShare;
   publicUrl: string;
   copy: PublicRecordSharingCopy;
+  locale?: InterfaceLocale;
+  analyticsSubject?: AnalyticsSubject | null;
 }) {
   const address = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<SharingStatus>("idle");
 
   async function copyPublicAddress() {
+    const sharedUrl = shareAddress(
+      publicUrl,
+      analyticsSubject !== null && analyticsSubject !== undefined,
+    );
     try {
       const clipboard: unknown = Reflect.get(navigator, "clipboard");
       if (!isClipboard(clipboard)) throw new Error("unavailable");
-      await clipboard.writeText(publicUrl);
+      await clipboard.writeText(sharedUrl);
       setStatus("copied");
+      trackShare("clipboard", "completed");
     } catch {
       setStatus("manual");
       address.current?.focus();
       address.current?.select();
+      trackShare("manual", "failed");
     }
   }
 
@@ -47,16 +60,33 @@ export function PublicRecordSharing({
       await navigator.share({
         title: localized.title,
         text: localized.shareText,
-        url: publicUrl,
+        url: shareAddress(
+          publicUrl,
+          analyticsSubject !== null && analyticsSubject !== undefined,
+        ),
       });
       setStatus("shared");
+      trackShare("native", "completed");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         setStatus("cancelled");
+        trackShare("native", "cancelled");
         return;
       }
       await copyPublicAddress();
     }
+  }
+
+  function trackShare(
+    method: "native" | "clipboard" | "manual",
+    outcome: "completed" | "cancelled" | "failed",
+  ) {
+    if (!analyticsSubject) return;
+    trackBrowserProductEvent({
+      locale,
+      name: "share_completed",
+      properties: { recordSubject: analyticsSubject, method, outcome },
+    });
   }
 
   return (
@@ -123,6 +153,13 @@ export function PublicRecordSharing({
       </p>
     </section>
   );
+}
+
+function shareAddress(publicUrl: string, attributed: boolean): string {
+  if (!attributed) return publicUrl;
+  const url = new URL(publicUrl);
+  url.searchParams.set("via", "share");
+  return url.toString();
 }
 
 function isClipboard(

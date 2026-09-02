@@ -125,7 +125,13 @@ Delivery is operator-invoked until a hosting scheduler is selected. Failed deliv
 
 ## Observability
 
-Operational signals should distinguish:
+Product analytics is disabled by default and is not required for any user journey. An enabled deployment requires every analytics setting in `.env.example`: a Mixpanel project token, matching EU or US region, separate HMAC secret, the fixed 180-day retention assertion, semantic application version, pricing version, and integer input/output prices in micro-US-dollars per million tokens. Verify the effective categorical state without printing secrets:
+
+```sh
+npm run analytics:operate -- status
+```
+
+The application records explicit events for entry, filing steps and paths, validation, determination outcome and latency, provider attempts and estimated cost, publication, sharing, public views, consultation, reporting, access redemption, successor handoff, and owner lifecycle operations. Operational signals distinguish:
 
 - validation and safety rejection;
 - provider failure or malformed output;
@@ -134,7 +140,11 @@ Operational signals should distinguish:
 - rate limiting;
 - client rendering and sharing failure.
 
-Logs and analytics must use record, grant, session, or request identifiers and categorical metadata, never bearer credentials, raw network addresses, respondent names, witness statements, prompts containing personal text, or full generated determinations.
+Browser events use a random tab-scoped journey identifier and a bounded same-origin collector. Public records and successor invitations use purpose-separated HMAC pseudonyms. Mixpanel delivery occurs server-side, uses the selected regional host with `ip=0`, and cannot block product work. The application retains no analytics event copy.
+
+Before enabling production collection, configure Mixpanel retention to 180 days, keep geolocation enrichment, autocapture, and session replay disabled, restrict project access, verify the localized disclosure, and confirm that blocking Mixpanel leaves the complete journey usable. Release comparisons must filter to `environment=production` and preserve `application_version` and `pricing_version`. The authoritative event catalog, report definitions, data-quality checks, interpretation limits, and incident procedure are in [product analytics](analytics.md).
+
+Logs and analytics must use categorical metadata or approved purpose-specific pseudonyms, never bearer credentials, raw record or invitation identifiers, raw network addresses, respondent names, filing answers, witness statements, prompts containing personal text, full URLs or referrers, or generated determinations.
 
 ## Data and privacy operations
 

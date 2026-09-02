@@ -44,6 +44,7 @@ describe("OpenAI determination-language adapter", () => {
         status: "completed",
         output_text: JSON.stringify(language),
         output: [],
+        usage: { input_tokens: 420, output_tokens: 210 },
       });
     });
 
@@ -57,6 +58,7 @@ describe("OpenAI determination-language adapter", () => {
       output: language,
       model: "gpt-5.6-luna",
       requestId: "resp_123",
+      usage: { inputTokens: 420, outputTokens: 210 },
     });
     expect(requests).toHaveLength(1);
     expect(requests[0]).toMatchObject({

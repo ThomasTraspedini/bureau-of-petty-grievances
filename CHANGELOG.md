@@ -2,6 +2,23 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.13.0]
+
+### Added
+
+- A versioned, runtime-validated analytics contract for the primary funnel, Chronology paths and drop-off, validation, determination outcomes, generation latency and estimated cost, publication, sharing, consultation, reports, access, successor handoff, owner lifecycle, and categorical operational failure.
+- Tab-scoped anonymous journey identity, purpose-separated keyed record and invitation pseudonyms, bounded same-origin browser collection, and a replaceable server-only Mixpanel adapter with EU or US ingestion and IP enrichment disabled.
+- Versioned provider token usage and deployment-configured price snapshots for release-aware generative-cost analysis without adding content to the generation ledger.
+- Stable analysis definitions, a production learning loop, data-quality checks, a privacy incident procedure, an operator configuration summary, localized disclosure, and a 180-day analytics retention contract.
+- Event-schema, privacy, identity, collector, adapter, failure-isolation, cost, instrumentation, and bounded share-attribution coverage that requires no live analytics service.
+- An accepted decision record defining explicit collection, identity, retention, provider, consent, failure, and interpretation boundaries.
+
+### Changed
+
+- Product instrumentation is now explicit and content-free: no autocapture, session replay, heatmaps, analytics cookies, raw URLs or referrers, public identifiers, access credentials, filing answers, prompts, or generated determination prose can enter the event schema.
+- Provider output parsing now retains only bounded input and output token counts for aggregate outcome and cost analysis.
+- Observability and learning are complete; department expansion is the next ready capability.
+
 ## [0.12.0]
 
 ### Added

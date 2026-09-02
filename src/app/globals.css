@@ -51,6 +51,18 @@ body {
   text-rendering: optimizelegibility;
 }
 
+.analytics-disclosure {
+  margin: 0;
+  border-top: 1px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  padding: 0.75rem clamp(1rem, 4vw, 3rem);
+  background: var(--ivory);
+  color: color-mix(in srgb, var(--ink) 72%, transparent);
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
 a {
   color: inherit;
 }

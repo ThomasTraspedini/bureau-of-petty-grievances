@@ -121,8 +121,9 @@ function normalizeOpenAIResponse(
 
   const requestId = typeof value.id === "string" ? value.id : "unavailable";
   const model = typeof value.model === "string" ? value.model : requestedModel;
+  const usage = parseUsage(value.usage);
   if (hasRefusal(value.output)) {
-    return { status: "refusal", model, requestId };
+    return { status: "refusal", model, requestId, ...(usage ? { usage } : {}) };
   }
   if (value.status !== "completed" || typeof value.output_text !== "string") {
     return { status: "retryable_failure", reason: "provider_unavailable" };
@@ -135,6 +136,7 @@ function normalizeOpenAIResponse(
       output,
       model,
       requestId,
+      ...(usage ? { usage } : {}),
     };
   } catch {
     return {
@@ -142,8 +144,26 @@ function normalizeOpenAIResponse(
       output: value.output_text,
       model,
       requestId,
+      ...(usage ? { usage } : {}),
     };
   }
+}
+
+function parseUsage(value: unknown) {
+  if (!isRecord(value)) return null;
+  const inputTokens = value.input_tokens;
+  const outputTokens = value.output_tokens;
+  if (
+    typeof inputTokens !== "number" ||
+    !Number.isInteger(inputTokens) ||
+    inputTokens < 0 ||
+    typeof outputTokens !== "number" ||
+    !Number.isInteger(outputTokens) ||
+    outputTokens < 0
+  ) {
+    return null;
+  }
+  return { inputTokens, outputTokens };
 }
 
 function hasRefusal(value: unknown): boolean {

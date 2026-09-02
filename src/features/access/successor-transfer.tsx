@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import type { StandardAccessSummary } from "@/domain/access/standard-access";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
+import { currentAnalyticsJourneyId } from "../observability/browser-product-analytics";
 
 const INVITATION_STORAGE_KEY = "bpg:successor-invitation:v1";
 
@@ -49,8 +50,9 @@ export function SuccessorTransfer({
   issueInvitation: (
     locale: InterfaceLocale,
     replace: boolean,
+    journeyId?: unknown,
   ) => Promise<IssueResult>;
-  cancelInvitation: () => Promise<CancelResult>;
+  cancelInvitation: (journeyId?: unknown) => Promise<CancelResult>;
   onSummaryChange?: (summary: StandardAccessSummary) => void;
 }) {
   const [current, setCurrent] = useState(summary);
@@ -90,7 +92,10 @@ export function SuccessorTransfer({
   function issue(replace: boolean) {
     setFeedback("idle");
     startTransition(async () => {
-      const result = await issueInvitation(locale, replace);
+      const journeyId = currentAnalyticsJourneyId();
+      const result = journeyId
+        ? await issueInvitation(locale, replace, journeyId)
+        : await issueInvitation(locale, replace);
       if (result.status === "issued") {
         window.sessionStorage.setItem(
           INVITATION_STORAGE_KEY,
@@ -111,7 +116,10 @@ export function SuccessorTransfer({
   function cancel() {
     setFeedback("idle");
     startTransition(async () => {
-      const result = await cancelInvitation();
+      const journeyId = currentAnalyticsJourneyId();
+      const result = journeyId
+        ? await cancelInvitation(journeyId)
+        : await cancelInvitation();
       if (result.status === "cancelled") {
         window.sessionStorage.removeItem(INVITATION_STORAGE_KEY);
         setInvitationUrl("");

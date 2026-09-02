@@ -3,9 +3,12 @@ import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
+import { connection } from "next/server";
 import type { ReactNode } from "react";
 
+import { getMessageCatalog } from "@/i18n/catalogs";
 import { openGraphLocales, routing } from "@/i18n/routing";
+import { isRuntimeProductAnalyticsEnabled } from "@/server/observability/runtime-product-analytics";
 
 import "../globals.css";
 
@@ -82,13 +85,23 @@ export default async function LocaleLayout({
     notFound();
   }
 
+  await connection();
+  const analyticsEnabled = isRuntimeProductAnalyticsEnabled();
+  const messages = getMessageCatalog(locale);
+
   return (
     <html
       lang={locale}
       className={`${publicSans.variable} ${sourceSerif.variable} ${plexMono.variable}`}
+      data-analytics={analyticsEnabled ? "enabled" : "disabled"}
     >
       <body>
         <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        {analyticsEnabled ? (
+          <aside className="analytics-disclosure">
+            {messages.Observability.disclosure}
+          </aside>
+        ) : null}
       </body>
     </html>
   );

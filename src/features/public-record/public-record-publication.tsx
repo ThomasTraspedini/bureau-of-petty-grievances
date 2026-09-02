@@ -6,6 +6,7 @@ import { publishPublicRecord } from "@/app/[locale]/record/actions";
 import type { ChronologyDeterminationSnapshot } from "@/domain/determination/determination-experience";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
+import { currentAnalyticsJourneyId } from "../observability/browser-product-analytics";
 
 type PublicRecordCopy = MessageCatalog["PublicRecord"];
 
@@ -43,11 +44,15 @@ export function PublicRecordPublication({
     setState({ status: "publishing" });
     let result;
     try {
-      result = await publishPublicRecord(locale, {
+      const input = {
         snapshot,
         publicationKey,
         ownerCredential,
-      });
+      };
+      const journeyId = currentAnalyticsJourneyId();
+      result = journeyId
+        ? await publishPublicRecord(locale, input, journeyId)
+        : await publishPublicRecord(locale, input);
     } catch {
       setState({ status: "failed" });
       return;

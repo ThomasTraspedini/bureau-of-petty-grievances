@@ -148,6 +148,16 @@ Specificity begins with structured product logic:
 
 The model may improve wording. It may not invent facts, diagnose a person, infer sensitive traits, introduce serious allegations, or claim external investigation.
 
+## Current product-learning contract
+
+Production learning uses explicit, versioned product events rather than automatic interaction capture. One random identifier connects the steps performed in a single browser tab. It is neither a cookie nor a person, account, device, or cross-session identifier. Purpose-separated keyed pseudonyms permit aggregate public-record and successor-invitation analysis without exposing the underlying identifier or credential.
+
+The measurements cover entry, the complete filing funnel, rendered Chronology path, step completion and correction, categorical validation, determination outcome, provider attempts, tokens and estimated cost, publication, sharing, public views, consultation, reports, access redemption, and successor handoff. Application version, deployment environment, locale, and department make before-and-after release comparison explicit.
+
+This evidence can reveal what people do, which paths they choose, where the journey weakens, and which outcomes move between releases. It cannot reveal user motivation, prove that a release caused a change, or make low-volume segments statistically meaningful. Product decisions should combine these signals with qualitative evidence and preserve the same report definitions across comparisons.
+
+Analytics is disabled unless the deployment opts in. Enabled collection has a localized disclosure, uses no autocapture, replay, heatmap, advertising identity, or cross-site tracking, keeps no application-side event ledger, and requires provider deletion after 180 days. The complete product remains independent of analytics availability.
+
 ## Safety and privacy
 
 The product supports low-stakes teasing among people who know one another.

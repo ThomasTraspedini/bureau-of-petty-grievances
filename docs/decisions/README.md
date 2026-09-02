@@ -21,3 +21,4 @@ Accepted records:
 - [0013 — Public consultation](0013-public-consultation.md)
 - [0014 — Evaluation access and cost control](0014-evaluation-access-and-cost-control.md)
 - [0015 — Standard access and residual-credit transfer](0015-standard-access-and-residual-transfer.md)
+- [0016 — Privacy-preserving observability and learning](0016-privacy-preserving-observability-and-learning.md)

@@ -4,6 +4,9 @@
     "description": "Submit a harmless recurring grievance and receive a fair, shareable determination.",
     "imageAlt": "Bureau of Petty Grievances — Harmony, administered."
   },
+  "Observability": {
+    "disclosure": "Anonymous service events help the Bureau improve. Case text and personal identifiers are never collected for analytics."
+  },
   "Navigation": {
     "skipToContent": "Skip to the main content",
     "brandName": "Bureau of Petty Grievances",

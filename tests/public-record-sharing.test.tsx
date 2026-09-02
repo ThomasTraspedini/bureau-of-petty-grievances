@@ -82,6 +82,23 @@ describe("public-record sharing boundary", () => {
     expect(screen.getByText(messages.Sharing.sharedStatus)).toBeVisible();
   });
 
+  it("adds bounded share attribution without changing the displayed public address", async () => {
+    const share = vi.fn<Navigator["share"]>().mockResolvedValue(undefined);
+    defineNavigatorValue("share", share);
+    renderSharing(`sub_${"s".repeat(22)}`);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: messages.Sharing.shareAction }),
+    );
+    await waitFor(() => {
+      expect(share).toHaveBeenCalledOnce();
+    });
+    expect(share.mock.calls[0]?.[0]?.url).toBe(`${publicUrl}?via=share`);
+    expect(
+      screen.getByLabelText(messages.Sharing.publicAddressLabel),
+    ).toHaveValue(publicUrl);
+  });
+
   it("falls back to copying when native sharing is unavailable", async () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     defineNavigatorValue("clipboard", { writeText });
@@ -175,7 +192,7 @@ describe("canonical public-record origin", () => {
   });
 });
 
-function renderSharing() {
+function renderSharing(analyticsSubject?: `sub_${string}`) {
   const record = recordFixture();
   const descriptor = createPublicRecordShareDescriptor(record);
   render(
@@ -184,6 +201,7 @@ function renderSharing() {
       localized={localizePublicRecordShare(descriptor, "en", messages.Sharing)}
       publicUrl={publicUrl}
       copy={messages.Sharing}
+      {...(analyticsSubject ? { analyticsSubject } : {})}
     />,
   );
 }
