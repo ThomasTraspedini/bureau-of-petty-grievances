@@ -251,6 +251,11 @@ button {
   box-shadow: 0 0 0 72px rgba(19, 45, 86, 0.025), 0 0 0 144px rgba(19, 45, 86, 0.018);
 }
 
+.hero-copy,
+.hero-visual {
+  min-width: 0;
+}
+
 .eyebrow {
   display: flex;
   align-items: center;
@@ -407,6 +412,48 @@ button {
   border: 1px solid var(--ink);
   border-radius: 50%;
   background: var(--blue-pale);
+}
+
+.sample-brand {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sample-seal {
+  flex: none;
+  width: 60px;
+  height: 60px;
+}
+
+.sample-signature {
+  min-width: 0;
+}
+
+.sample-brand-name,
+.sample-brand-office {
+  display: block;
+  white-space: nowrap;
+}
+
+.sample-brand-name {
+  color: var(--ink-strong);
+  font-family: var(--serif);
+  font-size: clamp(14px, 1.8vw, 17px);
+  font-weight: 650;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+
+.sample-brand-office {
+  margin-top: 5px;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: clamp(6px, 0.82vw, 8px);
+  letter-spacing: 0.065em;
+  text-transform: uppercase;
 }
 
 .sample-kicker,
@@ -1671,7 +1718,7 @@ button {
 
   .sample-record {
     transform: none;
-    padding: 32px 27px;
+    padding: 32px 22px;
   }
 
   .metrics-inner {
@@ -1861,6 +1908,30 @@ button {
 
   .record-actions .button {
     width: 100%;
+  }
+}
+
+@media (max-width: 360px) {
+  .hero h1 {
+    font-size: 52px;
+  }
+
+  .sample-brand {
+    gap: 10px;
+  }
+
+  .sample-seal {
+    width: 48px;
+    height: 48px;
+  }
+
+  .sample-brand-name {
+    font-size: 12.5px;
+  }
+
+  .sample-brand-office {
+    font-size: 5.8px;
+    letter-spacing: 0.035em;
   }
 }
 

@@ -96,11 +96,11 @@ function brandMark(tone = "dark") {
   const accent = "#ef9c72";
   return `
     <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false">
-      <circle cx="24" cy="24" r="22.5" fill="none" stroke="${stroke}" stroke-width="1"/>
-      <path d="M14 16.5h20M14 24h20M14 31.5h20" fill="none" stroke="${stroke}" stroke-width="2.4" stroke-linecap="round"/>
-      <circle cx="20" cy="16.5" r="3.2" fill="${accent}"/>
-      <circle cx="29" cy="24" r="3.2" fill="${accent}"/>
-      <circle cx="23" cy="31.5" r="3.2" fill="${accent}"/>
+      <circle cx="24" cy="24" r="22.5" fill="none" stroke="${stroke}" stroke-width="1.15"/>
+      <circle cx="24" cy="24" r="18.25" fill="none" stroke="${stroke}" stroke-width="0.75" opacity="0.72"/>
+      <path d="M24 1.5v4M24 42.5v4M1.5 24h4M42.5 24h4" fill="none" stroke="${stroke}" stroke-width="1.15"/>
+      <path d="m11.5 24 2.3-2.3 2.3 2.3-2.3 2.3Zm20.4 0 2.3-2.3 2.3 2.3-2.3 2.3Z" fill="${accent}"/>
+      <text x="24" y="32" fill="${stroke}" font-family="Source Serif 4, Georgia, serif" font-size="25" font-weight="700" text-anchor="middle">${t("brandInitial")}</text>
     </svg>`;
 }
 
@@ -182,7 +182,13 @@ function renderLanding() {
         </div>
         <div class="hero-visual" aria-label="${t("landingSampleKicker")}">
           <article class="sample-record">
-            <div class="sample-seal">${brandMark()}</div>
+            <div class="sample-brand">
+              <div class="sample-seal">${brandMark()}</div>
+              <div class="sample-signature">
+                <span class="sample-brand-name">${t("brandName")}</span>
+                <span class="sample-brand-office">${t("brandDescriptor")}</span>
+              </div>
+            </div>
             <p class="sample-kicker">${t("landingSampleKicker")}</p>
             <h2>${t("landingSampleTitle")}</h2>
             <p>${t("landingSampleBody")}</p>

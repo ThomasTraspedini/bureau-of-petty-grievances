@@ -8,7 +8,7 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.2.0` adds a complete, interactive product prototype covering the primary journey on mobile and key desktop states. It establishes the Bureau's visual identity, copy hierarchy, responsive behavior, motion intent, and recovery states while deliberately deferring the production application stack.
+Version `0.2.1` presents a complete, interactive product prototype covering the primary journey on mobile and key desktop states. Its refined civic seal and institutional signature establish a Bureau with pre-digital continuity and a fully modern service, while the production application stack remains deliberately deferred.
 
 [Review the interaction prototype](prototype/README.md) or serve the repository locally and open `/prototype/en/`.
 

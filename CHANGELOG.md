@@ -2,6 +2,13 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.2.1]
+
+### Changed
+
+- Replaced the control-like prototype mark with a double-ring civic seal and typographic Bureau monogram that suggests institutional continuity before complete digitalization.
+- Added the complete two-line Bureau signature beside the seal on the representative determination preview, with responsive sizing across mobile and desktop.
+
 ## [0.2.0]
 
 ### Added

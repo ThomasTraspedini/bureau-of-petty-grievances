@@ -40,3 +40,10 @@ test("the catalog covers recovery, consultation, sharing, and successor boundari
   assert.match(messages.shareBody, /does not contain/i);
   assert.match(messages.successorBody, /separate/i);
 });
+
+test("the representative record carries the complete institutional signature", () => {
+  assert.match(appSource, /class="sample-brand"/);
+  assert.match(appSource, /class="sample-brand-name">\$\{t\("brandName"\)\}/);
+  assert.match(appSource, /class="sample-brand-office">\$\{t\("brandDescriptor"\)\}/);
+  assert.equal(messages.brandInitial, "B");
+});
