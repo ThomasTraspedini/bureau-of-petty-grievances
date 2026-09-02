@@ -18,6 +18,14 @@ Current source ownership is deliberately small:
 - future `src/domain` code must remain independent of React, Next.js, server, and provider imports;
 - future `src/providers` adapters may not import application routes or feature views.
 
+## Adaptive filing boundary
+
+The production Chronology journey lives at validated `/{locale}/file/{step}` routes. Route codes and stored domain values are language-neutral; localized catalogs provide all visible labels, instructions, errors, accessibility text, and review summaries.
+
+`src/domain/filing` owns the framework-independent draft shape, three discriminated Chronology fact variants, normalization, structural limits, and conservative harmless-content boundaries. The filing feature owns route progress, responsive controls, review presentation, and a versioned device-local storage envelope. Stored drafts carry their locale and update time, expire after 30 days, and are runtime-validated before entering application state. Rejected witness text is excluded from storage while the rest of a safe draft remains recoverable.
+
+The reviewed filing crosses a server action and is validated again through the same domain boundary. This action intentionally returns only accepted or typed rejection: it does not persist content, reserve a credit, calculate a determination, or call a provider. A short-lived session marker allows the accepted client to render completion; direct navigation without that marker returns to review. That honest seam can feed the deterministic assessment capability without making the current filing depend on its future implementation.
+
 ESLint enforces the domain and provider import direction before those later boundaries acquire implementation. This avoids speculative interfaces while making their allowed dependency direction explicit.
 
 ## Prototype evidence

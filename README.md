@@ -8,7 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.3.0` adds the production application foundation: a localized, strictly typed Next.js shell on `/en`, using the accepted Bureau identity, self-hosted typography, responsive direction, and reduced-motion behavior. The complete static interaction prototype remains available as evidence while production capabilities are added vertically.
+Version `0.4.0` adds the complete production Chronology filing journey. A filer can follow three adaptive timing grammars, preserve a safe 30-day device-local draft, move through localized step routes, review and correct every fact, and complete server validation without the product pretending that a determination or public record already exists.
+
+The complete static interaction prototype remains available as evidence while determination and later capabilities are added vertically.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -21,7 +23,7 @@ npm ci
 npm run dev
 ```
 
-Open `http://localhost:3000/en`. The root route redirects to the explicit English locale.
+Open `http://localhost:3000/en`. The root route redirects to the explicit English locale; the production filing begins at `/en/file/respondent`.
 
 ## Product principles
 

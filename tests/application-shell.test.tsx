@@ -37,7 +37,7 @@ describe("application shell", () => {
     ).toBeVisible();
     expect(
       screen.getByRole("link", { name: messages.Home.primaryAction }),
-    ).toHaveAttribute("href", "#service-standard");
+    ).toHaveAttribute("href", "/en/file/respondent");
   });
 
   it("keeps the locale explicit in the shell and home navigation", () => {

@@ -17,6 +17,8 @@ The application foundation produces a full Node.js server build on Node.js 24. T
 
 The current application has no secrets or required environment variables. Production font files are bundled locally. CI and local verification use the same repository command after installing dependencies and the Playwright Chromium browser.
 
+The production filing sends a reviewed draft to the server only for runtime validation. The server does not yet store filing content, invoke a provider, reserve credit, or produce a record. Recovery data remains in the filer’s browser in a locale-bearing, versioned envelope for no longer than 30 days and can be reset explicitly. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in that envelope.
+
 ## Cost controls
 
 The quality bar determines the generative approach. Budget controls prevent runaway spend instead of encouraging deliberately weak output.

@@ -2,6 +2,21 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.4.0]
+
+### Added
+
+- A complete localized Chronology filing journey across validated step routes, with three adaptive timing grammars, visible progress, reversible navigation, review, and direct correction.
+- Language-neutral, strictly typed filing rules with runtime normalization at form, browser-storage, route, and server boundaries.
+- A versioned 30-day device-local draft lifecycle with restoration, expiry, invalid-data recovery, explicit reset, and exclusion of rejected witness text.
+- Localized empty, invalid, restricted-content, restored, expired, server-rejected, and honestly completed states that preserve safe work.
+- Domain, component, pseudo-localization, accessibility, keyboard, reduced-motion, end-to-end, and reviewed mobile and desktop visual coverage.
+
+### Changed
+
+- The application home now opens the production filing service and describes Chronology as active.
+- Adaptive filing is complete; deterministic determination is the next ready capability.
+
 ## [0.3.0]
 
 ### Added

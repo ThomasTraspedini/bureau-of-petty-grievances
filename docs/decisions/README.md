@@ -12,3 +12,4 @@ Accepted records:
 - [0004 — Public roadmap and private execution queue](0004-public-roadmap-and-private-execution-queue.md)
 - [0005 — Interaction prototype direction](0005-interaction-prototype-direction.md)
 - [0006 — Application foundation stack](0006-application-foundation-stack.md)
+- [0007 — Adaptive filing boundaries](0007-adaptive-filing-boundaries.md)

@@ -30,6 +30,18 @@ Every meaningful product decision should answer:
 
 Each implemented increment must leave a coherent experience. Later capabilities enrich the loop without turning earlier releases into unfinished scaffolding.
 
+## Current production filing contract
+
+Chronology is the first enabled filing department. Its localized production journey supports three classifications with distinct submitted-fact grammars:
+
+- a premature declaration records the declaration time and minutes until actual readiness;
+- chronic lateness records the agreed time and submitted delay;
+- an optimistic estimate compares the stated duration with the longer duration actually required.
+
+The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review.
+
+Completion currently means that the server accepted the structured filing boundary. It does not create a determination, persistent record, public URL, access entitlement, or credit event. Those outcomes remain separate roadmap capabilities.
+
 ## Emotional outcome
 
 The filer should feel understood, amused by the seriousness of the process, surprised by the specificity of the result, and safe sharing it.

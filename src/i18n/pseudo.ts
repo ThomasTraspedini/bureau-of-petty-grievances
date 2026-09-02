@@ -27,6 +27,9 @@ function isCatalog(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+export function pseudoLocalizeCatalog<T extends Record<string, unknown>>(
+  catalog: T,
+): T;
 export function pseudoLocalizeCatalog(
   catalog: Record<string, unknown>,
 ): Record<string, unknown> {

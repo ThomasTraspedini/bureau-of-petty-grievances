@@ -53,7 +53,7 @@ interface ApplicationShellProps {
   copy: ApplicationShellCopy;
 }
 
-function CivicSeal({ initial }: { initial: string }) {
+export function CivicSeal({ initial }: { initial: string }) {
   return (
     <svg
       aria-hidden="true"
@@ -138,7 +138,10 @@ export function ApplicationShell({ locale, copy }: ApplicationShellProps) {
             <h1 id="hero-title">{home.title}</h1>
             <p className="hero-intro">{home.intro}</p>
             <div className="hero-actions">
-              <a className="button button-primary" href="#service-standard">
+              <a
+                className="button button-primary"
+                href={`/${locale}/file/respondent`}
+              >
                 {home.primaryAction}
                 <span aria-hidden="true">→</span>
               </a>
