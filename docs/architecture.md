@@ -2,7 +2,7 @@
 
 ## Status
 
-The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, sharing, and public consultation described in decisions 0006 through 0013. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, and persistence boundaries.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, sharing, public consultation, and evaluation cost control described in decisions 0006 through 0014. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, access, and persistence boundaries.
 
 ## Application foundation
 
@@ -25,7 +25,7 @@ The production Chronology journey lives at validated `/{locale}/file/{step}` rou
 
 `src/domain/filing` owns the framework-independent draft shape, three discriminated Chronology fact variants, normalization, structural limits, and conservative harmless-content boundaries. The filing feature owns route progress, responsive controls, review presentation, and a versioned device-local storage envelope. Stored drafts carry their locale and update time, expire after 30 days, and are runtime-validated before entering application state. Rejected witness text is excluded from storage while the rest of a safe draft remains recoverable.
 
-The reviewed filing crosses a server action and is validated again through the same domain boundary. Invalid input returns typed rejection. Accepted input continues through deterministic assessment and locale-aware language orchestration before returning a complete transient determination. That action does not persist content, reserve a credit, create a public identifier, or claim external investigation; persistence requires a separate informed publication action.
+The reviewed filing crosses a server action and is validated again through the same domain boundary. Invalid input returns typed rejection. Accepted input continues through deterministic assessment, paid-access authorization or deterministic continuity, and locale-aware language orchestration before returning a complete transient determination. The action stores no filing content, creates no public identifier, and claims no external investigation; persistence requires a separate informed publication action.
 
 ## Deterministic assessment boundary
 
@@ -47,7 +47,7 @@ ESLint enforces the domain and provider import direction. The provider adapter c
 
 `src/server/determination/generate-determination-language.ts` permits at most two attempts. Invalid output and transient failures may use the second attempt; refusal and terminal configuration or request failures immediately select fallback. Every valid command therefore completes with provider or fallback language, while a mismatched filing and assessment is rejected before the provider boundary.
 
-The filing action invokes this seam after runtime validation and deterministic assessment. Source and fallback reason remain internal; both successful paths return the same validated language shape to the determination experience.
+The filing action invokes this seam after runtime validation and deterministic assessment. A metered provider wrapper must reserve a durable global attempt immediately before each external call; direct configured-provider invocation is not a production path. Source and fallback reason remain internal; both successful paths return the same validated language shape to the determination experience.
 
 ## Determination experience boundary
 
@@ -57,7 +57,19 @@ The localized `/{locale}/determination` route is a client-restored private resul
 
 The procedural reference is random and non-sensitive but explicitly transient. Its year and six-character suffix combine with the assessment visual seed only for curated presentation variation. The responsive record includes a semantic text equivalent for the visual timeline, uses locale-aware date, time, and number formatting, exposes no provider diagnostics, and is marked `noindex`. Loading exists only during real work, terminal failure preserves review and retry, and reduced motion collapses the single reveal.
 
-Later capabilities still own credits and access authorization.
+Evaluator access and credits are enforced before optional provider language. Standard access and successor authority remain later capabilities.
+
+## Evaluation-access and cost-control boundary
+
+`src/domain/access` owns credential grammars, lifetimes, rate defaults, global defaults, and alert-threshold calculation without importing framework, database, or provider code. `src/server/access` owns cryptographic digesting, daily network pseudonyms, evaluator-link exchange, opaque sessions, repository contracts, SQL transactions, and the metered provider seam.
+
+An evaluator URL carries a random 256-bit `eva_` credential in its fragment. The localized client removes that fragment before a server action receives the credential. Persistence retains only its SHA-256 digest. Exchange creates a distinct random `evs_` credential in an `HttpOnly`, `SameSite=Lax` cookie and stores only that credential's digest. Grant expiry caps session expiry; revocation invalidates all attached sessions through the grant join.
+
+A browser-held random `fil_` key scopes one logical request to one evaluator session. PostgreSQL locks the session and grant, applies session, grant, and network buckets, reserves one credit, and inserts a unique request containing only a filing digest, procedural reference, categorical state, attempt count, and timestamps. Exact concurrent requests cannot create another reservation. Active duplicates wait for the short lease; expired ambiguous work becomes fallback and refunds the logical credit without redispatch.
+
+The global singleton control row owns the provider kill switch, attempt limit, and dispatched count. Each permitted provider attempt increments that count transactionally before the adapter runs, and the unit is never refunded. Valid provider language moves one reserved evaluator credit to consumed; fallback and terminal internal failure release it. Missing access, exhausted controls, invalid lifecycle, and database unavailability substitute the configured provider with the existing complete fallback provider.
+
+Daily HMAC network digests support coarse limits without retaining raw addresses. Production paid access requires a secret of at least 32 characters and an explicit trusted-proxy hop count; the application origin must not be directly reachable around that trusted proxy. Durable categorical alerts are inserted on the exact 75, 90, and 100 percent crossings for each evaluator pool and the global budget. Operator commands can deliver them to an optional HTTPS webhook and contain no case content.
 
 ## Persistent public-record boundary
 
@@ -65,7 +77,7 @@ Later capabilities still own credits and access authorization.
 
 `src/server/public-record` owns repository contracts, cryptographic digests, atomic publication, idempotent replay, owner authorization, report recording, migrations, and failure normalization. Public identifiers use 128 random bits. Owner credentials use 256 random bits, travel only through client-private state or a URL fragment, and are retained only as SHA-256 digests. Constant-time comparison precedes every owner mutation.
 
-PostgreSQL owns relational identity, status, expiry, report metadata, consultation responses, and unique idempotency constraints; a versioned JSONB value owns the immutable validated determination snapshot. The portable production adapter uses a server-only `DATABASE_URL`, with Supabase as the initial managed target and prepared statements disabled for transaction-pooler compatibility. PGlite provides a repository-compatible embedded PostgreSQL runtime for local development and deterministic integration and browser tests.
+PostgreSQL owns relational public-record identity, access grants, opaque sessions, generation accounting, rate buckets, alert metadata, lifecycle, report metadata, consultation responses, and unique idempotency constraints; a versioned JSONB value owns only the immutable validated public determination snapshot. The portable production adapter uses a server-only `DATABASE_URL`, with Supabase as the initial managed target and prepared statements disabled for transaction-pooler compatibility. PGlite provides a repository-compatible embedded PostgreSQL runtime for local development and deterministic integration and browser tests.
 
 The localized `/{locale}/record/{publicId}` route renders only published, unexpired snapshots. The document is rendered on the server; its small interactive reporting island receives only the public identifier and localized interface copy, so non-rendered snapshot fields are not serialized into the public client payload. The separate `/manage` route receives an owner credential from the URL fragment, immediately removes it from browser history, retains it only in tab storage, and sends it only in protected server actions. Published routes and owner routes use dynamic rendering, `noindex`, `nofollow`, and `no-store`; unavailable results use one non-enumerating 404 presentation.
 
@@ -89,7 +101,7 @@ The browser creates a random 256-bit key scoped to one record and stores a versi
 
 The repository inserts a response only by selecting a currently published, unexpired parent record. A unique `(public_id, participation_digest)` constraint makes retries idempotent and positions immutable. The insert and subsequent count query share one PostgreSQL transaction; aggregates are derived from response rows rather than mutable counters. Aggregate reads use the same lifecycle predicate. Unpublishing and expiry preserve rows but expose no results, owner restoration reuses them, and record deletion cascades to them.
 
-The public page server-renders the current aggregate, then a small localized client island owns submission, local recovery, live feedback, and the restrained result transition. It receives no owner authority and sends no aliases, witness prose, generated determination language, or other raw case content. Consultation cannot write to the determination snapshot and consumes no model call or filing credit.
+The public page server-renders the current aggregate, then a small localized client island owns submission, local recovery, live feedback, and the restrained result transition. It receives no owner authority and sends no aliases, witness prose, generated determination language, or other raw case content. Consultation cannot write to the determination snapshot and consumes no model call or filing credit. Its existing per-record browser key remains the proportionate repeat-response boundary; the C10 network limiter protects paid generation and evaluator exchange rather than turning public opinion into invasive identity.
 
 ## Prototype evidence
 
@@ -151,15 +163,15 @@ Provider adapters translate owned domain commands into external calls. Provider-
 1. Validate and normalize input with an explicit locale.
 2. Enforce content and privacy boundaries.
 3. Calculate a deterministic assessment.
-4. Reserve credit atomically and enforce budgets.
-5. Build a bounded, locale-specific generation request.
-6. Request schema-constrained structured output.
+4. Resolve paid access, reserve one logical credit atomically, and enforce request limits.
+5. Reserve one non-refundable global attempt immediately before each permitted provider dispatch.
+6. Build and request bounded, schema-constrained locale-specific output.
 7. Validate grounding, tone, lengths, locale, and prohibited content.
 8. Retry only under an explicit retry policy.
 9. Use localized deterministic fallback after terminal provider failure.
-10. Persist the accepted localized snapshot and refund credit when required.
+10. Finalize or refund logical credit without persisting private generation content.
 
-The implemented language stage targets one paid request and permits one additional attempt only for a transient failure or rejected output. Cost optimization must not reduce output quality; strict validation, curated fixtures, fallback, and later budget controls protect the product instead.
+The implemented language stage targets one paid request and permits one additional attempt only for a transient failure or rejected output. Cost optimization does not reduce output quality; strict validation, curated fixtures, fallback, atomic accounting, and the hard dispatch budget protect the product instead.
 
 ## Internationalization boundary
 
@@ -201,6 +213,7 @@ Records should support explicit lifecycle states such as active, unpublished, ar
 - deployment provider;
 - analytics provider;
 - production model promotion and routing beyond the configurable `gpt-5.6-luna` default;
-- detailed rate-limit implementation.
+- standard-access entitlement and successor-invitation behavior;
+- hosting-specific proxy topology, scheduled alert delivery, and broader public-mutation abuse controls.
 
 These decisions require rendered product evidence, provider evaluation, or explicit human approval.

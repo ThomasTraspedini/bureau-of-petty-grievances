@@ -2,6 +2,24 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.11.0]
+
+### Added
+
+- Revocable 30-day evaluator links that exchange fragment credentials for bounded `HttpOnly` browser sessions without a visible code step, retained URL secret, or ordinary credit counter.
+- Atomic 100-credit evaluator pools, session-scoped filing idempotency, 30-second ambiguous-request recovery, provider-success consumption, and refund for fallback or terminal internal failure.
+- A separate 200-attempt global provider-dispatch budget, three-dimensional generation rate limits, daily HMAC network pseudonyms, and an immediate durable generation kill switch.
+- Durable categorical alerts at 75, 90, and 100 percent usage with content-free operator inspection, acknowledgement, and optional HTTPS webhook delivery.
+- Operator commands to create, inspect, extend, top up, and revoke evaluator grants; add global budget; and enable or disable provider generation without a redeploy.
+- Domain, SQL, privacy, concurrency, idempotency, refund, budget, rate-limit, component, pseudo-localization, accessibility, end-to-end, responsive, and reviewed visual coverage.
+- An accepted decision record defining evaluation authority, credential lifecycle, deterministic continuity, accounting units, recovery, rate limits, alerts, and operator control.
+
+### Changed
+
+- Configured provider calls now pass through server-owned session authorization, logical credit reservation, and an atomic global dispatch guard; anonymous or unavailable paid paths retain the complete official deterministic result.
+- The shared PostgreSQL schema advances to version 3 with evaluator grants, sessions, generation requests, rate buckets, global controls, and usage-alert records containing no case content.
+- Evaluation access and cost control are complete; standard access and successor invitations are the next ready capability.
+
 ## [0.10.0]
 
 ### Added

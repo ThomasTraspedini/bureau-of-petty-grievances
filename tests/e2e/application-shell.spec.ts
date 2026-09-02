@@ -1,4 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
+
+const EVALUATION_TOKEN = `eva_${"E".repeat(43)}`;
 import { expect, test } from "@playwright/test";
 
 test("redirects the root to the explicit English locale", async ({ page }) => {
@@ -23,6 +25,53 @@ test("renders localized metadata and passes an automated accessibility scan", as
 
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
+});
+
+test("exchanges evaluator access from a clean address without retaining the credential", async ({
+  page,
+  context,
+}) => {
+  await context.setExtraHTTPHeaders({ "x-forwarded-for": "198.51.100.7" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/en/evaluate#${EVALUATION_TOKEN}`);
+  await expect(page.getByText("Evaluation access confirmed")).toBeVisible();
+  await expect(page).toHaveURL(
+    /\/en\/file\/respondent\?notice=evaluation-access$/u,
+  );
+  expect(page.url()).not.toContain(EVALUATION_TOKEN);
+  expect(await page.evaluate(() => document.cookie)).not.toContain(
+    "bpg_evaluation_session_v1",
+  );
+  const cookies = await context.cookies();
+  expect(
+    cookies.find((cookie) => cookie.name === "bpg_evaluation_session_v1"),
+  ).toMatchObject({ httpOnly: true, sameSite: "Lax" });
+  await page.getByRole("textbox", { name: "Respondent alias" }).blur();
+  expect(
+    await page.screenshot({ animations: "disabled", fullPage: true }),
+  ).toMatchSnapshot("evaluation-access-mobile.png");
+});
+
+test("renders a localized invalid evaluator address without indexing", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/en/evaluate#invalid");
+  await expect(
+    page.getByRole("heading", {
+      name: "This evaluation address cannot open a session.",
+    }),
+  ).toBeVisible();
+  expect(page.url()).not.toContain("#invalid");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+    "content",
+    /noindex/u,
+  );
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+  expect(
+    await page.screenshot({ animations: "disabled", fullPage: true }),
+  ).toMatchSnapshot("evaluation-access-desktop.png");
 });
 
 test("loads the production shell without external asset requests", async ({

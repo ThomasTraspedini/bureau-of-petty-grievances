@@ -30,6 +30,7 @@ export interface DeterminationLanguageProviderAttempt {
 }
 
 export interface DeterminationLanguageProvider {
+  readonly isConfigured?: boolean;
   generate(
     command: ChronologyDeterminationLanguageCommand,
     attempt: DeterminationLanguageProviderAttempt,
@@ -38,6 +39,7 @@ export interface DeterminationLanguageProvider {
 
 export function createUnavailableDeterminationLanguageProvider(): DeterminationLanguageProvider {
   return {
+    isConfigured: false,
     async generate() {
       await Promise.resolve();
       return { status: "terminal_failure", reason: "configuration" };

@@ -34,6 +34,7 @@ export default async function FilingPage({
       step={step}
       returnToReview={query.return === "review"}
       determinationUnavailable={query.notice === "determination-unavailable"}
+      evaluationAccess={query.notice === "evaluation-access"}
       copy={messages.Filing}
       navigation={messages.Navigation}
       completeFiling={completeFilingReview}

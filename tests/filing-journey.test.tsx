@@ -26,9 +26,16 @@ import { CHRONOLOGY_DETERMINATION_LANGUAGE_FIXTURES } from "./fixtures/chronolog
 type TestCompleteResult =
   | { status: "accepted"; determination: IssuedChronologyDetermination }
   | { status: "rejected"; errors: FilingError[] }
+  | { status: "limited"; retryAfterSeconds: number }
   | { status: "failed" };
 
-const completeFiling = vi.fn((): Promise<TestCompleteResult> =>
+const completeFiling = vi.fn<
+  (
+    locale: string,
+    draft: unknown,
+    idempotencyKey: unknown,
+  ) => Promise<TestCompleteResult>
+>(() =>
   Promise.resolve({
     status: "accepted",
     determination: completeDetermination(),
@@ -75,6 +82,7 @@ function completeDetermination(): IssuedChronologyDetermination {
 describe("filing journey", () => {
   beforeEach(() => {
     window.localStorage.clear();
+    window.sessionStorage.clear();
     completeFiling.mockClear();
   });
 
@@ -274,5 +282,53 @@ describe("filing journey", () => {
     expect(
       screen.getByRole("heading", { name: messages.Filing.reviewTitle }),
     ).toBeVisible();
+  });
+
+  it("preserves one idempotency key and filing while rate limited", async () => {
+    window.localStorage.setItem(
+      FILING_DRAFT_STORAGE_KEY,
+      serializeDraft(completeDraft(), Date.now()),
+    );
+    completeFiling.mockResolvedValue({
+      status: "limited",
+      retryAfterSeconds: 41,
+    });
+
+    render(
+      <FilingJourney
+        locale="en"
+        step="review"
+        returnToReview={false}
+        copy={messages.Filing}
+        navigation={messages.Navigation}
+        completeFiling={completeFiling}
+      />,
+    );
+
+    await screen.findByText(messages.Filing.restoredTitle);
+    const submit = screen.getByRole("button", {
+      name: messages.Filing.completeReview,
+    });
+    await waitFor(() => expect(submit).toBeEnabled());
+    fireEvent.click(submit);
+    expect(
+      await screen.findByRole("heading", {
+        name: messages.Filing.limitedTitle,
+      }),
+    ).toBeVisible();
+    expect(screen.getByText(/41/u)).toBeVisible();
+    const firstKey = completeFiling.mock.calls[0]?.[2];
+    expect(firstKey).toMatch(/^fil_[A-Za-z0-9_-]{22}$/u);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: messages.Filing.failureRetry }),
+    );
+    await waitFor(() => {
+      expect(completeFiling).toHaveBeenCalledTimes(2);
+    });
+    expect(completeFiling.mock.calls[1]?.[2]).toBe(firstKey);
+    expect(window.localStorage.getItem(FILING_DRAFT_STORAGE_KEY)).toContain(
+      completeDraft().statement,
+    );
   });
 });

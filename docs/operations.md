@@ -19,13 +19,13 @@ A deployed instance must set `BUREAU_PUBLIC_ORIGIN` to its bare public HTTPS ori
 
 The rendered application has no required secrets because provider absence selects the complete deterministic fallback. When configured, the filing server action invokes the adapter using `OPENAI_API_KEY` and a configurable `BUREAU_OPENAI_MODEL` whose default is `gpt-5.6-luna`; credentials remain in ignored local or deployment configuration. Production font files are bundled locally. CI and local verification explicitly provide no provider credential, make no provider calls, and use the same repository command after installing dependencies and the Playwright Chromium browser.
 
-The production filing sends a reviewed draft to the server for runtime validation, deterministic assessment, language realization, and transient determination issuance. It does not automatically store content, reserve credit, or produce a public record. The safe draft remains in a locale-bearing, versioned browser envelope for no longer than 30 days and can be reset explicitly. The issued result uses a separate validated tab-scoped envelope with a 30-minute lifetime. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in either accepted path.
+The production filing sends a reviewed draft to the server for runtime validation, deterministic assessment, authorized language realization, and transient determination issuance. It does not automatically store filing content or produce a public record. A valid evaluator session may reserve one provider-generation credit; anonymous and unavailable paid paths use deterministic language without a reservation. The safe draft remains in a locale-bearing, versioned browser envelope for no longer than 30 days and can be reset explicitly. The issued result uses a separate validated tab-scoped envelope with a 30-minute lifetime. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in either accepted path.
 
-During that transient lifetime, a filer may explicitly publish the displayed snapshot. Production requires a server-only pooled PostgreSQL `DATABASE_URL`; no database key enters a browser bundle. The server disables prepared statements for transaction-pooler compatibility and idempotently applies public-record schema version `2` on repository startup. For local development, `BUREAU_EMBEDDED_DATABASE_PATH=.data/public-records` selects an ignored durable PGlite directory instead. `DATABASE_URL` takes precedence when both are present.
+During that transient lifetime, a filer may explicitly publish the displayed snapshot. Production requires a server-only pooled PostgreSQL `DATABASE_URL`; no database key enters a browser bundle. The server disables prepared statements for transaction-pooler compatibility and idempotently applies shared schema version `3` when the database runtime starts. For local development, `BUREAU_EMBEDDED_DATABASE_PATH=.data/public-records` selects an ignored durable PGlite directory instead. `DATABASE_URL` takes precedence when both are present.
 
 Publication revalidates the complete snapshot, then atomically inserts it with its public identity, idempotency key, hashed owner credential, status, issue and publication times, and 180-day expiry. A database failure returns localized recovery copy while the transient determination remains available. Neither a partial record nor raw database error reaches the filer.
 
-Public consultation adds one response row containing the public record identity, a SHA-256 participation-key digest, one position code, and a timestamp. It stores no account, IP address, device fingerprint, free text, or case-content copy. Counts are derived transactionally from these rows. Temporary unpublishing and expiry stop reads and writes without erasing aggregates; owner restoration returns them, and hard record deletion cascades to them. Clearing browser storage can bypass the per-record participation key, so this mechanism is proportionate repeat resistance rather than a claim of person-level uniqueness. Coarse network rate limiting remains part of the later access and cost-control capability.
+Public consultation adds one response row containing the public record identity, a SHA-256 participation-key digest, one position code, and a timestamp. It stores no account, IP address, device fingerprint, free text, or case-content copy. Counts are derived transactionally from these rows. Temporary unpublishing and expiry stop reads and writes without erasing aggregates; owner restoration returns them, and hard record deletion cascades to them. Clearing browser storage can bypass the per-record participation key, so this mechanism is proportionate repeat resistance rather than a claim of person-level uniqueness. The access-control network limiter protects paid generation and link exchange; consultation deliberately retains its proportionate per-record browser boundary.
 
 The language seam sends a matching assessment command to the OpenAI Responses API only when deliberately invoked with configuration. Requests disable response storage, exclude the respondent alias and exact clock time, bound output, use a 12-second SDK timeout, and disable SDK retries. The product owns at most one retry and converts provider responses, refusals, and failures into typed outcomes. Raw provider errors and invalid text are discarded; a complete locale-owned fallback remains available for every valid Chronology command.
 
@@ -33,7 +33,7 @@ The language seam sends a matching assessment command to the OpenAI Responses AP
 
 The quality bar determines the generative approach. Budget controls prevent runaway spend instead of encouraging deliberately weak output.
 
-Required controls include:
+Implemented controls include:
 
 - server-side authorization for every paid action;
 - bounded input and output size;
@@ -46,6 +46,58 @@ Required controls include:
 - a localized deterministic fallback;
 - usage telemetry that excludes personal case content.
 
+### Evaluation access
+
+Create a 30-day evaluator grant only after the database schema has been initialized:
+
+```sh
+npm run access:operate -- create
+```
+
+`BUREAU_PUBLIC_ORIGIN` supplies the trusted HTTPS origin. The command prints the complete fragment-bearing link once and stores only its digest. Forward that link through an appropriate private channel. Opening it removes the fragment before exchange and creates a separate `HttpOnly`, `SameSite=Lax` cookie for at most 14 days. Revoking the parent grant immediately invalidates its sessions.
+
+Inspect and maintain grants without printing bearer credentials:
+
+```sh
+npm run access:operate -- status
+npm run access:operate -- top-up egr_0123456789abcdefghijkl 25
+npm run access:operate -- extend egr_0123456789abcdefghijkl 14
+npm run access:operate -- revoke egr_0123456789abcdefghijkl
+```
+
+Each new grant begins with 100 logical credits. A filing reserves one atomically and consumes it only for validated provider language. Fallback and terminal internal failure refund it. Request records retain the session-scoped idempotency key, SHA-256 filing digest, procedural reference, categorical outcome, provider-attempt count, and timestamps for recovery; they retain no raw filing field, prompt, provider response, or determination prose. A cleanup policy may remove expired operational rows after the evaluation window, but correctness never depends on deletion.
+
+### Limits, budget, and kill switch
+
+Paid generation starts are limited to three per minute per session, 20 per minute per daily network pseudonym, and 30 per minute per evaluator grant. Link exchange uses the network and grant boundaries. Production must set a random `BUREAU_NETWORK_HMAC_SECRET` of at least 32 characters and `BUREAU_TRUSTED_PROXY_HOPS` to the number of trusted proxy-appended addresses skipped from the right of `X-Forwarded-For`. The application origin must reject direct traffic that bypasses this proxy. Raw addresses are never written.
+
+The global budget begins at 200 provider dispatches. Each allowed call increments it immediately before the external request and is never refunded, even when the call fails. Add capacity or disable generation without a redeploy:
+
+```sh
+npm run access:operate -- budget-add 50
+npm run access:operate -- generation disable
+npm run access:operate -- generation enable
+```
+
+Disabling generation, exhausting a grant, or exhausting the global budget routes valid filings through the same official deterministic fallback. Rate limiting is different: it pauses the repeated request, preserves the filing and stable browser idempotency key, and returns localized retry guidance. The provider account should also have an independent spending limit or alert configured before public evaluation; application counters do not replace provider controls.
+
+### Usage alerts
+
+Crossing 75, 90, or 100 percent of an evaluator pool or the global budget inserts one durable categorical alert. Inspect or acknowledge alerts with:
+
+```sh
+npm run access:operate -- alerts
+npm run access:operate -- alert-acknowledge 1
+```
+
+Optional delivery uses `BUREAU_ALERT_WEBHOOK_URL` with an HTTPS endpoint and, when configured, `BUREAU_ALERT_WEBHOOK_SECRET` as a bearer value:
+
+```sh
+npm run access:operate -- alerts-deliver
+```
+
+Delivery is operator-invoked until a hosting scheduler is selected. Failed deliveries remain pending. Payloads contain only alert scope, grant or global identifier, threshold, integer usage, limit, and creation time.
+
 ## Observability
 
 Operational signals should distinguish:
@@ -57,7 +109,7 @@ Operational signals should distinguish:
 - rate limiting;
 - client rendering and sharing failure.
 
-Logs and analytics must use record identifiers and categorical metadata, never respondent names, witness statements, prompts containing personal text, or full generated determinations.
+Logs and analytics must use record, grant, session, or request identifiers and categorical metadata, never bearer credentials, raw network addresses, respondent names, witness statements, prompts containing personal text, or full generated determinations.
 
 ## Data and privacy operations
 
@@ -82,7 +134,7 @@ npm run records:operate -- list-reports
 npm run records:operate -- unpublish rec_0123456789abcdefghijkl
 ```
 
-The listing excludes aliases, witness statements, and determination prose. Unpublishing and report resolution occur in one transaction. Owner deletion cascades associated reports. The application records no reporter free text or reporter identity; broader abuse limits remain part of the later access and cost-control capability.
+The listing excludes aliases, witness statements, and determination prose. Unpublishing and report resolution occur in one transaction. Owner deletion cascades associated reports. The application records no reporter free text or reporter identity; public-report abuse controls remain a later deployment refinement.
 
 If the experiment is shelved, an explicit runbook should export anything intentionally retained, remove unnecessary records and secrets, disable paid services, and verify that public routes no longer expose case content.
 

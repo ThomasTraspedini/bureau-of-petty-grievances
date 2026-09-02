@@ -19,3 +19,4 @@ Accepted records:
 - [0011 — Persistent public record](0011-persistent-public-record.md)
 - [0012 — Sharing and social preview](0012-sharing-and-social-preview.md)
 - [0013 — Public consultation](0013-public-consultation.md)
+- [0014 — Evaluation access and cost control](0014-evaluation-access-and-cost-control.md)

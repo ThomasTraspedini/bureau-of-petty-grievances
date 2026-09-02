@@ -40,7 +40,15 @@ Chronology is the first enabled filing department. Its localized production jour
 
 The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review.
 
-Completion means that the server accepts the structured filing boundary, produces its deterministic assessment, and prepares a localized determination through the provider or complete fallback path. The issued result is available in the current browser tab for 30 minutes. Completion alone does not publish a record, create an access entitlement, or consume a credit; publication is a separate explicit choice.
+Completion means that the server accepts the structured filing boundary, produces its deterministic assessment, and prepares a localized determination through an authorized provider call or the complete fallback path. The issued result is available in the current browser tab for 30 minutes. Completion alone does not publish a record or create an access entitlement; publication is a separate explicit choice.
+
+## Current evaluation-access contract
+
+An evaluator enters through a revocable 30-day bearer link without a visible code form. The random credential sits in the URL fragment, is removed before exchange, and is stored by the server only as a digest. Successful exchange creates a separate opaque `HttpOnly` browser session for at most 14 days. The ordinary journey exposes no credit counter or quota controls.
+
+Each evaluator grant begins with 100 provider-backed determination credits. One logical filing reserves one credit and can consume it only after validated provider language is ready; fallback or terminal internal failure refunds the reservation. A separate hard global budget counts every provider request actually dispatched, including failed calls and the one permitted retry. Evaluator, session, network, and global limits are all enforced atomically on the server.
+
+Anonymous, invalid, expired, revoked, exhausted, disabled, and control-unavailable paid paths retain the complete official deterministic determination. Rate limiting instead pauses repeated completion briefly, preserves the filing and its exact idempotency key, and gives localized retry guidance. Access records, network buckets, alerts, and operator output contain no alias, witness statement, prompt, provider response, or determination prose.
 
 ## Current deterministic assessment contract
 

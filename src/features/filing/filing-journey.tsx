@@ -18,6 +18,10 @@ import type { InterfaceLocale } from "@/i18n/routing";
 
 import { CivicSeal } from "../application-shell/application-shell";
 import {
+  GENERATION_IDEMPOTENCY_STORAGE_KEY,
+  getOrCreateGenerationIdempotencyKey,
+} from "../access/generation-idempotency";
+import {
   DETERMINATION_SESSION_KEY,
   serializeDeterminationSession,
 } from "../determination/determination-session";
@@ -39,9 +43,11 @@ type NavigationCopy = MessageCatalog["Navigation"];
 type CompleteFiling = (
   locale: string,
   draft: unknown,
+  idempotencyKey: unknown,
 ) => Promise<
   | { status: "accepted"; determination: IssuedChronologyDetermination }
   | { status: "rejected"; errors: FilingError[] }
+  | { status: "limited"; retryAfterSeconds: number }
   | { status: "failed" }
 >;
 
@@ -50,6 +56,7 @@ interface FilingJourneyProps {
   step: FilingStepCode;
   returnToReview: boolean;
   determinationUnavailable?: boolean;
+  evaluationAccess?: boolean;
   copy: FilingCopy;
   navigation: NavigationCopy;
   completeFiling: CompleteFiling;
@@ -82,6 +89,7 @@ export function FilingJourney({
   step,
   returnToReview,
   determinationUnavailable = false,
+  evaluationAccess = false,
   copy,
   navigation,
   completeFiling,
@@ -95,6 +103,9 @@ export function FilingJourney({
   const [serverError, setServerError] = useState(false);
   const [resetArmed, setResetArmed] = useState(false);
   const [generationFailed, setGenerationFailed] = useState(false);
+  const [generationLimited, setGenerationLimited] = useState<number | null>(
+    null,
+  );
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -129,10 +140,12 @@ export function FilingJourney({
 
   function updateDraft(update: (current: ChronologyDraft) => ChronologyDraft) {
     window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
     setDraft(update);
     setError(null);
     setServerError(false);
     setGenerationFailed(false);
+    setGenerationLimited(null);
   }
 
   function navigate(target: FilingStepCode) {
@@ -169,11 +182,16 @@ export function FilingJourney({
     }
 
     setGenerationFailed(false);
+    setGenerationLimited(null);
     setServerError(false);
     startTransition(async () => {
       try {
-        const result = await completeFiling(locale, draft);
+        const idempotencyKey = getOrCreateGenerationIdempotencyKey(
+          window.sessionStorage,
+        );
+        const result = await completeFiling(locale, draft, idempotencyKey);
         if (result.status === "accepted") {
+          window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
           window.sessionStorage.setItem(
             DETERMINATION_SESSION_KEY,
             serializeDeterminationSession(
@@ -189,6 +207,10 @@ export function FilingJourney({
           setServerError(true);
           return;
         }
+        if (result.status === "limited") {
+          setGenerationLimited(result.retryAfterSeconds);
+          return;
+        }
         setGenerationFailed(true);
       } catch {
         setGenerationFailed(true);
@@ -199,6 +221,7 @@ export function FilingJourney({
   function resetDraft() {
     window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
     window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
     setDraft(createEmptyChronologyDraft());
     setNotice(null);
     setError(null);
@@ -253,6 +276,12 @@ export function FilingJourney({
               <p>{copy.determinationUnavailableBody}</p>
             </div>
           ) : null}
+          {evaluationAccess ? (
+            <div className="recovery-banner" role="status">
+              <strong>{copy.evaluationAccessTitle}</strong>
+              <p>{copy.evaluationAccessBody}</p>
+            </div>
+          ) : null}
           {serverError ? (
             <p className="form-error form-error-wide" role="alert">
               {copy.errorServer}
@@ -260,7 +289,17 @@ export function FilingJourney({
           ) : null}
 
           {step === "review" ? (
-            generationFailed ? (
+            generationLimited !== null ? (
+              <DeterminationLimited
+                copy={copy}
+                locale={locale}
+                retryAfterSeconds={generationLimited}
+                onRetry={handleComplete}
+                onReview={() => {
+                  setGenerationLimited(null);
+                }}
+              />
+            ) : generationFailed ? (
               <DeterminationFailure
                 copy={copy}
                 onRetry={handleComplete}
@@ -347,6 +386,51 @@ export function FilingJourney({
           </div>
         </section>
       </main>
+    </div>
+  );
+}
+
+function DeterminationLimited({
+  copy,
+  locale,
+  retryAfterSeconds,
+  onRetry,
+  onReview,
+}: {
+  copy: FilingCopy;
+  locale: InterfaceLocale;
+  retryAfterSeconds: number;
+  onRetry: () => void;
+  onReview: () => void;
+}) {
+  return (
+    <div className="determination-failure" role="alert">
+      <span className="failure-mark" aria-hidden="true">
+        !
+      </span>
+      <p className="eyebrow">{copy.limitedKicker}</p>
+      <h1>{copy.limitedTitle}</h1>
+      <p className="question-intro">
+        {format(copy.limitedBody, {
+          seconds: new Intl.NumberFormat(locale).format(retryAfterSeconds),
+        })}
+      </p>
+      <div className="filing-actions">
+        <button
+          className="button button-secondary"
+          type="button"
+          onClick={onReview}
+        >
+          {copy.failureReview}
+        </button>
+        <button
+          className="button button-primary"
+          type="button"
+          onClick={onRetry}
+        >
+          {copy.failureRetry}
+        </button>
+      </div>
     </div>
   );
 }

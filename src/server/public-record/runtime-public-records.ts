@@ -1,9 +1,5 @@
 import type { PublicRecordRepository } from "./public-record-repository";
-import { migratePublicRecords } from "./migrate-public-records";
-import {
-  createEmbeddedPostgresDatabase,
-  createPostgresDatabase,
-} from "./sql-adapters";
+import { getRuntimeSqlDatabase } from "./runtime-database";
 import { SqlPublicRecordRepository } from "./sql-public-record-repository";
 
 declare global {
@@ -25,17 +21,6 @@ export async function getRuntimePublicRecordRepository(): Promise<PublicRecordRe
 }
 
 async function createRuntimeRepository(): Promise<PublicRecordRepository | null> {
-  const connectionString = process.env.DATABASE_URL?.trim();
-  const embeddedPath = process.env.BUREAU_EMBEDDED_DATABASE_PATH?.trim();
-  if (!connectionString && !embeddedPath) return null;
-
-  try {
-    const database = connectionString
-      ? createPostgresDatabase(connectionString)
-      : createEmbeddedPostgresDatabase(embeddedPath).database;
-    await migratePublicRecords(database);
-    return new SqlPublicRecordRepository(database);
-  } catch {
-    return null;
-  }
+  const database = await getRuntimeSqlDatabase();
+  return database === null ? null : new SqlPublicRecordRepository(database);
 }

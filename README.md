@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.10.0` adds a complete public consultation to every available Chronology determination. Visitors can contribute one of three advisory positions without an account and see honest atomic counts and proportions, including a real zero-response state.
+Version `0.11.0` adds revocable evaluation access and complete server-owned cost control around every optional provider call. An evaluator link opens a bounded private browser session without a visible code step, URL credential, credit counter, or change to the ordinary filing journey.
 
-A random per-record browser key discourages ordinary repeat responses without IP retention or fingerprinting; the database stores only its digest and one immutable position. Results follow the public-record lifecycle and never alter the official determination. Sharing, social previews, owner controls, and categorical reporting remain operational; evaluation access and cost control are next.
+Atomic credit reservations, filing idempotency, per-session and coarse digest-only rate limits, a hard global dispatch budget, durable alerts, refund behavior, and an immediate database kill switch bound paid generation. Anonymous, exhausted, disabled, and unavailable paths remain complete through official deterministic language. Standard access and successor invitations are next.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -25,7 +25,7 @@ npm run dev
 
 Open `http://localhost:3000/en`. The root route redirects to the explicit English locale; the production filing begins at `/en/file/respondent`.
 
-The example environment enables an ignored embedded PostgreSQL-compatible store for local development. A deployed full Node.js server should instead set `DATABASE_URL` to a PostgreSQL connection string; the initial managed target is Supabase. It must also set `BUREAU_PUBLIC_ORIGIN` to the bare public HTTPS origin used by canonical metadata and sharing. The application applies its idempotent schema migration when the record repository starts.
+The example environment enables an ignored embedded PostgreSQL-compatible store for local development. A deployed full Node.js server should instead set `DATABASE_URL` to a PostgreSQL connection string; the initial managed target is Supabase. It must also set `BUREAU_PUBLIC_ORIGIN` to the bare public HTTPS origin used by canonical metadata and sharing, a strong `BUREAU_NETWORK_HMAC_SECRET`, and the trusted proxy-hop count. The application applies its idempotent schema migration when the shared database runtime starts.
 
 Provider configuration is optional because the complete deterministic fallback supports the production journey. Copy `.env.example` to an ignored local environment file and set `OPENAI_API_KEY` to use the adapter; `BUREAU_OPENAI_MODEL` defaults to `gpt-5.6-luna`. The one-fixture paid smoke test is deliberate and separate from ordinary verification:
 
@@ -39,6 +39,17 @@ Operators can inspect categorical reports or immediately unpublish a reported re
 npm run records:operate -- list-reports
 npm run records:operate -- unpublish rec_0123456789abcdefghijkl
 ```
+
+Evaluation links and generation controls are also operator-owned. The creation command prints the bearer link once; later status output contains identifiers and categorical counts only:
+
+```sh
+npm run access:operate -- create
+npm run access:operate -- status
+npm run access:operate -- generation disable
+npm run access:operate -- alerts
+```
+
+See [operations](docs/operations.md) for top-up, extension, budget, revocation, and optional alert-delivery commands.
 
 ## Product principles
 

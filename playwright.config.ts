@@ -7,6 +7,7 @@ const embeddedTestDatabasePath = join(
   tmpdir(),
   `bureau-playwright-public-records-${String(process.pid)}`,
 );
+const evaluationToken = `eva_${"E".repeat(43)}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -27,13 +28,16 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run start -- --hostname 127.0.0.1 --port 4173",
+    command: "node --experimental-strip-types tests/e2e/start-test-server.mjs",
     env: {
       ...process.env,
       OPENAI_API_KEY: "",
       DATABASE_URL: "",
       BUREAU_PUBLIC_ORIGIN: "http://127.0.0.1:4173",
       BUREAU_EMBEDDED_DATABASE_PATH: embeddedTestDatabasePath,
+      BUREAU_NETWORK_HMAC_SECRET: "bureau-e2e-network-hmac-secret-32-bytes",
+      BUREAU_TRUSTED_PROXY_HOPS: "0",
+      BUREAU_E2E_EVALUATION_TOKEN: evaluationToken,
     },
     url: "http://127.0.0.1:4173/en",
     reuseExistingServer: !process.env.CI,

@@ -36,6 +36,8 @@ export interface OpenAIDeterminationLanguageProviderOptions {
 }
 
 export class OpenAIDeterminationLanguageProvider implements DeterminationLanguageProvider {
+  readonly isConfigured = true;
+
   constructor(
     private readonly createResponse: CreateResponse,
     private readonly model = DEFAULT_OPENAI_DETERMINATION_MODEL,
