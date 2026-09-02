@@ -553,6 +553,7 @@ button {
   font-family: var(--serif);
   font-size: 38px;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .metric-label {
@@ -1338,7 +1339,7 @@ button {
 .timeline::before {
   content: "";
   position: absolute;
-  top: 16px;
+  top: 21px;
   left: 16.66%;
   right: 16.66%;
   height: 2px;
@@ -1727,7 +1728,8 @@ button {
 
   .metric {
     display: grid;
-    grid-template-columns: 70px 1fr;
+    grid-template-columns: minmax(108px, auto) minmax(0, 1fr);
+    gap: 20px;
     align-items: center;
     border-right: 0;
     border-bottom: 1px solid rgba(255, 253, 248, 0.16);
@@ -1852,6 +1854,17 @@ button {
     font-size: 54px;
   }
 
+  .determination-status {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    border-radius: var(--radius-md);
+    padding: 13px 18px;
+    line-height: 1.35;
+    text-align: center;
+    text-wrap: balance;
+  }
+
   .document-metadata {
     grid-template-columns: 1fr;
   }
@@ -1877,7 +1890,7 @@ button {
   .timeline::before {
     top: 12px;
     bottom: 12px;
-    left: 9px;
+    left: 13px;
     width: 2px;
     height: auto;
     background: linear-gradient(var(--ink), var(--apricot));

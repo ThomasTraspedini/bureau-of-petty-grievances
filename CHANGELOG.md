@@ -2,6 +2,15 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.2.2]
+
+### Fixed
+
+- Centered desktop and mobile timeline rules through their procedural markers.
+- Prevented the first mobile metric value from splitting across lines and preserved label space at the minimum viewport.
+- Rebalanced the mobile determination status treatment.
+- Kept the viewport and keyboard focus stable when copying public or private links.
+
 ## [0.2.1]
 
 ### Changed

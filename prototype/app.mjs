@@ -734,7 +734,7 @@ function setView(view) {
   render();
 }
 
-async function copyValue(value, feedback, messageKey) {
+async function copyValue(value, feedback, messageKey, control) {
   try {
     await navigator.clipboard.writeText(value);
   } catch {
@@ -742,15 +742,20 @@ async function copyValue(value, feedback, messageKey) {
     input.value = value;
     input.setAttribute("readonly", "");
     input.style.position = "fixed";
+    input.style.top = "0";
+    input.style.left = "0";
+    input.style.width = "1px";
+    input.style.height = "1px";
     input.style.opacity = "0";
     document.body.append(input);
+    input.focus({ preventScroll: true });
     input.select();
     document.execCommand("copy");
     input.remove();
   }
   state.feedback = feedback;
   announce(t(messageKey));
-  render();
+  if (control.isConnected) control.innerHTML = `${icon("check")} ${t(messageKey)}`;
 }
 
 app.addEventListener("click", (event) => {
@@ -839,13 +844,13 @@ app.addEventListener("click", (event) => {
   if (action === "copy-public") {
     const publicUrl = new URL(window.location.href);
     publicUrl.searchParams.set("state", "determination");
-    copyValue(publicUrl.href, "public", "shareCopied");
+    copyValue(publicUrl.href, "public", "shareCopied", control);
   }
 
   if (action === "copy-private") {
     const inviteUrl = new URL(window.location.href);
     inviteUrl.searchParams.set("state", "access");
-    copyValue(inviteUrl.href, "private", "successorCopied");
+    copyValue(inviteUrl.href, "private", "successorCopied", control);
   }
 });
 
