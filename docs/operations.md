@@ -15,9 +15,9 @@ The product is designed to support a focused public evaluation without assuming 
 
 The application foundation produces a full Node.js server build on Node.js 24. This preserves the framework capabilities required for later protected server actions and dynamic public records. The hosting provider remains deferred until persistence, preview isolation, cost, and operational needs can be evaluated together.
 
-The current rendered application has no required secrets because the filing UI does not yet invoke generation. The optional server adapter reads `OPENAI_API_KEY` and a configurable `BUREAU_OPENAI_MODEL` whose default is `gpt-5.6-luna`; credentials remain in ignored local or deployment configuration. Production font files are bundled locally. CI and local verification make no provider calls and use the same repository command after installing dependencies and the Playwright Chromium browser.
+The rendered application has no required secrets because provider absence selects the complete deterministic fallback. When configured, the filing server action invokes the adapter using `OPENAI_API_KEY` and a configurable `BUREAU_OPENAI_MODEL` whose default is `gpt-5.6-luna`; credentials remain in ignored local or deployment configuration. Production font files are bundled locally. CI and local verification explicitly provide no provider credential, make no provider calls, and use the same repository command after installing dependencies and the Playwright Chromium browser.
 
-The production filing sends a reviewed draft to the server for runtime validation and deterministic assessment. The current action returns that assessment but does not store content, invoke the available language pipeline, reserve credit, issue a determination, or produce a record. Recovery data remains in the filer’s browser in a locale-bearing, versioned envelope for no longer than 30 days and can be reset explicitly. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in that envelope.
+The production filing sends a reviewed draft to the server for runtime validation, deterministic assessment, language realization, and transient determination issuance. It does not store content server-side, reserve credit, or produce a public record. The safe draft remains in a locale-bearing, versioned browser envelope for no longer than 30 days and can be reset explicitly. The issued result uses a separate validated tab-scoped envelope with a 30-minute lifetime. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in either accepted path.
 
 The language seam sends a matching assessment command to the OpenAI Responses API only when deliberately invoked with configuration. Requests disable response storage, exclude the respondent alias and exact clock time, bound output, use a 12-second SDK timeout, and disable SDK retries. The product owns at most one retry and converts provider responses, refusals, and failures into typed outcomes. Raw provider errors and invalid text are discarded; a complete locale-owned fallback remains available for every valid Chronology command.
 
@@ -59,7 +59,7 @@ Logs and analytics must use record identifiers and categorical metadata, never r
 - Lifecycle and retention remain configurable.
 - Social previews and caches require an invalidation path after unpublishing.
 - Backups, exports, and provider retention must be understood before public evaluation.
-- Provider data controls and retention must be reviewed before connecting the language seam to public filings; `store: false` is necessary but not the whole deployment privacy review.
+- Provider data controls and retention must be reviewed before configuring a provider in a public deployment; `store: false` is necessary but not the whole deployment privacy review. A deployment can remain fully usable through deterministic fallback while that review is pending.
 
 If the experiment is shelved, an explicit runbook should export anything intentionally retained, remove unnecessary records and secrets, disable paid services, and verify that public routes no longer expose case content.
 

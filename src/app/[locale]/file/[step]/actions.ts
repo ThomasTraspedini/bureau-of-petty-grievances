@@ -1,29 +1,22 @@
 "use server";
 
-import {
-  assessChronologyFiling,
-  type ChronologyAssessment,
-} from "@/domain/determination/chronology-assessment";
-import {
-  type FilingError,
-  validateChronologyDraft,
-} from "@/domain/filing/chronology";
+import { randomBytes } from "node:crypto";
 
-export type CompleteFilingResult =
-  | { status: "accepted"; assessment: ChronologyAssessment }
-  | { status: "rejected"; errors: FilingError[] };
+import { createConfiguredOpenAIDeterminationLanguageProvider } from "@/providers/openai-determination-language";
+import {
+  completeFilingReviewWith,
+  type CompleteFilingResult,
+} from "@/server/determination/complete-filing-review";
+
+export type { CompleteFilingResult };
 
 export async function completeFilingReview(
   locale: string,
   draft: unknown,
 ): Promise<CompleteFilingResult> {
-  const result = await Promise.resolve(validateChronologyDraft(draft, locale));
-  if (result.status === "invalid") {
-    return { status: "rejected", errors: result.errors };
-  }
-
-  return {
-    status: "accepted",
-    assessment: assessChronologyFiling(result.filing),
-  };
+  return completeFilingReviewWith(locale, draft, {
+    provider: createConfiguredOpenAIDeterminationLanguageProvider(),
+    now: () => new Date(),
+    randomReferencePart: () => randomBytes(3).toString("hex").toUpperCase(),
+  });
 }

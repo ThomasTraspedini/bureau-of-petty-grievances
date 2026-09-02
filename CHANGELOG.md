@@ -2,6 +2,22 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.7.0]
+
+### Added
+
+- A polished localized Chronology determination route with transient procedural identity, locale-aware metadata, a semantic timing reconstruction, grounded reasons, witness context, and a proportionate remedy.
+- A versioned 30-minute tab-session envelope that revalidates filing, assessment, localized language, and procedural identity before refresh restoration.
+- Honest live processing, typed terminal recovery with retry and review, a single restrained reveal, immediate reduced-motion rendering, and explicit non-persistence guidance.
+- Determination component, session-tampering, server-issuance, fallback, pseudo-localization, accessibility, refresh, unavailable-navigation, mobile, and desktop coverage.
+- An accepted decision record separating transient issuance from the durable identity and lifecycle owned by persistent public records.
+
+### Changed
+
+- Reviewed filings now cross the complete server-owned validation, assessment, provider-or-fallback language, and transient issuance boundary.
+- Provider and deterministic fallback output share the same official presentation without exposing internal source or failure diagnostics.
+- The determination experience is complete; persistent public records are the next ready capability.
+
 ## [0.6.0]
 
 ### Added

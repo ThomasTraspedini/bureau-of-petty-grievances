@@ -116,7 +116,7 @@ a {
 
 .filing-service-name,
 .filing-rail,
-.complete-status {
+.determination-session-label {
   font-family: var(--mono);
   font-size: 10px;
   letter-spacing: 0.07em;
@@ -486,39 +486,512 @@ a {
   font-size: 14px;
 }
 
-.complete-panel {
+.determination-processing,
+.determination-failure {
   text-align: center;
 }
 
-.complete-panel h1,
-.complete-panel .question-intro {
+.determination-processing h1,
+.determination-processing .question-intro,
+.determination-failure h1,
+.determination-failure .question-intro {
   margin-right: auto;
   margin-left: auto;
 }
 
-.complete-mark {
+.processing-seal,
+.failure-mark {
   display: grid;
-  width: 58px;
-  height: 58px;
+  width: 68px;
+  height: 68px;
   place-items: center;
   margin: 0 auto 25px;
-  border: 1px solid var(--success);
+  border: 1px solid var(--line-strong);
   border-radius: 50%;
-  background: rgb(31 108 89 / 9%);
-  color: var(--success);
-  font-size: 24px;
+  color: var(--ink);
+  font-size: 22px;
   font-weight: 800;
 }
 
-.complete-status {
+.processing-seal {
+  grid-template-columns: repeat(3, 6px);
+  gap: 5px;
+  animation: processing-turn 2.4s linear infinite;
+}
+
+.processing-seal i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--apricot);
+}
+
+.processing-seal i:nth-child(2) {
+  background: var(--ink);
+}
+
+.processing-boundary {
+  display: inline-block;
+  max-width: 520px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.failure-mark {
+  border-color: #a43b35;
+  background: #fff0ed;
+  color: #6f211d;
+}
+
+.determination-processing .filing-actions,
+.determination-failure .filing-actions {
+  justify-content: center;
+}
+
+.determination-restore {
+  display: grid;
+  min-height: 100vh;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  background: var(--ivory);
+  color: var(--ink-soft);
+}
+
+.determination-restore .civic-seal {
+  width: 62px;
+  height: 62px;
+}
+
+.determination-shell {
+  --record-accent: var(--apricot);
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 15% 8%,
+      rgb(239 156 114 / 12%),
+      transparent 30rem
+    ),
+    var(--ivory);
+}
+
+.determination-shell[data-variant="1"] {
+  --record-accent: #79a9c8;
+}
+
+.determination-shell[data-variant="2"] {
+  --record-accent: #d8ae55;
+}
+
+.determination-shell[data-variant="3"] {
+  --record-accent: #7fb4a4;
+}
+
+.determination-site-header {
+  display: flex;
+  width: min(calc(100% - 32px), var(--max));
+  min-height: 84px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 auto;
+  border-bottom: 1px solid var(--line);
+}
+
+.determination-session-label {
+  max-width: 260px;
+  color: var(--ink-soft);
+  text-align: right;
+}
+
+.determination-main {
+  width: min(calc(100% - 32px), 1080px);
+  margin: 0 auto;
+  padding: clamp(34px, 6vw, 72px) 0 90px;
+}
+
+.determination-record {
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--ivory-light);
+  box-shadow: var(--shadow);
+  animation: determination-reveal 700ms var(--ease) both;
+}
+
+.determination-masthead {
+  position: relative;
+  padding: clamp(34px, 7vw, 76px);
+  overflow: hidden;
+  background:
+    linear-gradient(
+      135deg,
+      transparent 62%,
+      color-mix(in srgb, var(--record-accent) 24%, transparent)
+    ),
+    var(--paper);
+}
+
+.determination-metadata {
+  display: flex;
+  max-width: 670px;
+  flex-wrap: wrap;
+  gap: 18px 44px;
+  margin-bottom: clamp(64px, 9vw, 112px);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.determination-metadata span,
+.determination-metadata strong {
+  display: block;
+}
+
+.determination-metadata span {
+  margin-bottom: 5px;
+  color: var(--ink-soft);
+}
+
+.determination-metadata strong {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.determination-seal {
+  position: absolute;
+  top: clamp(32px, 6vw, 64px);
+  right: clamp(32px, 7vw, 76px);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+}
+
+.determination-seal .civic-seal {
+  width: 76px;
+  height: 76px;
+}
+
+.determination-signature {
+  display: flex;
+  height: 12px;
+  align-items: end;
+  gap: 3px;
+}
+
+.determination-signature i {
+  width: 13px;
+  height: 4px;
+  background: var(--record-accent);
+}
+
+.determination-signature i:nth-child(2) {
+  height: 8px;
+}
+
+.determination-signature i:nth-child(3) {
+  height: 12px;
+}
+
+.determination-shell[data-variant="1"] .determination-signature,
+.determination-shell[data-variant="3"] .determination-signature {
+  transform: scaleX(-1);
+}
+
+.determination-shell[data-variant="2"] .determination-signature i:nth-child(2),
+.determination-shell[data-variant="3"] .determination-signature i:nth-child(2) {
+  height: 12px;
+}
+
+.determination-shell[data-variant="2"] .determination-signature i:nth-child(3),
+.determination-shell[data-variant="3"] .determination-signature i:nth-child(3) {
+  height: 7px;
+}
+
+.determination-masthead h1 {
+  max-width: 760px;
+  margin-bottom: 22px;
+  font-size: clamp(52px, 7.2vw, 86px);
+  font-weight: 620;
+  letter-spacing: -0.055em;
+  line-height: 0.96;
+}
+
+.determination-disposition {
   display: inline-flex;
   padding: 8px 12px;
   border-radius: 999px;
-  background: var(--blue-soft);
+  background: color-mix(in srgb, var(--record-accent) 38%, white);
+  color: var(--ink-strong);
+  font-size: 13px;
+  font-weight: 760;
 }
 
-.complete-panel .filing-actions {
-  justify-content: center;
+.determination-allegation {
+  max-width: 760px;
+  margin: 30px 0 0;
+  color: var(--ink-soft);
+  font-family: var(--serif);
+  font-size: clamp(20px, 2.6vw, 28px);
+  line-height: 1.38;
+}
+
+.chronology-reconstruction {
+  padding: clamp(38px, 7vw, 72px);
+  background: var(--ink-strong);
+  color: var(--ivory-light);
+}
+
+.determination-section-heading {
+  max-width: 720px;
+}
+
+.chronology-reconstruction .eyebrow,
+.chronology-reconstruction h2,
+.chronology-reconstruction .determination-section-heading > p:last-child {
+  color: inherit;
+}
+
+.determination-section-heading h2 {
+  margin-bottom: 14px;
+  font-size: clamp(34px, 4.5vw, 52px);
+  font-weight: 620;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+
+.chronology-reconstruction .determination-section-heading > p:last-child {
+  max-width: 640px;
+  opacity: 0.72;
+}
+
+.chronology-figure {
+  margin: 50px 0 0;
+}
+
+.chronology-scale {
+  position: relative;
+  height: 48px;
+  margin: 0 8px 24px;
+  border-top: 1px solid rgb(255 255 255 / 42%);
+}
+
+.chronology-origin,
+.chronology-marker {
+  position: absolute;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--ink-strong);
+  border-radius: 50%;
+  background: var(--ivory-light);
+}
+
+.chronology-origin {
+  left: 0;
+  transform: translateX(-50%);
+}
+
+.chronology-marker {
+  max-width: calc(100% - 2px);
+  transform: translateX(-50%);
+  background: var(--record-accent);
+}
+
+.chronology-marker::after {
+  position: absolute;
+  top: 15px;
+  left: 50%;
+  width: 1px;
+  height: 34px;
+  background: var(--record-accent);
+  content: "";
+}
+
+.chronology-figure figcaption {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.chronology-figure figcaption > div {
+  padding-top: 14px;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+
+.chronology-figure span,
+.chronology-figure strong {
+  display: block;
+}
+
+.chronology-figure span {
+  margin-bottom: 7px;
+  opacity: 0.65;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.chronology-figure strong {
+  font-family: var(--serif);
+  font-size: clamp(19px, 2.4vw, 25px);
+  font-weight: 620;
+}
+
+.determination-findings {
+  padding: clamp(40px, 7vw, 76px);
+}
+
+.finding-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  margin-top: 42px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--line);
+}
+
+.finding-grid article {
+  min-height: 270px;
+  padding: clamp(24px, 3vw, 32px);
+  background: var(--ivory-light);
+}
+
+.finding-grid article > span {
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.finding-grid h3 {
+  margin: 46px 0 12px;
+  font-size: 24px;
+  font-weight: 650;
+}
+
+.finding-grid p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.witness-record {
+  padding: clamp(38px, 7vw, 72px);
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.witness-record h2 {
+  font-size: clamp(30px, 4vw, 44px);
+}
+
+.witness-record blockquote {
+  max-width: 760px;
+  margin: 30px 0 22px;
+  padding-left: 24px;
+  border-left: 4px solid var(--record-accent);
+  color: var(--ink-strong);
+  font-family: var(--serif);
+  font-size: clamp(21px, 2.8vw, 29px);
+  line-height: 1.45;
+}
+
+.witness-record > p:last-child {
+  max-width: 620px;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.remedy-record {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(24px, 5vw, 54px);
+  padding: clamp(40px, 7vw, 76px);
+  background: color-mix(in srgb, var(--record-accent) 24%, var(--ivory-light));
+}
+
+.remedy-seal {
+  display: grid;
+  width: 76px;
+  height: 76px;
+  place-items: center;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+
+.remedy-seal span {
+  font-family: var(--serif);
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.remedy-record h2 {
+  max-width: 680px;
+  margin-bottom: 18px;
+  font-size: clamp(36px, 5vw, 58px);
+  font-weight: 620;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.remedy-record div > p:not(.eyebrow) {
+  max-width: 720px;
+  margin-bottom: 22px;
+  font-family: var(--serif);
+  font-size: clamp(19px, 2.4vw, 25px);
+  line-height: 1.45;
+}
+
+.remedy-boundary {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.determination-closing {
+  display: block;
+  width: auto;
+  margin: 0;
+  padding: clamp(40px, 7vw, 76px);
+  border-top: 0;
+  color: var(--ink);
+}
+
+.determination-closing > p:first-child {
+  max-width: 720px;
+  margin-bottom: 36px;
+  font-family: var(--serif);
+  font-size: clamp(26px, 3.5vw, 38px);
+  line-height: 1.25;
+}
+
+.determination-boundary {
+  max-width: 720px;
+  padding: 20px;
+  border-left: 4px solid var(--record-accent);
+  background: var(--paper);
+}
+
+.determination-closing > .determination-boundary {
+  display: block;
+}
+
+.determination-boundary p {
+  margin: 5px 0 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+
+.determination-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 34px;
 }
 
 .site-header {
@@ -659,6 +1132,8 @@ h1 {
   padding: 12px 18px;
   border: 1px solid var(--ink);
   border-radius: var(--radius-sm);
+  cursor: pointer;
+  font: inherit;
   font-weight: 720;
   text-decoration: none;
   transition:
@@ -998,6 +1473,24 @@ footer p {
   }
 }
 
+@keyframes processing-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes determination-reveal {
+  from {
+    transform: translateY(18px) scale(0.994);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 840px) {
   .filing-main {
     grid-template-columns: 1fr;
@@ -1047,6 +1540,18 @@ footer p {
 
   .standards-grid h3 {
     margin-top: 28px;
+  }
+
+  .finding-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .finding-grid article {
+    min-height: 0;
+  }
+
+  .finding-grid h3 {
+    margin-top: 26px;
   }
 }
 
@@ -1123,6 +1628,79 @@ footer p {
   .review-list dd {
     grid-row: 2;
     grid-column: 1 / -1;
+  }
+
+  .determination-site-header {
+    min-height: 74px;
+  }
+
+  .determination-session-label {
+    max-width: 120px;
+    font-size: 8px;
+  }
+
+  .determination-main {
+    width: min(calc(100% - 24px), 1080px);
+    padding: 24px 0 48px;
+  }
+
+  .determination-record {
+    border-radius: 18px;
+  }
+
+  .determination-masthead {
+    padding: 28px 22px 38px;
+  }
+
+  .determination-metadata {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 72px;
+    padding-right: 86px;
+  }
+
+  .determination-seal {
+    top: 28px;
+    right: 22px;
+  }
+
+  .determination-seal .civic-seal {
+    width: 58px;
+    height: 58px;
+  }
+
+  .determination-masthead h1 {
+    font-size: clamp(45px, 13vw, 58px);
+  }
+
+  .chronology-reconstruction,
+  .determination-findings,
+  .witness-record,
+  .remedy-record,
+  .determination-closing {
+    padding: 38px 22px;
+  }
+
+  .chronology-figure {
+    margin-top: 38px;
+  }
+
+  .chronology-figure figcaption {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .remedy-record {
+    grid-template-columns: 1fr;
+  }
+
+  .remedy-seal {
+    width: 58px;
+    height: 58px;
+  }
+
+  .determination-actions {
+    flex-direction: column;
   }
 
   .header-inner {

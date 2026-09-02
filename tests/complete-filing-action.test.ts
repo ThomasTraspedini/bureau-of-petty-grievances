@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { completeFilingReview } from "@/app/[locale]/file/[step]/actions";
 import {
   type ChronologyDraft,
   createEmptyChronologyDraft,
 } from "@/domain/filing/chronology";
+import { createUnavailableDeterminationLanguageProvider } from "@/providers/determination-language-provider";
+import { completeFilingReviewWith } from "@/server/determination/complete-filing-review";
 
 function completeDraft(): ChronologyDraft {
   return {
@@ -22,30 +23,63 @@ function completeDraft(): ChronologyDraft {
   };
 }
 
+const dependencies = {
+  provider: createUnavailableDeterminationLanguageProvider(),
+  now: () => new Date("2026-09-02T12:00:00.000Z"),
+  randomReferencePart: () => "A1B2C3",
+};
+
 describe("complete filing server boundary", () => {
-  it("assesses a runtime-validated filing without issuing a determination", async () => {
+  it("issues a fallback-backed determination after runtime validation", async () => {
     await expect(
-      completeFilingReview("en", completeDraft()),
+      completeFilingReviewWith("en", completeDraft(), dependencies),
     ).resolves.toMatchObject({
       status: "accepted",
-      assessment: {
-        assessmentVersion: 1,
-        offence: "premature_departure",
-        severity: { base: "established", assessed: "material" },
-        remedyConstraints: {
-          family: "departure_language_protocol",
-          binding: "non_binding",
+      determination: {
+        experienceVersion: 1,
+        locale: "en",
+        reference: "CHR · 2026 · A1B2C3",
+        issuedAt: "2026-09-02T12:00:00.000Z",
+        assessment: {
+          assessmentVersion: 1,
+          offence: "premature_departure",
+          severity: { base: "established", assessed: "material" },
+          remedyConstraints: {
+            family: "departure_language_protocol",
+            binding: "non_binding",
+          },
+        },
+        language: {
+          disposition: "upheld_with_circumstances_noted",
+          remedy: { title: "Departure language protocol" },
         },
       },
     });
   });
 
-  it("does not assess malformed or unsupported-locale input", async () => {
+  it("does not issue a determination for malformed or unsupported-locale input", async () => {
     await expect(
-      completeFilingReview("fr", completeDraft()),
+      completeFilingReviewWith("fr", completeDraft(), dependencies),
     ).resolves.toMatchObject({ status: "rejected" });
     await expect(
-      completeFilingReview("en", { ...completeDraft(), impact: "revenge" }),
+      completeFilingReviewWith(
+        "en",
+        { ...completeDraft(), impact: "revenge" },
+        dependencies,
+      ),
     ).resolves.toMatchObject({ status: "rejected" });
+  });
+
+  it("maps an unexpected orchestration failure to a typed terminal outcome", async () => {
+    const result = await completeFilingReviewWith("en", completeDraft(), {
+      ...dependencies,
+      provider: {
+        async generate() {
+          await Promise.resolve();
+          throw new Error("internal provider detail");
+        },
+      },
+    });
+    expect(result).toEqual({ status: "failed" });
   });
 });

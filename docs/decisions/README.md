@@ -15,3 +15,4 @@ Accepted records:
 - [0007 — Adaptive filing boundaries](0007-adaptive-filing-boundaries.md)
 - [0008 — Deterministic Chronology assessment policy](0008-deterministic-chronology-assessment-policy.md)
 - [0009 — Locale-aware determination language pipeline](0009-locale-aware-determination-language-pipeline.md)
+- [0010 — Transient determination experience](0010-transient-determination-experience.md)

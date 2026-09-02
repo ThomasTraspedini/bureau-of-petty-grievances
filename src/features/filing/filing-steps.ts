@@ -7,7 +7,6 @@ export const FILING_STEP_CODES = [
   "mitigation",
   "statement",
   "review",
-  "complete",
 ] as const;
 
 export type FilingStepCode = (typeof FILING_STEP_CODES)[number];

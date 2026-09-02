@@ -2,7 +2,7 @@
 
 ## Status
 
-The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation described in decision 0006 and now carries the deterministic assessment and locale-aware language boundaries described in decisions 0008 and 0009. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, and provider boundaries.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, and the transient determination experience described in decisions 0006 through 0010. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, and provider boundaries.
 
 ## Application foundation
 
@@ -25,7 +25,7 @@ The production Chronology journey lives at validated `/{locale}/file/{step}` rou
 
 `src/domain/filing` owns the framework-independent draft shape, three discriminated Chronology fact variants, normalization, structural limits, and conservative harmless-content boundaries. The filing feature owns route progress, responsive controls, review presentation, and a versioned device-local storage envelope. Stored drafts carry their locale and update time, expire after 30 days, and are runtime-validated before entering application state. Rejected witness text is excluded from storage while the rest of a safe draft remains recoverable.
 
-The reviewed filing crosses a server action and is validated again through the same domain boundary. Invalid input returns typed rejection; accepted input returns its deterministic assessment. The action does not persist content or assessment, reserve a credit, issue final determination language, or call a provider. A short-lived session marker allows the accepted client to render completion; direct navigation without that marker returns to review.
+The reviewed filing crosses a server action and is validated again through the same domain boundary. Invalid input returns typed rejection. Accepted input continues through deterministic assessment and locale-aware language orchestration before returning a complete transient determination. The action does not persist content, reserve a credit, create a public identifier, or claim external investigation.
 
 ## Deterministic assessment boundary
 
@@ -47,7 +47,17 @@ ESLint enforces the domain and provider import direction. The provider adapter c
 
 `src/server/determination/generate-determination-language.ts` permits at most two attempts. Invalid output and transient failures may use the second attempt; refusal and terminal configuration or request failures immediately select fallback. Every valid command therefore completes with provider or fallback language, while a mismatched filing and assessment is rejected before the provider boundary.
 
-This seam is not yet called by the filing UI. C06 owns honest loading, failure presentation, reveal, procedural reconstruction, and final rendering; later capabilities own persistence, idempotency, credits, and public records.
+The filing action invokes this seam after runtime validation and deterministic assessment. Source and fallback reason remain internal; both successful paths return the same validated language shape to the determination experience.
+
+## Determination experience boundary
+
+`src/server/determination/complete-filing-review.ts` composes validation, assessment, language generation, and transient issuance behind a dependency-injected service. The Next.js action supplies the configured provider, server time, and cryptographic random reference material. Unexpected internal failure becomes a typed terminal outcome without raw details.
+
+The localized `/{locale}/determination` route is a client-restored private result, not a public record. Its versioned session envelope contains the reviewed draft and issued determination for 30 minutes in the current tab. Restoration validates the draft, recomputes the complete assessment, revalidates English language against the resulting command, and rejects altered identity, facts, assessment, or prose. Missing or invalid state returns to review with localized guidance; the longer-lived safe draft remains under the filing lifecycle.
+
+The procedural reference is random and non-sensitive but explicitly transient. Its year and six-character suffix combine with the assessment visual seed only for curated presentation variation. The responsive record includes a semantic text equivalent for the visual timeline, uses locale-aware date, time, and number formatting, exposes no provider diagnostics, and is marked `noindex`. Loading exists only during real work, terminal failure preserves review and retry, and reduced motion collapses the single reveal.
+
+Later capabilities own persistence, idempotency, credits, durable identifiers, public records, consultation, and sharing.
 
 ## Prototype evidence
 

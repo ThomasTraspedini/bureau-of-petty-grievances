@@ -12,8 +12,6 @@ import {
 
 export const FILING_DRAFT_STORAGE_KEY = "bpg:filing:chronology:en:v1";
 export const FILING_DRAFT_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
-export const FILING_COMPLETION_SESSION_KEY = "bpg:filing:validated:en:v1";
-export const FILING_COMPLETION_LIFETIME_MS = 30 * 60 * 1000;
 
 interface DraftEnvelope {
   version: 1;
@@ -59,28 +57,6 @@ export function parseStoredDraft(
     return { status: "restored", draft: parsed.draft };
   } catch {
     return { status: "invalid", draft: createEmptyChronologyDraft() };
-  }
-}
-
-export function serializeCompletion(now: number): string {
-  return JSON.stringify({ version: 1, locale: "en", validatedAt: now });
-}
-
-export function isValidCompletion(value: string | null, now: number): boolean {
-  if (value === null) return false;
-  try {
-    const parsed: unknown = JSON.parse(value);
-    return (
-      isRecord(parsed) &&
-      parsed.version === 1 &&
-      parsed.locale === "en" &&
-      typeof parsed.validatedAt === "number" &&
-      Number.isFinite(parsed.validatedAt) &&
-      parsed.validatedAt <= now &&
-      now - parsed.validatedAt <= FILING_COMPLETION_LIFETIME_MS
-    );
-  } catch {
-    return false;
   }
 }
 

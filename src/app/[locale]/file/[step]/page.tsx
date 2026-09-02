@@ -10,7 +10,10 @@ import { completeFilingReview } from "./actions";
 
 interface FilingPageProps {
   params: Promise<{ locale: string; step: string }>;
-  searchParams: Promise<{ return?: string | string[] }>;
+  searchParams: Promise<{
+    return?: string | string[];
+    notice?: string | string[];
+  }>;
 }
 
 export default async function FilingPage({
@@ -30,6 +33,7 @@ export default async function FilingPage({
       locale={locale}
       step={step}
       returnToReview={query.return === "review"}
+      determinationUnavailable={query.notice === "determination-unavailable"}
       copy={messages.Filing}
       navigation={messages.Navigation}
       completeFiling={completeFilingReview}

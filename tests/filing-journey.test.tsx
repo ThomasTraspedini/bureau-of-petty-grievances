@@ -6,6 +6,10 @@ import {
   type ChronologyAssessment,
 } from "@/domain/determination/chronology-assessment";
 import {
+  DETERMINATION_EXPERIENCE_VERSION,
+  type IssuedChronologyDetermination,
+} from "@/domain/determination/determination-experience";
+import {
   type FilingError,
   createEmptyChronologyDraft,
   validateChronologyDraft,
@@ -17,13 +21,18 @@ import {
 import { FilingJourney } from "@/features/filing/filing-journey";
 import { pseudoLocalizeCatalog } from "@/i18n/pseudo";
 import messages from "../messages/en.json";
+import { CHRONOLOGY_DETERMINATION_LANGUAGE_FIXTURES } from "./fixtures/chronology-determination-language";
 
 type TestCompleteResult =
-  | { status: "accepted"; assessment: ChronologyAssessment }
-  | { status: "rejected"; errors: FilingError[] };
+  | { status: "accepted"; determination: IssuedChronologyDetermination }
+  | { status: "rejected"; errors: FilingError[] }
+  | { status: "failed" };
 
 const completeFiling = vi.fn((): Promise<TestCompleteResult> =>
-  Promise.resolve({ status: "accepted", assessment: completeAssessment() }),
+  Promise.resolve({
+    status: "accepted",
+    determination: completeDetermination(),
+  }),
 );
 
 function completeDraft() {
@@ -48,6 +57,19 @@ function completeAssessment(): ChronologyAssessment {
     throw new Error("The test fixture must remain a valid Chronology filing.");
   }
   return assessChronologyFiling(result.filing);
+}
+
+function completeDetermination(): IssuedChronologyDetermination {
+  const fixture = CHRONOLOGY_DETERMINATION_LANGUAGE_FIXTURES[0];
+  if (!fixture) throw new Error("A determination fixture is required.");
+  return {
+    experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+    locale: "en",
+    reference: "CHR · 2026 · A1B2C3",
+    issuedAt: "2026-09-02T12:00:00.000Z",
+    assessment: completeAssessment(),
+    language: fixture.language,
+  };
 }
 
 describe("filing journey", () => {
@@ -200,5 +222,57 @@ describe("filing journey", () => {
       messages.Filing.errorServer,
     );
     expect(screen.getByText(completeDraft().statement)).toBeVisible();
+  });
+
+  it("shows real processing and a recoverable terminal failure", async () => {
+    window.localStorage.setItem(
+      FILING_DRAFT_STORAGE_KEY,
+      serializeDraft(completeDraft(), Date.now()),
+    );
+    completeFiling.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          window.setTimeout(() => {
+            resolve({ status: "failed" });
+          }, 40);
+        }),
+    );
+
+    render(
+      <FilingJourney
+        locale="en"
+        step="review"
+        returnToReview={false}
+        copy={messages.Filing}
+        navigation={messages.Navigation}
+        completeFiling={completeFiling}
+      />,
+    );
+
+    const completeButton = await screen.findByRole("button", {
+      name: messages.Filing.completeReview,
+    });
+    await waitFor(() => expect(completeButton).toBeEnabled());
+    fireEvent.click(completeButton);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: messages.Filing.processingTitle,
+      }),
+    ).toBeVisible();
+    expect(
+      await screen.findByRole("heading", {
+        name: messages.Filing.failureTitle,
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: messages.Filing.failureRetry }),
+    ).toBeEnabled();
+    fireEvent.click(
+      screen.getByRole("button", { name: messages.Filing.failureReview }),
+    );
+    expect(
+      screen.getByRole("heading", { name: messages.Filing.reviewTitle }),
+    ).toBeVisible();
   });
 });

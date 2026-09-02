@@ -2,11 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { createEmptyChronologyDraft } from "@/domain/filing/chronology";
 import {
-  FILING_COMPLETION_LIFETIME_MS,
   FILING_DRAFT_LIFETIME_MS,
-  isValidCompletion,
   parseStoredDraft,
-  serializeCompletion,
   serializeDraft,
 } from "@/features/filing/draft-storage";
 
@@ -50,20 +47,11 @@ describe("device-local filing drafts", () => {
     expect(parseStoredDraft(value, 101).status).toBe("invalid");
   });
 
-  it("bounds restored fact fields and short-lived completion state", () => {
+  it("bounds restored fact fields", () => {
     const oversized = serializeDraft(createEmptyChronologyDraft(), 100).replace(
       '"declaredTime":""',
       `"declaredTime":"${"1".repeat(100)}"`,
     );
     expect(parseStoredDraft(oversized, 101).status).toBe("invalid");
-
-    expect(isValidCompletion(serializeCompletion(100), 101)).toBe(true);
-    expect(
-      isValidCompletion(
-        serializeCompletion(100),
-        100 + FILING_COMPLETION_LIFETIME_MS + 1,
-      ),
-    ).toBe(false);
-    expect(isValidCompletion('{"version":2}', 101)).toBe(false);
   });
 });

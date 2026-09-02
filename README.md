@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.6.0` adds the locale-aware Chronology determination-language pipeline. A bounded OpenAI Responses adapter can produce structured English language without changing the deterministic assessment; strict local validation and a complete compositional fallback keep the same contract available for refusal, malformed output, timeout, missing configuration, or terminal provider failure.
+Version `0.7.0` completes the production Chronology determination experience. A reviewed filing now resolves through deterministic assessment and bounded localized language into a responsive official determination with transient procedural identity, an accessible fact reconstruction, designed processing and recovery, and a restrained reveal.
 
-The current filing UI still ends after server validation and assessment. The complete static interaction prototype remains available as evidence while the polished determination experience and later capabilities are added vertically.
+The determination survives refresh in its current browser tab for 30 minutes but is not yet a persistent or public record. Provider and deterministic fallback results share the same complete presentation; later capabilities add record lifecycle, sharing, and public consultation.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -25,7 +25,7 @@ npm run dev
 
 Open `http://localhost:3000/en`. The root route redirects to the explicit English locale; the production filing begins at `/en/file/respondent`.
 
-Provider configuration is optional until the determination experience invokes the pipeline. Copy `.env.example` to an ignored local environment file and set `OPENAI_API_KEY` to exercise the adapter; `BUREAU_OPENAI_MODEL` defaults to `gpt-5.6-luna`. The one-fixture paid smoke test is deliberate and separate from ordinary verification:
+Provider configuration is optional because the complete deterministic fallback supports the production journey. Copy `.env.example` to an ignored local environment file and set `OPENAI_API_KEY` to use the adapter; `BUREAU_OPENAI_MODEL` defaults to `gpt-5.6-luna`. The one-fixture paid smoke test is deliberate and separate from ordinary verification:
 
 ```sh
 npm run test:provider:live

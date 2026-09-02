@@ -2,7 +2,7 @@
 
 import { type SyntheticEvent, useEffect, useState, useTransition } from "react";
 
-import { type ChronologyAssessment } from "@/domain/determination/chronology-assessment";
+import type { IssuedChronologyDetermination } from "@/domain/determination/determination-experience";
 import {
   type ChronologyDraft,
   type FilingError,
@@ -18,11 +18,12 @@ import type { InterfaceLocale } from "@/i18n/routing";
 
 import { CivicSeal } from "../application-shell/application-shell";
 import {
-  FILING_COMPLETION_SESSION_KEY,
+  DETERMINATION_SESSION_KEY,
+  serializeDeterminationSession,
+} from "../determination/determination-session";
+import {
   FILING_DRAFT_STORAGE_KEY,
-  isValidCompletion,
   parseStoredDraft,
-  serializeCompletion,
   serializeDraft,
 } from "./draft-storage";
 import {
@@ -39,14 +40,16 @@ type CompleteFiling = (
   locale: string,
   draft: unknown,
 ) => Promise<
-  | { status: "accepted"; assessment: ChronologyAssessment }
+  | { status: "accepted"; determination: IssuedChronologyDetermination }
   | { status: "rejected"; errors: FilingError[] }
+  | { status: "failed" }
 >;
 
 interface FilingJourneyProps {
   locale: InterfaceLocale;
   step: FilingStepCode;
   returnToReview: boolean;
+  determinationUnavailable?: boolean;
   copy: FilingCopy;
   navigation: NavigationCopy;
   completeFiling: CompleteFiling;
@@ -78,6 +81,7 @@ export function FilingJourney({
   locale,
   step,
   returnToReview,
+  determinationUnavailable = false,
   copy,
   navigation,
   completeFiling,
@@ -90,7 +94,7 @@ export function FilingJourney({
   const [error, setError] = useState<FilingErrorCode | null>(null);
   const [serverError, setServerError] = useState(false);
   const [resetArmed, setResetArmed] = useState(false);
-  const [completionReady, setCompletionReady] = useState(false);
+  const [generationFailed, setGenerationFailed] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -103,17 +107,6 @@ export function FilingJourney({
       setNotice(stored.status === "empty" ? null : stored.status);
       if (stored.status === "expired" || stored.status === "invalid") {
         window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
-      }
-      if (step === "complete") {
-        const validCompletion = isValidCompletion(
-          window.sessionStorage.getItem(FILING_COMPLETION_SESSION_KEY),
-          Date.now(),
-        );
-        if (!validCompletion) {
-          window.location.replace(`/${locale}/file/review`);
-          return;
-        }
-        setCompletionReady(true);
       }
       setHydrated(true);
     }, 0);
@@ -135,10 +128,11 @@ export function FilingJourney({
   const showProgress = questionIndex >= 1 && questionIndex <= 7;
 
   function updateDraft(update: (current: ChronologyDraft) => ChronologyDraft) {
-    window.sessionStorage.removeItem(FILING_COMPLETION_SESSION_KEY);
+    window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
     setDraft(update);
     setError(null);
     setServerError(false);
+    setGenerationFailed(false);
   }
 
   function navigate(target: FilingStepCode) {
@@ -174,23 +168,37 @@ export function FilingJourney({
       return;
     }
 
+    setGenerationFailed(false);
+    setServerError(false);
     startTransition(async () => {
-      const result = await completeFiling(locale, draft);
-      if (result.status === "accepted") {
-        window.sessionStorage.setItem(
-          FILING_COMPLETION_SESSION_KEY,
-          serializeCompletion(Date.now()),
-        );
-        navigate("complete");
-        return;
+      try {
+        const result = await completeFiling(locale, draft);
+        if (result.status === "accepted") {
+          window.sessionStorage.setItem(
+            DETERMINATION_SESSION_KEY,
+            serializeDeterminationSession(
+              draft,
+              result.determination,
+              Date.now(),
+            ),
+          );
+          window.location.assign(`/${locale}/determination`);
+          return;
+        }
+        if (result.status === "rejected") {
+          setServerError(true);
+          return;
+        }
+        setGenerationFailed(true);
+      } catch {
+        setGenerationFailed(true);
       }
-      setServerError(true);
     });
   }
 
   function resetDraft() {
     window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
-    window.sessionStorage.removeItem(FILING_COMPLETION_SESSION_KEY);
+    window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
     setDraft(createEmptyChronologyDraft());
     setNotice(null);
     setError(null);
@@ -239,6 +247,12 @@ export function FilingJourney({
 
         <section className="filing-card" aria-busy={!hydrated}>
           {notice ? <RecoveryBanner notice={notice} copy={copy} /> : null}
+          {determinationUnavailable ? (
+            <div className="recovery-banner" role="status">
+              <strong>{copy.determinationUnavailableTitle}</strong>
+              <p>{copy.determinationUnavailableBody}</p>
+            </div>
+          ) : null}
           {serverError ? (
             <p className="form-error form-error-wide" role="alert">
               {copy.errorServer}
@@ -246,19 +260,25 @@ export function FilingJourney({
           ) : null}
 
           {step === "review" ? (
-            <ReviewStep
-              draft={draft}
-              copy={copy}
-              locale={locale}
-              isPending={isPending || !hydrated}
-              onComplete={handleComplete}
-            />
-          ) : step === "complete" && completionReady ? (
-            <CompleteStep copy={copy} locale={locale} />
-          ) : step === "complete" ? (
-            <p className="question-intro" role="status">
-              {copy.completing}
-            </p>
+            generationFailed ? (
+              <DeterminationFailure
+                copy={copy}
+                onRetry={handleComplete}
+                onReview={() => {
+                  setGenerationFailed(false);
+                }}
+              />
+            ) : isPending && !serverError ? (
+              <DeterminationLoading copy={copy} />
+            ) : (
+              <ReviewStep
+                draft={draft}
+                copy={copy}
+                locale={locale}
+                isPending={!hydrated}
+                onComplete={handleComplete}
+              />
+            )
           ) : (
             <form noValidate onSubmit={handleContinue}>
               <fieldset className="filing-fieldset" disabled={!hydrated}>
@@ -296,41 +316,35 @@ export function FilingJourney({
             </form>
           )}
 
-          {step !== "complete" ? (
-            <div className="draft-reset">
-              {resetArmed ? (
-                <div role="group" aria-label={copy.resetWarning}>
-                  <p>{copy.resetWarning}</p>
-                  <button
-                    type="button"
-                    disabled={!hydrated}
-                    onClick={resetDraft}
-                  >
-                    {copy.confirmStartOver}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!hydrated}
-                    onClick={() => {
-                      setResetArmed(false);
-                    }}
-                  >
-                    {copy.cancelReset}
-                  </button>
-                </div>
-              ) : (
+          <div className="draft-reset">
+            {resetArmed ? (
+              <div role="group" aria-label={copy.resetWarning}>
+                <p>{copy.resetWarning}</p>
+                <button type="button" disabled={!hydrated} onClick={resetDraft}>
+                  {copy.confirmStartOver}
+                </button>
                 <button
                   type="button"
                   disabled={!hydrated}
                   onClick={() => {
-                    setResetArmed(true);
+                    setResetArmed(false);
                   }}
                 >
-                  {copy.startOver}
+                  {copy.cancelReset}
                 </button>
-              )}
-            </div>
-          ) : null}
+              </div>
+            ) : (
+              <button
+                type="button"
+                disabled={!hydrated}
+                onClick={() => {
+                  setResetArmed(true);
+                }}
+              >
+                {copy.startOver}
+              </button>
+            )}
+          </div>
         </section>
       </main>
     </div>
@@ -994,29 +1008,76 @@ function ReviewStep({
   );
 }
 
-function CompleteStep({
+function DeterminationLoading({ copy }: { copy: FilingCopy }) {
+  const statuses = [
+    copy.processingFacts,
+    copy.processingFactors,
+    copy.processingRemedy,
+  ];
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+    const interval = window.setInterval(() => {
+      setIndex((current) => (current + 1) % statuses.length);
+    }, 1_100);
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [statuses.length]);
+
+  return (
+    <div className="determination-processing" aria-live="polite" role="status">
+      <span className="processing-seal" aria-hidden="true">
+        <i />
+        <i />
+        <i />
+      </span>
+      <p className="eyebrow">{copy.processingKicker}</p>
+      <h1>{copy.processingTitle}</h1>
+      <p className="question-intro">{statuses[index]}</p>
+      <span className="processing-boundary">{copy.processingBoundary}</span>
+    </div>
+  );
+}
+
+function DeterminationFailure({
   copy,
-  locale,
+  onRetry,
+  onReview,
 }: {
   copy: FilingCopy;
-  locale: InterfaceLocale;
+  onRetry: () => void;
+  onReview: () => void;
 }) {
   return (
-    <div className="complete-panel">
-      <span className="complete-mark" aria-hidden="true">
-        ✓
+    <div className="determination-failure" role="alert">
+      <span className="failure-mark" aria-hidden="true">
+        !
       </span>
-      <p className="eyebrow">{copy.completeKicker}</p>
-      <h1>{copy.completeTitle}</h1>
-      <p className="question-intro">{copy.completeBody}</p>
-      <span className="complete-status">{copy.completeStatus}</span>
+      <p className="eyebrow">{copy.failureKicker}</p>
+      <h1>{copy.failureTitle}</h1>
+      <p className="question-intro">{copy.failureBody}</p>
       <div className="filing-actions">
-        <a className="button button-secondary" href={`/${locale}/file/review`}>
-          {copy.completeReturn}
-        </a>
-        <a className="button button-primary" href={`/${locale}`}>
-          {copy.completeHome}
-        </a>
+        <button
+          className="button button-secondary"
+          type="button"
+          onClick={onReview}
+        >
+          {copy.failureReview}
+        </button>
+        <button
+          className="button button-primary"
+          type="button"
+          onClick={onRetry}
+        >
+          {copy.failureRetry}
+        </button>
       </div>
     </div>
   );

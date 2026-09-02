@@ -40,7 +40,7 @@ Chronology is the first enabled filing department. Its localized production jour
 
 The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review.
 
-Completion currently means that the server accepted the structured filing boundary and produced a deterministic assessment. It does not create final determination language, a persistent record, public URL, access entitlement, or credit event. Those outcomes remain separate roadmap capabilities.
+Completion means that the server accepts the structured filing boundary, produces its deterministic assessment, and prepares a localized determination through the provider or complete fallback path. The issued result is available in the current browser tab for 30 minutes. It does not create a persistent record, public URL, access entitlement, or credit event.
 
 ## Current deterministic assessment contract
 
@@ -56,7 +56,15 @@ A server-owned pipeline can transform a matching validated filing and assessment
 
 English editorial policy version `1` owns vocabulary, examples, Bureau tone, safety limits, and deterministic fallback language. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. The fallback covers every valid Chronology combination with the same schema.
 
-The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic realization after deterministic judgment. It receives no respondent alias or exact clock time and treats the witness statement only as submitted data. Refusal, unavailable configuration, invalid output, timeout, and terminal failure resolve to fallback rather than raw errors. The current UI does not yet present this language as an issued determination; that polished experience remains C06.
+The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic realization after deterministic judgment. It receives no respondent alias or exact clock time and treats the witness statement only as submitted data. Refusal, unavailable configuration, invalid output, timeout, and terminal failure resolve to fallback rather than raw errors.
+
+## Current determination experience
+
+The localized determination presents provider and fallback output through the same official hierarchy. Its first viewport establishes a transient Chronology reference, issue date, respondent context, disposition, and allegation. The complete record reconstructs the accepted timing facts, separates finding, consequence, and mitigation, preserves the submitted witness statement as the filer’s account, and gives the non-binding remedy visual priority.
+
+The transient reference and curated presentation signature exclude aliases, witness prose, relationship context, and exact clock time. The result is validated again before restoration from tab-scoped session state. Missing, expired, or inconsistent state returns to the preserved review; a terminal internal failure offers retry without discarding the safe draft. Loading reflects actual pending work, adds no artificial delay, and the single determination reveal becomes immediate under reduced motion.
+
+The experience explicitly states that it is not persistent, published, open to consultation, or assigned a public record address. Those behaviors remain separate capabilities.
 
 ## Emotional outcome
 
