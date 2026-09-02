@@ -2,6 +2,26 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.12.0]
+
+### Added
+
+- One-use, digest-backed standard authorization links that create an anonymous 180-day filing entitlement with a fixed five-credit provider-generation allowance.
+- Exclusive residual-balance successor transfer: provider-backed completion qualification, pending-use suspension, cancellation, lost-link replacement, expiry restoration, atomic claim, and former-holder revocation without creating credits or resetting expiry.
+- A localized private access and successor surface with explicit active, locked, pending, exhausted, claimed, transferred, disabled, and unavailable states, separate from case sharing and public records.
+- Operator creation and revocation of initial standard authorizations plus an independent successor-issuance kill switch.
+- Schema-version-4 persistence and domain, privacy, refund, concurrency, transfer, component, pseudo-localization, accessibility, responsive, and two-browser end-to-end coverage.
+- An accepted decision record defining the finite transferable allowance and its relationship to deterministic fallback and shared evaluation access.
+
+### Changed
+
+- The existing metered provider boundary now accepts either evaluation or standard sessions while retaining one global attempt budget, rate limits, idempotency, refunds, alerts, and generation kill switch.
+- Standard successor access transfers the exact remaining pool instead of granting a fresh five-credit entitlement, ensuring the chain deliberately exhausts.
+
+### Roadmap
+
+- Standard access and successor invitations are complete; observability and learning are the next ready capability.
+
 ## [0.11.0]
 
 ### Added

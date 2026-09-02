@@ -1,4 +1,5 @@
 import type { GenerationAccessFallbackReason } from "@/domain/access/evaluation-access";
+import type { StandardAccessSummary } from "@/domain/access/standard-access";
 
 export interface ExchangeEvaluationAccessInput {
   tokenDigest: string;
@@ -15,6 +16,7 @@ export type ExchangeEvaluationAccessResult =
   | { status: "invalid" | "expired" | "revoked" | "limited" };
 
 export interface BeginGenerationInput {
+  accessKind?: "evaluation" | "standard";
   sessionCredentialDigest: string;
   idempotencyKey: string;
   filingDigest: string;
@@ -51,10 +53,72 @@ export type ReserveProviderAttemptResult =
       reason: "generation_disabled" | "global_budget_exhausted";
     };
 
+export interface ExchangeStandardAccessInput {
+  tokenKind: "authorization" | "successor";
+  tokenDigest: string;
+  entitlementId: string;
+  tenureId: string;
+  sessionId: string;
+  sessionCredentialDigest: string;
+  networkDigest: string;
+  now: string;
+  entitlementExpiresAt: string;
+  sessionExpiresAt: string;
+  windowStart: string;
+}
+
+export type ExchangeStandardAccessResult =
+  | { status: "accepted"; summary: StandardAccessSummary }
+  | { status: "invalid" | "expired" | "claimed" | "revoked" | "limited" };
+
+export type StandardAccessStatusResult =
+  | { status: "available"; summary: StandardAccessSummary }
+  | { status: "invalid" | "expired" | "transferred" | "revoked" };
+
+export interface IssueSuccessorInvitationInput {
+  sessionCredentialDigest: string;
+  invitationId: string;
+  tokenDigest: string;
+  now: string;
+  expiresAt: string;
+  replace: boolean;
+}
+
+export type IssueSuccessorInvitationResult =
+  | { status: "issued"; summary: StandardAccessSummary }
+  | {
+      status:
+        | "invalid"
+        | "expired"
+        | "transferred"
+        | "not_eligible"
+        | "exhausted"
+        | "pending"
+        | "disabled";
+    };
+
+export type CancelSuccessorInvitationResult =
+  | { status: "cancelled"; summary: StandardAccessSummary }
+  | { status: "invalid" | "expired" | "transferred" | "not_pending" };
+
 export interface AccessControlRepository {
   exchangeEvaluationAccess(
     input: ExchangeEvaluationAccessInput,
   ): Promise<ExchangeEvaluationAccessResult>;
+  exchangeStandardAccess(
+    input: ExchangeStandardAccessInput,
+  ): Promise<ExchangeStandardAccessResult>;
+  getStandardAccessStatus(
+    sessionCredentialDigest: string,
+    now: string,
+  ): Promise<StandardAccessStatusResult>;
+  issueSuccessorInvitation(
+    input: IssueSuccessorInvitationInput,
+  ): Promise<IssueSuccessorInvitationResult>;
+  cancelSuccessorInvitation(
+    sessionCredentialDigest: string,
+    now: string,
+  ): Promise<CancelSuccessorInvitationResult>;
   beginGeneration(input: BeginGenerationInput): Promise<BeginGenerationResult>;
   reserveProviderAttempt(
     requestId: string,

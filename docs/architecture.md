@@ -2,7 +2,7 @@
 
 ## Status
 
-The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, sharing, public consultation, and evaluation cost control described in decisions 0006 through 0014. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, access, and persistence boundaries.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, sharing, public consultation, evaluation cost control, and transferable standard access described in decisions 0006 through 0015. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, access, and persistence boundaries.
 
 ## Application foundation
 
@@ -57,7 +57,7 @@ The localized `/{locale}/determination` route is a client-restored private resul
 
 The procedural reference is random and non-sensitive but explicitly transient. Its year and six-character suffix combine with the assessment visual seed only for curated presentation variation. The responsive record includes a semantic text equivalent for the visual timeline, uses locale-aware date, time, and number formatting, exposes no provider diagnostics, and is marked `noindex`. Loading exists only during real work, terminal failure preserves review and retry, and reduced motion collapses the single reveal.
 
-Evaluator access and credits are enforced before optional provider language. Standard access and successor authority remain later capabilities.
+Evaluator and standard access are resolved before optional provider language. Both use the same metered provider boundary while retaining distinct entitlement behavior.
 
 ## Evaluation-access and cost-control boundary
 
@@ -71,13 +71,23 @@ The global singleton control row owns the provider kill switch, attempt limit, a
 
 Daily HMAC network digests support coarse limits without retaining raw addresses. Production paid access requires a secret of at least 32 characters and an explicit trusted-proxy hop count; the application origin must not be directly reachable around that trusted proxy. Durable categorical alerts are inserted on the exact 75, 90, and 100 percent crossings for each evaluator pool and the global budget. Operator commands can deliver them to an optional HTTPS webhook and contain no case content.
 
+## Standard-access and successor-transfer boundary
+
+`src/domain/access/standard-access.ts` owns the initial five-credit limit, authorization, entitlement and invitation lifetimes, identifier grammars, and language-neutral private status shape. The localized `/en/access` client removes either a `std_` initial credential or `sti_` successor credential before exchange. The server returns a separate digest-backed `sts_` session cookie capped by the one fixed entitlement expiry.
+
+PostgreSQL separates one-use initial authorizations, the non-copyable credit entitlement, exclusive holder tenures, browser sessions, successor invitations, and standard generation requests. Provider completion updates the entitlement counter and the current tenure's qualification in one transaction. Fallback releases the reservation without qualification. Generation rate limits and global attempt reservation are shared with evaluation access, while no standard pool creates per-entitlement operational alerts.
+
+Successor issuance requires one provider completion during the current tenure, a positive residual balance, and no active generation reservation. It moves that tenure to `transfer_pending`; paid generation then selects fallback without touching the reserved balance. One partial unique index prevents multiple active invitations, and one partial unique tenure index prevents simultaneous holders. Claim locks invitation, tenure, and entitlement, marks the former tenure transferred, and creates a new tenure over the same counters. Cancellation, replacement, and lazy expiry recovery are explicit transitions. The entitlement's 180-day expiry is never extended.
+
+The raw invitation exists only in the action response and tab-scoped client storage for copying. Reload can recover it within that tab; otherwise the holder replaces it, atomically invalidating the lost token. Public record and sharing components receive neither access status nor credentials. A separate singleton switch disables new invitation issuance without changing generation or deterministic service continuity.
+
 ## Persistent public-record boundary
 
 `src/domain/public-record` owns language-neutral identifier grammars, lifecycle states, report reasons, consultation positions and aggregate rules, availability, and owner-transition rules. The server revalidates the complete normalized filing, deterministic assessment, localized language, procedural identity, and presentation variant before a transient snapshot may cross into persistence. Publication is rejected after the 30-minute transient lifetime.
 
 `src/server/public-record` owns repository contracts, cryptographic digests, atomic publication, idempotent replay, owner authorization, report recording, migrations, and failure normalization. Public identifiers use 128 random bits. Owner credentials use 256 random bits, travel only through client-private state or a URL fragment, and are retained only as SHA-256 digests. Constant-time comparison precedes every owner mutation.
 
-PostgreSQL owns relational public-record identity, access grants, opaque sessions, generation accounting, rate buckets, alert metadata, lifecycle, report metadata, consultation responses, and unique idempotency constraints; a versioned JSONB value owns only the immutable validated public determination snapshot. The portable production adapter uses a server-only `DATABASE_URL`, with Supabase as the initial managed target and prepared statements disabled for transaction-pooler compatibility. PGlite provides a repository-compatible embedded PostgreSQL runtime for local development and deterministic integration and browser tests.
+PostgreSQL owns relational public-record identity, evaluation and standard access grants, exclusive tenures, opaque sessions, successor transitions, generation accounting, rate buckets, alert metadata, lifecycle, report metadata, consultation responses, and unique idempotency constraints; a versioned JSONB value owns only the immutable validated public determination snapshot. The portable production adapter uses a server-only `DATABASE_URL`, with Supabase as the initial managed target and prepared statements disabled for transaction-pooler compatibility. PGlite provides a repository-compatible embedded PostgreSQL runtime for local development and deterministic integration and browser tests.
 
 The localized `/{locale}/record/{publicId}` route renders only published, unexpired snapshots. The document is rendered on the server; its small interactive reporting island receives only the public identifier and localized interface copy, so non-rendered snapshot fields are not serialized into the public client payload. The separate `/manage` route receives an owner credential from the URL fragment, immediately removes it from browser history, retains it only in tab storage, and sends it only in protected server actions. Published routes and owner routes use dynamic rendering, `noindex`, `nofollow`, and `no-store`; unavailable results use one non-enumerating 404 presentation.
 
@@ -213,7 +223,7 @@ Records should support explicit lifecycle states such as active, unpublished, ar
 - deployment provider;
 - analytics provider;
 - production model promotion and routing beyond the configurable `gpt-5.6-luna` default;
-- standard-access entitlement and successor-invitation behavior;
+- account-backed access, payment, entitlement replenishment, and cross-device standard-session recovery;
 - hosting-specific proxy topology, scheduled alert delivery, and broader public-mutation abuse controls.
 
 These decisions require rendered product evidence, provider evaluation, or explicit human approval.

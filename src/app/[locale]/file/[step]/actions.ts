@@ -4,7 +4,10 @@ import { randomBytes } from "node:crypto";
 import { cookies, headers } from "next/headers";
 
 import { createConfiguredOpenAIDeterminationLanguageProvider } from "@/providers/openai-determination-language";
-import { EVALUATION_SESSION_COOKIE } from "@/server/access/access-control-service";
+import {
+  EVALUATION_SESSION_COOKIE,
+  STANDARD_SESSION_COOKIE,
+} from "@/server/access/access-control-service";
 import { createNetworkDigest } from "@/server/access/network-identity";
 import { getRuntimeAccessControlRepository } from "@/server/access/runtime-access-control";
 import {
@@ -26,7 +29,9 @@ export async function completeFilingReview(
     provider: createConfiguredOpenAIDeterminationLanguageProvider(),
     accessRepository: await getRuntimeAccessControlRepository(),
     sessionCredential:
-      requestCookies.get(EVALUATION_SESSION_COOKIE)?.value ?? null,
+      requestCookies.get(STANDARD_SESSION_COOKIE)?.value ??
+      requestCookies.get(EVALUATION_SESSION_COOKIE)?.value ??
+      null,
     networkDigest: createNetworkDigest(requestHeaders, requestTime),
     now: () => new Date(),
     randomReferencePart: () => randomBytes(3).toString("hex").toUpperCase(),

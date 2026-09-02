@@ -25,7 +25,11 @@ export type GenerationAccessFallbackReason =
   | "global_budget_exhausted"
   | "control_unavailable"
   | "recovered_request"
-  | "completed_request";
+  | "completed_request"
+  | "expired_entitlement"
+  | "revoked_entitlement"
+  | "transfer_pending"
+  | "transferred_access";
 
 export function isEvaluationGrantId(value: unknown): value is string {
   return typeof value === "string" && /^egr_[A-Za-z0-9_-]{22}$/u.test(value);

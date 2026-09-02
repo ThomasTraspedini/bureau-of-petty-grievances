@@ -36,4 +36,4 @@ A durable database switch can disable provider generation without a redeploy. Op
 
 ## Open considerations
 
-Standard five-credit access and successor invitations remain C11. Hosting-specific trusted-proxy values, scheduled webhook delivery, provider-account spend-limit procedures, analytics, multi-region coordination, and broader public-mutation abuse controls remain deployment or later-capability work.
+Standard five-credit access and successor transfer are resolved by decision 0015. Hosting-specific trusted-proxy values, scheduled webhook delivery, provider-account spend-limit procedures, analytics, multi-region coordination, and broader public-mutation abuse controls remain deployment or later-capability work.

@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 
 import type { ChronologyDeterminationSnapshot } from "@/domain/determination/determination-experience";
+import type { StandardAccessSummary } from "@/domain/access/standard-access";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
 
 import { CivicSeal } from "../application-shell/application-shell";
 import { PublicRecordPublication } from "../public-record/public-record-publication";
+import { SuccessorTransfer } from "../access/successor-transfer";
 import { DeterminationRecord } from "./determination-record";
 import {
   DETERMINATION_SESSION_KEY,
@@ -23,6 +25,12 @@ interface DeterminationExperienceProps {
   copy: DeterminationCopy;
   navigation: NavigationCopy;
   publicRecord: PublicRecordCopy;
+  standardAccessCopy?: MessageCatalog["StandardAccess"];
+  standardAccess?: StandardAccessSummary | null;
+  issueInvitation?: Parameters<typeof SuccessorTransfer>[0]["issueInvitation"];
+  cancelInvitation?: Parameters<
+    typeof SuccessorTransfer
+  >[0]["cancelInvitation"];
 }
 
 export function DeterminationExperience({
@@ -30,6 +38,10 @@ export function DeterminationExperience({
   copy,
   navigation,
   publicRecord,
+  standardAccessCopy,
+  standardAccess = null,
+  issueInvitation,
+  cancelInvitation,
 }: DeterminationExperienceProps) {
   const [snapshot, setSnapshot] =
     useState<ChronologyDeterminationSnapshot | null>(null);
@@ -86,11 +98,25 @@ export function DeterminationExperience({
         </>
       }
       afterRecord={
-        <PublicRecordPublication
-          snapshot={snapshot}
-          locale={locale}
-          copy={publicRecord}
-        />
+        <>
+          <PublicRecordPublication
+            snapshot={snapshot}
+            locale={locale}
+            copy={publicRecord}
+          />
+          {standardAccess &&
+          standardAccessCopy &&
+          issueInvitation &&
+          cancelInvitation ? (
+            <SuccessorTransfer
+              locale={locale}
+              copy={standardAccessCopy}
+              summary={standardAccess}
+              issueInvitation={issueInvitation}
+              cancelInvitation={cancelInvitation}
+            />
+          ) : null}
+        </>
       }
     />
   );

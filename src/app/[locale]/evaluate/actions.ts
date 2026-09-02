@@ -5,6 +5,7 @@ import { cookies, headers } from "next/headers";
 
 import {
   EVALUATION_SESSION_COOKIE,
+  STANDARD_SESSION_COOKIE,
   createDefaultAccessControlDependencies,
   exchangeEvaluationTokenWith,
 } from "@/server/access/access-control-service";
@@ -35,7 +36,9 @@ export async function exchangeEvaluationToken(
   if (result.status !== "accepted") return result;
 
   const expires = new Date(result.expiresAt);
-  (await cookies()).set(EVALUATION_SESSION_COOKIE, result.credential, {
+  const cookieStore = await cookies();
+  cookieStore.delete(STANDARD_SESSION_COOKIE);
+  cookieStore.set(EVALUATION_SESSION_COOKIE, result.credential, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

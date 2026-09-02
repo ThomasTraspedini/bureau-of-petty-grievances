@@ -8,6 +8,8 @@ const embeddedTestDatabasePath = join(
   `bureau-playwright-public-records-${String(process.pid)}`,
 );
 const evaluationToken = `eva_${"E".repeat(43)}`;
+const standardToken = `std_${"S".repeat(43)}`;
+const standardSession = `sts_${"T".repeat(43)}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -38,6 +40,8 @@ export default defineConfig({
       BUREAU_NETWORK_HMAC_SECRET: "bureau-e2e-network-hmac-secret-32-bytes",
       BUREAU_TRUSTED_PROXY_HOPS: "0",
       BUREAU_E2E_EVALUATION_TOKEN: evaluationToken,
+      BUREAU_E2E_STANDARD_TOKEN: standardToken,
+      BUREAU_E2E_STANDARD_SESSION: standardSession,
     },
     url: "http://127.0.0.1:4173/en",
     reuseExistingServer: !process.env.CI,

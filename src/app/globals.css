@@ -162,6 +162,143 @@ a {
   font-weight: 700;
 }
 
+.standard-access-stack {
+  display: grid;
+  width: 100%;
+  gap: 28px;
+}
+
+.access-card-standard {
+  text-align: left;
+}
+
+.access-card-standard .access-mark {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.access-card-standard h1,
+.access-card-standard > p:not(.eyebrow) {
+  margin-right: 0;
+  margin-left: 0;
+}
+
+.access-balance {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin: 28px 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--line);
+}
+
+.access-balance div {
+  padding: 18px;
+  background: var(--ivory-light);
+}
+
+.access-balance dt,
+.successor-balance span,
+.successor-address-label {
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.access-balance dd {
+  margin: 8px 0 0;
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 650;
+}
+
+.successor-panel {
+  width: 100%;
+  padding: clamp(28px, 6vw, 54px);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.successor-panel h2 {
+  max-width: 620px;
+  margin-bottom: 12px;
+  font-size: clamp(32px, 5vw, 48px);
+}
+
+.successor-panel > p:not(.eyebrow, .procedural-meta, .form-error) {
+  max-width: 640px;
+  color: var(--ink-soft);
+}
+
+.successor-balance {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 26px 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--ivory-light);
+}
+
+.successor-balance strong {
+  font-family: var(--serif);
+  font-size: 25px;
+}
+
+.successor-status {
+  max-width: 640px;
+  margin: 22px 0;
+  padding: 16px 18px;
+  border-left: 4px solid var(--apricot);
+  background: var(--ivory-light);
+}
+
+.successor-status p {
+  margin: 5px 0 0;
+  color: var(--ink-soft);
+}
+
+.successor-address-label {
+  display: grid;
+  gap: 8px;
+  margin: 20px 0 10px;
+}
+
+.successor-address-label input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: white;
+  color: var(--ink);
+  font: 600 14px/1.3 var(--sans);
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.successor-panel .filing-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.successor-panel button.text-action {
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+}
+
 .filing-header {
   display: flex;
   width: min(calc(100% - 32px), var(--max));
@@ -2114,6 +2251,21 @@ footer p {
   .access-card {
     padding: 36px 22px;
     border-radius: 18px;
+  }
+
+  .access-balance {
+    grid-template-columns: 1fr;
+  }
+
+  .successor-panel {
+    padding: 30px 22px;
+    border-radius: 18px;
+  }
+
+  .successor-balance {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .filing-rail {

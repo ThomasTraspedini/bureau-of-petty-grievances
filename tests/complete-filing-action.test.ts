@@ -234,6 +234,18 @@ function accessRepository(overrides: {
     exchangeEvaluationAccess() {
       return Promise.resolve({ status: "invalid" });
     },
+    exchangeStandardAccess() {
+      return Promise.resolve({ status: "invalid" });
+    },
+    getStandardAccessStatus() {
+      return Promise.resolve({ status: "invalid" });
+    },
+    issueSuccessorInvitation() {
+      return Promise.resolve({ status: "invalid" });
+    },
+    cancelSuccessorInvitation() {
+      return Promise.resolve({ status: "invalid" });
+    },
     beginGeneration:
       overrides.begin ??
       (() =>

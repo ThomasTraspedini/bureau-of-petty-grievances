@@ -20,3 +20,4 @@ Accepted records:
 - [0012 — Sharing and social preview](0012-sharing-and-social-preview.md)
 - [0013 — Public consultation](0013-public-consultation.md)
 - [0014 — Evaluation access and cost control](0014-evaluation-access-and-cost-control.md)
+- [0015 — Standard access and residual-credit transfer](0015-standard-access-and-residual-transfer.md)

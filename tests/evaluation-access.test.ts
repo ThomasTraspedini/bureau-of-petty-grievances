@@ -346,6 +346,18 @@ describe("evaluation token service", () => {
             expiresAt: input.sessionExpiresAt,
           });
         },
+        exchangeStandardAccess() {
+          return Promise.resolve({ status: "invalid" });
+        },
+        getStandardAccessStatus() {
+          return Promise.resolve({ status: "invalid" });
+        },
+        issueSuccessorInvitation() {
+          return Promise.resolve({ status: "invalid" });
+        },
+        cancelSuccessorInvitation() {
+          return Promise.resolve({ status: "invalid" });
+        },
         beginGeneration() {
           return Promise.resolve({ status: "fallback", reason: "anonymous" });
         },

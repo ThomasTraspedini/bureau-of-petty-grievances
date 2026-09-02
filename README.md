@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.11.0` adds revocable evaluation access and complete server-owned cost control around every optional provider call. An evaluator link opens a bounded private browser session without a visible code step, URL credential, credit counter, or change to the ordinary filing journey.
+Version `0.12.0` adds one-use standard filing authorizations with a fixed five-credit allowance and a deliberately finite successor chain. After using one provider-generation credit, the current holder may either keep the residual balance or transfer that exact balance to one successor; transfer never creates credits or simultaneous paid holders.
 
-Atomic credit reservations, filing idempotency, per-session and coarse digest-only rate limits, a hard global dispatch budget, durable alerts, refund behavior, and an immediate database kill switch bound paid generation. Anonymous, exhausted, disabled, and unavailable paths remain complete through official deterministic language. Standard access and successor invitations are next.
+Private fragments are removed before exchange, raw credentials are never retained, and successor links remain separate from public records and case sharing. Standard access reuses the evaluation release's atomic reservations, filing idempotency, rate limits, hard global budget, refunds, alerts, and kill switches. Anonymous, exhausted, transferred, disabled, and unavailable paths remain complete through official deterministic language. Observability and learning are next.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -47,6 +47,13 @@ npm run access:operate -- create
 npm run access:operate -- status
 npm run access:operate -- generation disable
 npm run access:operate -- alerts
+```
+
+Initial standard authorizations and successor issuance are controlled separately. A standard creation command prints its one-use private link once:
+
+```sh
+npm run access:operate -- standard-create
+npm run access:operate -- invitations disable
 ```
 
 See [operations](docs/operations.md) for top-up, extension, budget, revocation, and optional alert-delivery commands.

@@ -20,11 +20,14 @@ if (!connectionString && !embeddedPath) {
 
 const commands = new Set([
   "create",
+  "standard-create",
+  "standard-revoke",
   "status",
   "top-up",
   "extend",
   "revoke",
   "generation",
+  "invitations",
   "budget-add",
   "alerts",
   "alerts-deliver",
@@ -38,11 +41,14 @@ const database = connectionString
 
 try {
   if (command === "create") await createGrant(database);
+  if (command === "standard-create") await createStandardAuthorization(database);
+  if (command === "standard-revoke") await revokeStandardAuthorization(database, args[1]);
   if (command === "status") await printStatus(database);
   if (command === "top-up") await topUpGrant(database, args[1], args[2]);
   if (command === "extend") await extendGrant(database, args[1], args[2]);
   if (command === "revoke") await revokeGrant(database, args[1]);
   if (command === "generation") await setGeneration(database, args[1]);
+  if (command === "invitations") await setInvitations(database, args[1]);
   if (command === "budget-add") await addBudget(database, args[1]);
   if (command === "alerts") await printAlerts(database);
   if (command === "alerts-deliver") await deliverAlerts(database);
@@ -78,6 +84,42 @@ async function createGrant(database) {
   );
 }
 
+async function createStandardAuthorization(database) {
+  const origin = parseOrigin(process.env.BUREAU_PUBLIC_ORIGIN);
+  const authorizationId = `sau_${randomBytes(16).toString("base64url")}`;
+  const token = `std_${randomBytes(32).toString("base64url")}`;
+  const rows = await database.query(
+    `INSERT INTO standard_authorizations (
+       authorization_id, token_digest, status, created_at, expires_at, updated_at
+     ) VALUES ($1, $2, 'available', now(), now() + interval '30 days', now())
+     RETURNING authorization_id AS "authorizationId", status, expires_at AS "expiresAt"`,
+    [authorizationId, sha256(token)],
+  );
+  process.stdout.write(
+    `${JSON.stringify(
+      {
+        ...rows[0],
+        standardAccessUrl: `${origin}/en/access#${token}`,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+}
+
+async function revokeStandardAuthorization(database, authorizationId) {
+  if (!/^sau_[A-Za-z0-9_-]{22}$/u.test(authorizationId ?? "")) {
+    throw new Error("A valid standard authorization identifier is required.");
+  }
+  const rows = await database.query(
+    `UPDATE standard_authorizations SET status = 'revoked', updated_at = now()
+     WHERE authorization_id = $1 AND status = 'available'
+     RETURNING authorization_id AS "authorizationId", status`,
+    [authorizationId],
+  );
+  printMutation(rows[0], "Available standard authorization not found.");
+}
+
 async function printStatus(database) {
   const grants = await database.query(`
     SELECT grant_id AS "grantId", status, credit_limit AS "creditLimit",
@@ -93,9 +135,29 @@ async function printStatus(database) {
   const pendingAlerts = await database.query(`
     SELECT COUNT(*)::text AS count FROM generation_usage_alerts WHERE status = 'pending'
   `);
+  const standardAuthorizations = await database.query(`
+    SELECT status, COUNT(*)::text AS count
+    FROM standard_authorizations GROUP BY status ORDER BY status
+  `);
+  const standardEntitlements = await database.query(`
+    SELECT status, COUNT(*)::text AS count,
+           COALESCE(SUM(credit_limit - credits_reserved - credits_consumed), 0)::text AS "creditsRemaining"
+    FROM standard_entitlements GROUP BY status ORDER BY status
+  `);
+  const successorControls = await database.query(`
+    SELECT issuance_enabled AS "issuanceEnabled", updated_at AS "updatedAt"
+    FROM successor_control WHERE control_id = 1
+  `);
   process.stdout.write(
     `${JSON.stringify(
-      { control: controls[0] ?? null, grants, pendingAlerts: pendingAlerts[0]?.count ?? "0" },
+      {
+        control: controls[0] ?? null,
+        grants,
+        standardAuthorizations,
+        standardEntitlements,
+        successorControl: successorControls[0] ?? null,
+        pendingAlerts: pendingAlerts[0]?.count ?? "0",
+      },
       null,
       2,
     )}\n`,
@@ -150,6 +212,19 @@ async function setGeneration(database, state) {
     [state === "enable"],
   );
   printMutation(rows[0], "Generation control is unavailable.");
+}
+
+async function setInvitations(database, state) {
+  if (state !== "enable" && state !== "disable") {
+    throw new Error("Use `invitations enable` or `invitations disable`.");
+  }
+  const rows = await database.query(
+    `UPDATE successor_control SET issuance_enabled = $1, updated_at = now()
+     WHERE control_id = 1
+     RETURNING issuance_enabled AS "issuanceEnabled", updated_at AS "updatedAt"`,
+    [state === "enable"],
+  );
+  printMutation(rows[0], "Successor invitation control is unavailable.");
 }
 
 async function addBudget(database, amountText) {
@@ -266,7 +341,7 @@ function sha256(value) {
 
 function usage() {
   throw new Error(
-    "Use create, status, top-up <grant> <credits>, extend <grant> <days>, revoke <grant>, generation <enable|disable>, budget-add <attempts>, alerts, alerts-deliver, or alert-acknowledge <id>.",
+    "Use create, standard-create, standard-revoke <authorization>, status, top-up <grant> <credits>, extend <grant> <days>, revoke <grant>, generation <enable|disable>, invitations <enable|disable>, budget-add <attempts>, alerts, alerts-deliver, or alert-acknowledge <id>.",
   );
 }
 

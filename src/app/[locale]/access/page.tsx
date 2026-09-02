@@ -1,51 +1,48 @@
 import type { Metadata } from "next";
 import { hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
-import { DeterminationExperience } from "@/features/determination/determination-experience";
+import { StandardAccess } from "@/features/access/standard-access";
 import { getMessageCatalog } from "@/i18n/catalogs";
 import { routing } from "@/i18n/routing";
 
 import {
   cancelSuccessorInvitation,
+  exchangeStandardToken,
   getStandardAccessStatus,
   issueSuccessorInvitation,
-} from "../access/actions";
+} from "./actions";
 
-interface DeterminationPageProps {
+interface StandardAccessPageProps {
   params: Promise<{ locale: string }>;
 }
 
 export async function generateMetadata({
   params,
-}: DeterminationPageProps): Promise<Metadata> {
+}: StandardAccessPageProps): Promise<Metadata> {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) return {};
-  const t = await getTranslations({ locale, namespace: "Determination" });
+  const copy = getMessageCatalog(locale).StandardAccess;
   return {
-    title: t("metadataTitle"),
-    description: t("metadataDescription"),
+    title: copy.metadataTitle,
+    description: copy.metadataDescription,
     robots: { index: false, follow: false },
   };
 }
 
-export default async function DeterminationPage({
+export default async function StandardAccessPage({
   params,
-}: DeterminationPageProps) {
+}: StandardAccessPageProps) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-
   const messages = getMessageCatalog(locale);
-  const access = await getStandardAccessStatus();
   return (
-    <DeterminationExperience
+    <StandardAccess
       locale={locale}
-      copy={messages.Determination}
+      copy={messages.StandardAccess}
       navigation={messages.Navigation}
-      publicRecord={messages.PublicRecord}
-      standardAccessCopy={messages.StandardAccess}
-      standardAccess={access.status === "available" ? access.summary : null}
+      exchangeToken={exchangeStandardToken}
+      getStatus={getStandardAccessStatus}
       issueInvitation={issueSuccessorInvitation}
       cancelInvitation={cancelSuccessorInvitation}
     />

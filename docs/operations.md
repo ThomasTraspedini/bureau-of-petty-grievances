@@ -19,9 +19,9 @@ A deployed instance must set `BUREAU_PUBLIC_ORIGIN` to its bare public HTTPS ori
 
 The rendered application has no required secrets because provider absence selects the complete deterministic fallback. When configured, the filing server action invokes the adapter using `OPENAI_API_KEY` and a configurable `BUREAU_OPENAI_MODEL` whose default is `gpt-5.6-luna`; credentials remain in ignored local or deployment configuration. Production font files are bundled locally. CI and local verification explicitly provide no provider credential, make no provider calls, and use the same repository command after installing dependencies and the Playwright Chromium browser.
 
-The production filing sends a reviewed draft to the server for runtime validation, deterministic assessment, authorized language realization, and transient determination issuance. It does not automatically store filing content or produce a public record. A valid evaluator session may reserve one provider-generation credit; anonymous and unavailable paid paths use deterministic language without a reservation. The safe draft remains in a locale-bearing, versioned browser envelope for no longer than 30 days and can be reset explicitly. The issued result uses a separate validated tab-scoped envelope with a 30-minute lifetime. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in either accepted path.
+The production filing sends a reviewed draft to the server for runtime validation, deterministic assessment, authorized language realization, and transient determination issuance. It does not automatically store filing content or produce a public record. A valid evaluator or standard session may reserve one provider-generation credit; anonymous and unavailable paid paths use deterministic language without a reservation. The safe draft remains in a locale-bearing, versioned browser envelope for no longer than 30 days and can be reset explicitly. The issued result uses a separate validated tab-scoped envelope with a 30-minute lifetime. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in either accepted path.
 
-During that transient lifetime, a filer may explicitly publish the displayed snapshot. Production requires a server-only pooled PostgreSQL `DATABASE_URL`; no database key enters a browser bundle. The server disables prepared statements for transaction-pooler compatibility and idempotently applies shared schema version `3` when the database runtime starts. For local development, `BUREAU_EMBEDDED_DATABASE_PATH=.data/public-records` selects an ignored durable PGlite directory instead. `DATABASE_URL` takes precedence when both are present.
+During that transient lifetime, a filer may explicitly publish the displayed snapshot. Production requires a server-only pooled PostgreSQL `DATABASE_URL`; no database key enters a browser bundle. The server disables prepared statements for transaction-pooler compatibility and idempotently applies shared schema version `4` when the database runtime starts. For local development, `BUREAU_EMBEDDED_DATABASE_PATH=.data/public-records` selects an ignored durable PGlite directory instead. `DATABASE_URL` takes precedence when both are present.
 
 Publication revalidates the complete snapshot, then atomically inserts it with its public identity, idempotency key, hashed owner credential, status, issue and publication times, and 180-day expiry. A database failure returns localized recovery copy while the transient determination remains available. Neither a partial record nor raw database error reaches the filer.
 
@@ -66,6 +66,31 @@ npm run access:operate -- revoke egr_0123456789abcdefghijkl
 ```
 
 Each new grant begins with 100 logical credits. A filing reserves one atomically and consumes it only for validated provider language. Fallback and terminal internal failure refund it. Request records retain the session-scoped idempotency key, SHA-256 filing digest, procedural reference, categorical outcome, provider-attempt count, and timestamps for recovery; they retain no raw filing field, prompt, provider response, or determination prose. A cleanup policy may remove expired operational rows after the evaluation window, but correctness never depends on deletion.
+
+### Standard access and successor transfer
+
+Create one initial standard authorization with the same configured public origin and database used by the application:
+
+```sh
+npm run access:operate -- standard-create
+```
+
+The command prints one 30-day `std_` fragment link once. Later status output contains categorical authorization and entitlement counts only. An unused initial authorization can be revoked by identifier:
+
+```sh
+npm run access:operate -- standard-revoke sau_0123456789abcdefghijkl
+```
+
+Claim creates one anonymous 180-day entitlement with five provider-generation credits. The expiry is fixed from initial claim and never extends on transfer. Validated provider language consumes a credit; fallback and terminal internal failure refund it. Only a provider-backed completion during the current tenure qualifies that holder to transfer a positive residual balance.
+
+Issuing an invitation freezes paid generation for that holder and creates one digest-only `sti_` fragment credential, valid for at most 30 days and never beyond the entitlement. Cancel or expiry restores the holder. Replacement invalidates the previous link. Claim atomically revokes the former paid tenure and creates one successor tenure over the same residual counters. Operators can suspend or restore new invitations without disabling filing or deterministic fallback:
+
+```sh
+npm run access:operate -- invitations disable
+npm run access:operate -- invitations enable
+```
+
+There is no standard top-up command: this release intentionally cannot mint credits into an active transfer chain. A lost claimed browser session is unrecoverable without future account infrastructure. An unclaimed invitation remains recoverable by cancellation or replacement from its current holder.
 
 ### Limits, budget, and kill switch
 

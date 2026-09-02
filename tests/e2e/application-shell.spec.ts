@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 
 const EVALUATION_TOKEN = `eva_${"E".repeat(43)}`;
+const STANDARD_TOKEN = `std_${"S".repeat(43)}`;
 import { expect, test } from "@playwright/test";
 
 test("redirects the root to the explicit English locale", async ({ page }) => {
@@ -63,7 +64,7 @@ test("renders a localized invalid evaluator address without indexing", async ({
     }),
   ).toBeVisible();
   expect(page.url()).not.toContain("#invalid");
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
+  await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute(
     "content",
     /noindex/u,
   );
@@ -72,6 +73,36 @@ test("renders a localized invalid evaluator address without indexing", async ({
   expect(
     await page.screenshot({ animations: "disabled", fullPage: true }),
   ).toMatchSnapshot("evaluation-access-desktop.png");
+});
+
+test("redeems one standard authorization without retaining its credential", async ({
+  page,
+  context,
+}) => {
+  await context.setExtraHTTPHeaders({ "x-forwarded-for": "198.51.100.17" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`/en/access#${STANDARD_TOKEN}`);
+  await expect(
+    page.getByRole("heading", { name: "Your filing authority is ready." }),
+  ).toBeVisible();
+  await expect(page.getByText("5 of 5").first()).toBeVisible();
+  expect(page.url()).not.toContain(STANDARD_TOKEN);
+  expect(await page.evaluate(() => document.cookie)).not.toContain(
+    "bpg_standard_session_v1",
+  );
+  const cookies = await context.cookies();
+  expect(
+    cookies.find((cookie) => cookie.name === "bpg_standard_session_v1"),
+  ).toMatchObject({ httpOnly: true, sameSite: "Lax" });
+  await expect(page.locator('meta[name="robots"]').first()).toHaveAttribute(
+    "content",
+    /noindex/u,
+  );
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+  expect(
+    await page.screenshot({ animations: "disabled", fullPage: true }),
+  ).toMatchSnapshot("standard-access-mobile.png");
 });
 
 test("loads the production shell without external asset requests", async ({
@@ -147,6 +178,28 @@ test.describe("visual contract", () => {
     await page.goto("/en");
 
     await expect(page).toHaveScreenshot("application-shell-desktop.png", {
+      fullPage: true,
+      animations: "disabled",
+      maxDiffPixelRatio: 0.01,
+    });
+  });
+
+  test("desktop standard authorization", async ({ page, context }) => {
+    await context.addCookies([
+      {
+        name: "bpg_standard_session_v1",
+        value: `sts_${"V".repeat(43)}`,
+        url: "http://127.0.0.1:4173",
+        httpOnly: true,
+        sameSite: "Lax",
+      },
+    ]);
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/en/access");
+    await expect(
+      page.getByRole("heading", { name: "Your filing authority is ready." }),
+    ).toBeVisible();
+    await expect(page).toHaveScreenshot("standard-access-desktop.png", {
       fullPage: true,
       animations: "disabled",
       maxDiffPixelRatio: 0.01,

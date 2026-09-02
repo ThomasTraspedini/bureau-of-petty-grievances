@@ -50,6 +50,16 @@ Each evaluator grant begins with 100 provider-backed determination credits. One 
 
 Anonymous, invalid, expired, revoked, exhausted, disabled, and control-unavailable paid paths retain the complete official deterministic determination. Rate limiting instead pauses repeated completion briefly, preserves the filing and its exact idempotency key, and gives localized retry guidance. Access records, network buckets, alerts, and operator output contain no alias, witness statement, prompt, provider response, or determination prose.
 
+## Current standard-access contract
+
+An operator-created standard authorization is claimable once for a private anonymous filing entitlement. Its random credential travels in a URL fragment, is removed before exchange, and is retained only as a digest. Claim creates a separate `HttpOnly` browser session over one fixed 180-day entitlement containing five provider-generation credits.
+
+A validated provider-backed determination consumes one credit. Deterministic fallback and terminal internal failure consume none and remain complete official outcomes, but they do not qualify the current tenure to transfer its allowance. After consuming at least one provider credit, the holder may continue filing or explicitly reserve the exact residual balance for one successor.
+
+Issuing an invitation pauses the current holder's paid use. The private invitation expires after 30 days or with the entitlement, whichever comes first. It may be cancelled or replaced before claim; cancellation or expiry restores the sender, and replacement invalidates the earlier credential. Claim ends the former holder's paid authority and gives the successor the unchanged balance, counters, and fixed expiry. No transfer creates credits, resets expiry, or leaves simultaneous paid holders.
+
+Every successor must independently consume one provider credit before transferring again. A five-credit entitlement can therefore support at most five paid determinations and five qualifying holders. Public determinations, metadata, consultation, owner controls, and case-sharing surfaces never receive the standard session or successor credential. Evaluation access remains a separate shared pool.
+
 ## Current deterministic assessment contract
 
 Every accepted Chronology filing produces a versioned, language-neutral assessment before any generative wording. Premature departure and chronic lateness use the submitted delay; an optimistic estimate uses the difference between actual and estimated duration.

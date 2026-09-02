@@ -1,4 +1,4 @@
-export const PUBLIC_RECORD_SCHEMA_VERSION = 3 as const;
+export const PUBLIC_RECORD_SCHEMA_VERSION = 4 as const;
 
 export const PUBLIC_RECORD_SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS bureau_schema_migrations (
@@ -156,5 +156,124 @@ CREATE INDEX IF NOT EXISTS generation_usage_alerts_status_idx
 
 INSERT INTO bureau_schema_migrations (version)
 VALUES (3)
+ON CONFLICT (version) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS standard_entitlements (
+  entitlement_id text PRIMARY KEY CHECK (entitlement_id ~ '^ste_[A-Za-z0-9_-]{22}$'),
+  status text NOT NULL CHECK (status IN ('active', 'revoked')),
+  credit_limit integer NOT NULL CHECK (credit_limit = 5),
+  credits_reserved integer NOT NULL DEFAULT 0 CHECK (credits_reserved >= 0),
+  credits_consumed integer NOT NULL DEFAULT 0 CHECK (credits_consumed >= 0),
+  created_at timestamptz NOT NULL,
+  expires_at timestamptz NOT NULL,
+  updated_at timestamptz NOT NULL,
+  CHECK (expires_at > created_at),
+  CHECK (credits_reserved + credits_consumed <= credit_limit)
+);
+
+CREATE INDEX IF NOT EXISTS standard_entitlements_status_expiry_idx
+  ON standard_entitlements (status, expires_at);
+
+CREATE TABLE IF NOT EXISTS standard_authorizations (
+  authorization_id text PRIMARY KEY CHECK (authorization_id ~ '^sau_[A-Za-z0-9_-]{22}$'),
+  token_digest text NOT NULL UNIQUE CHECK (token_digest ~ '^[a-f0-9]{64}$'),
+  status text NOT NULL CHECK (status IN ('available', 'claimed', 'revoked')),
+  created_at timestamptz NOT NULL,
+  expires_at timestamptz NOT NULL,
+  claimed_at timestamptz,
+  entitlement_id text REFERENCES standard_entitlements(entitlement_id) ON DELETE SET NULL,
+  updated_at timestamptz NOT NULL,
+  CHECK (expires_at > created_at)
+);
+
+CREATE INDEX IF NOT EXISTS standard_authorizations_status_expiry_idx
+  ON standard_authorizations (status, expires_at);
+
+CREATE TABLE IF NOT EXISTS standard_tenures (
+  tenure_id text PRIMARY KEY CHECK (tenure_id ~ '^stn_[A-Za-z0-9_-]{22}$'),
+  entitlement_id text NOT NULL REFERENCES standard_entitlements(entitlement_id) ON DELETE CASCADE,
+  ordinal integer NOT NULL CHECK (ordinal BETWEEN 1 AND 5),
+  status text NOT NULL CHECK (status IN ('active', 'transfer_pending', 'transferred')),
+  provider_completions integer NOT NULL DEFAULT 0 CHECK (provider_completions >= 0),
+  created_at timestamptz NOT NULL,
+  ended_at timestamptz,
+  updated_at timestamptz NOT NULL,
+  UNIQUE (entitlement_id, ordinal)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS standard_tenures_current_idx
+  ON standard_tenures (entitlement_id)
+  WHERE status IN ('active', 'transfer_pending');
+
+CREATE TABLE IF NOT EXISTS standard_sessions (
+  session_id text PRIMARY KEY CHECK (session_id ~ '^ses_[A-Za-z0-9_-]{22}$'),
+  tenure_id text NOT NULL REFERENCES standard_tenures(tenure_id) ON DELETE CASCADE,
+  credential_digest text NOT NULL UNIQUE CHECK (credential_digest ~ '^[a-f0-9]{64}$'),
+  created_at timestamptz NOT NULL,
+  expires_at timestamptz NOT NULL,
+  last_used_at timestamptz NOT NULL,
+  CHECK (expires_at > created_at)
+);
+
+CREATE INDEX IF NOT EXISTS standard_sessions_tenure_expiry_idx
+  ON standard_sessions (tenure_id, expires_at);
+
+CREATE TABLE IF NOT EXISTS successor_invitations (
+  invitation_id text PRIMARY KEY CHECK (invitation_id ~ '^sin_[A-Za-z0-9_-]{22}$'),
+  entitlement_id text NOT NULL REFERENCES standard_entitlements(entitlement_id) ON DELETE CASCADE,
+  from_tenure_id text NOT NULL REFERENCES standard_tenures(tenure_id) ON DELETE CASCADE,
+  to_tenure_id text REFERENCES standard_tenures(tenure_id) ON DELETE SET NULL,
+  token_digest text NOT NULL UNIQUE CHECK (token_digest ~ '^[a-f0-9]{64}$'),
+  status text NOT NULL CHECK (status IN ('active', 'claimed', 'cancelled', 'replaced', 'expired')),
+  created_at timestamptz NOT NULL,
+  expires_at timestamptz NOT NULL,
+  claimed_at timestamptz,
+  updated_at timestamptz NOT NULL,
+  CHECK (expires_at > created_at)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS successor_invitations_active_idx
+  ON successor_invitations (entitlement_id)
+  WHERE status = 'active';
+
+CREATE INDEX IF NOT EXISTS successor_invitations_token_idx
+  ON successor_invitations (token_digest);
+
+CREATE TABLE IF NOT EXISTS successor_control (
+  control_id integer PRIMARY KEY CHECK (control_id = 1),
+  issuance_enabled boolean NOT NULL,
+  updated_at timestamptz NOT NULL
+);
+
+INSERT INTO successor_control (control_id, issuance_enabled, updated_at)
+VALUES (1, true, now())
+ON CONFLICT (control_id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS standard_generation_requests (
+  request_id text PRIMARY KEY CHECK (request_id ~ '^gen_[A-Za-z0-9_-]{22}$'),
+  session_id text NOT NULL REFERENCES standard_sessions(session_id) ON DELETE CASCADE,
+  tenure_id text NOT NULL REFERENCES standard_tenures(tenure_id) ON DELETE CASCADE,
+  entitlement_id text NOT NULL REFERENCES standard_entitlements(entitlement_id) ON DELETE CASCADE,
+  idempotency_key text NOT NULL CHECK (idempotency_key ~ '^fil_[A-Za-z0-9_-]{22}$'),
+  filing_digest text NOT NULL CHECK (filing_digest ~ '^[a-f0-9]{64}$'),
+  procedural_reference text NOT NULL CHECK (procedural_reference ~ '^CHR · [0-9]{4} · [A-Z0-9]{6}$'),
+  status text NOT NULL CHECK (status IN (
+    'reserved', 'completed_provider', 'completed_fallback',
+    'failed_refunded', 'recovered_fallback'
+  )),
+  provider_attempts integer NOT NULL DEFAULT 0 CHECK (provider_attempts BETWEEN 0 AND 2),
+  created_at timestamptz NOT NULL,
+  expires_at timestamptz NOT NULL,
+  lease_until timestamptz NOT NULL,
+  completed_at timestamptz,
+  UNIQUE (session_id, idempotency_key),
+  CHECK (expires_at > created_at)
+);
+
+CREATE INDEX IF NOT EXISTS standard_generation_requests_expiry_idx
+  ON standard_generation_requests (expires_at);
+
+INSERT INTO bureau_schema_migrations (version)
+VALUES (4)
 ON CONFLICT (version) DO NOTHING;
 `;

@@ -1,5 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import {
+  expect,
+  test,
+  type Browser,
+  type BrowserContext,
+  type Page,
+} from "@playwright/test";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import { DETERMINATION_EXPERIENCE_VERSION } from "@/domain/determination/determination-experience";
@@ -21,6 +27,7 @@ declare global {
 }
 
 const storageKey = "bpg:filing:chronology:en:v1";
+const standardSession = `sts_${"T".repeat(43)}`;
 
 test.describe.configure({ mode: "serial" });
 
@@ -299,6 +306,59 @@ test("renders an accessible immediate determination under reduced motion", async
   expect(duration).toBeLessThan(0.001);
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
+});
+
+test("transfers one fixed residual allowance to exactly one successor", async ({
+  page,
+  context,
+  browser,
+}: {
+  page: Page;
+  context: BrowserContext;
+  browser: Browser;
+}) => {
+  await context.addCookies([
+    {
+      name: "bpg_standard_session_v1",
+      value: standardSession,
+      url: "http://127.0.0.1:4173",
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
+  await openFixedDetermination(page);
+  await expect(
+    page.getByRole("heading", {
+      name: "Give the remaining filings to one person.",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("4 of 5")).toBeVisible();
+  await page.getByRole("button", { name: "Issue private invitation" }).click();
+  const invitation = await page
+    .getByLabel("Private successor address")
+    .inputValue();
+  expect(invitation).toContain("/en/access#sti_");
+
+  const successorContext = await browser.newContext({
+    extraHTTPHeaders: { "x-forwarded-for": "198.51.100.27" },
+  });
+  const successorPage = await successorContext.newPage();
+  await successorPage.goto(invitation);
+  await expect(
+    successorPage.getByRole("heading", {
+      name: "Your filing authority is ready.",
+    }),
+  ).toBeVisible();
+  await expect(successorPage.getByText("4 of 5").first()).toBeVisible();
+  expect(successorPage.url()).not.toContain("sti_");
+
+  await page.goto("/en/access");
+  await expect(
+    page.getByRole("heading", {
+      name: "The remaining allowance now belongs to the successor.",
+    }),
+  ).toBeVisible();
+  await successorContext.close();
 });
 
 test("publishes, reports, unpublishes, restores, and deletes a public record", async ({
