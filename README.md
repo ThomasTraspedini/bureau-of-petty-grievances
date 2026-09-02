@@ -8,7 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.1.1` establishes the repository's product and engineering operating system, including deterministic selection of the next ready capability. Product implementation has not started yet. Each later release must leave the repository coherent, tested, and deployable rather than exposing partially completed work.
+Version `0.2.0` adds a complete, interactive product prototype covering the primary journey on mobile and key desktop states. It establishes the Bureau's visual identity, copy hierarchy, responsive behavior, motion intent, and recovery states while deliberately deferring the production application stack.
+
+[Review the interaction prototype](prototype/README.md) or serve the repository locally and open `/prototype/en/`.
 
 ## Product principles
 
@@ -38,7 +40,7 @@ Until the application stack is selected, the repository-level quality gate is:
 ./scripts/validate-repository.sh
 ```
 
-The command verifies version metadata, required operating documents, repository hygiene, and the boundary that keeps private working material out of this repository. Runtime-specific checks will be added to the same documented verification workflow when implementation begins.
+The command verifies version metadata, required operating documents, repository hygiene, the public/private boundary, prototype syntax, focused interaction behavior, and localization boundaries. Production runtime checks will be added to the same workflow when the application foundation begins.
 
 ## Versioning
 

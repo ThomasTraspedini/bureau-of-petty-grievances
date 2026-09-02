@@ -2,7 +2,22 @@
 
 ## Status
 
-The application stack has not been selected. It will be chosen after the first complete interaction direction is rendered and evaluated. This document records system boundaries that remain valid across reasonable stack choices.
+The first complete interaction direction is now rendered as a repository-native prototype. The application stack remains unselected pending evaluation of that evidence and an explicit decision for the application-foundation capability. This document records system boundaries that remain valid across reasonable stack choices.
+
+## Prototype evidence
+
+The interaction prototype establishes several implementation requirements without choosing a framework:
+
+- `/prototype/en/` demonstrates an explicit locale route and a separate English interface catalog;
+- the complete Chronology journey preserves and corrects a device-local draft before review;
+- determination language and procedural reconstruction respond to structured prototype facts;
+- public consultation remains separate from the official determination;
+- public-result sharing and private successor authorization are distinct surfaces;
+- content rejection and terminal failure preserve work and state credit consequences explicitly;
+- mobile and desktop compositions share one identity while changing layout deliberately;
+- motion communicates state and has a reduced-motion equivalent.
+
+The prototype uses static browser modules only. Its state model, storage, validation, and URLs are interaction evidence rather than a production architecture.
 
 ## Architectural goals
 

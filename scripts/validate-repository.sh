@@ -60,4 +60,6 @@ if [[ -n "$tracked_forbidden" ]]; then
   fail "forbidden local or credential-bearing filename is tracked"
 fi
 
+./scripts/validate-prototype.sh
+
 printf 'Repository validation passed for version %s.\n' "$version"

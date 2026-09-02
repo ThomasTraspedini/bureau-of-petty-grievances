@@ -8,13 +8,28 @@ Tests protect product behavior, safety, taste-critical states, and operational i
 
 Every product-changing task must run one documented canonical verification workflow. The workflow will grow with the application but must remain reproducible locally and in CI.
 
-At version `0.1.0`, run:
+At version `0.2.0`, run:
 
 ```sh
 ./scripts/validate-repository.sh
 ```
 
-When implementation begins, the canonical workflow must include formatting, linting, strict type checking, unit tests, integration tests, relevant end-to-end tests, a production build, and repository validation.
+The canonical workflow now includes prototype syntax checks, focused interaction-state tests, locale-boundary checks, and repository validation. When the production application begins, it must grow to include formatting, linting, strict type checking, integration tests, relevant end-to-end tests, and a production build.
+
+## Prototype verification
+
+`./scripts/validate-prototype.sh` checks:
+
+- reversible journey-step ordering and required mitigating context;
+- bounded and restricted witness statements;
+- deterministic presentation parameters derived from submitted chronology facts;
+- consultation updates that preserve approved positions and prior state;
+- runtime validation of browser-stored drafts;
+- coverage of statically referenced localized interface messages;
+- an explicit locale route with copy outside view markup;
+- the reduced-motion contract and separation of recovery, consultation, sharing, and successor copy.
+
+Manual review covers the complete journey at a 390-pixel mobile viewport and representative desktop states at 1440 pixels, including keyboard-reachable controls, content expansion, determination reveal, consultation feedback, public sharing, private successor authorization, rejection, and recovery.
 
 ## Test layers
 
