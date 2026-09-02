@@ -6,6 +6,11 @@ import {
   type PublicRecordReportReason,
   type PublicRecordStatus,
 } from "@/domain/public-record/public-record";
+import {
+  isPublicConsultationPosition,
+  type PublicConsultationAggregate,
+  type PublicConsultationPosition,
+} from "@/domain/public-record/public-consultation";
 import { validateChronologyDeterminationSnapshot } from "@/domain/determination/determination-experience";
 
 import type {
@@ -139,6 +144,76 @@ export class SqlPublicRecordRepository implements PublicRecordRepository {
     return "existing";
   }
 
+  async consultationAggregate(
+    publicId: string,
+    requestedAt: string,
+  ): Promise<PublicConsultationAggregate | null> {
+    return readConsultationAggregate(this.database, publicId, requestedAt);
+  }
+
+  async submitConsultation(input: {
+    publicId: string;
+    participationDigest: string;
+    position: PublicConsultationPosition;
+    createdAt: string;
+  }) {
+    return this.database.transaction(async (session) => {
+      const inserted = await session.query(
+        `INSERT INTO public_record_consultation_responses (
+          public_id, participation_digest, position, created_at
+        )
+        SELECT public_id, $1, $2, $3
+        FROM public_records
+        WHERE public_id = $4 AND status = 'published' AND expires_at > $3
+        ON CONFLICT (public_id, participation_digest) DO NOTHING
+        RETURNING position`,
+        [
+          input.participationDigest,
+          input.position,
+          input.createdAt,
+          input.publicId,
+        ],
+      );
+
+      let selectedPosition = parseConsultationPosition(
+        inserted.rows[0]?.position,
+      );
+      const created = selectedPosition !== null;
+      if (!created) {
+        const available = await session.query(
+          `SELECT public_id
+           FROM public_records
+           WHERE public_id = $1 AND status = 'published' AND expires_at > $2`,
+          [input.publicId, input.createdAt],
+        );
+        if (available.rows.length !== 1) return "unavailable" as const;
+        const existing = await session.query(
+          `SELECT position
+           FROM public_record_consultation_responses
+           WHERE public_id = $1 AND participation_digest = $2`,
+          [input.publicId, input.participationDigest],
+        );
+        selectedPosition = parseConsultationPosition(
+          existing.rows[0]?.position,
+        );
+        if (selectedPosition === null) {
+          throw new Error("The idempotent consultation response was lost.");
+        }
+      }
+
+      const aggregate = await readConsultationAggregate(
+        session,
+        input.publicId,
+        input.createdAt,
+      );
+      if (aggregate === null) return "unavailable" as const;
+      if (selectedPosition === null) {
+        throw new Error("The consultation position could not be resolved.");
+      }
+      return { aggregate, selectedPosition, created };
+    });
+  }
+
   async listOpenReports(): Promise<readonly OpenPublicRecordReport[]> {
     const result = await this.database.query(
       `SELECT public_id AS "publicId", reason, created_at AS "createdAt"
@@ -173,6 +248,26 @@ export class SqlPublicRecordRepository implements PublicRecordRepository {
     );
     return result.affectedRows;
   }
+}
+
+async function readConsultationAggregate(
+  session: SqlSession,
+  publicId: string,
+  requestedAt: string,
+): Promise<PublicConsultationAggregate | null> {
+  const result = await session.query(
+    `SELECT
+       COUNT(response_id)::text AS total,
+       COUNT(response_id) FILTER (WHERE position = 'grievance_upheld')::text AS "grievanceUpheld",
+       COUNT(response_id) FILTER (WHERE position = 'grievance_dismissed')::text AS "grievanceDismissed",
+       COUNT(response_id) FILTER (WHERE position = 'upheld_with_circumstances_noted')::text AS "upheldWithCircumstancesNoted"
+     FROM public_records
+     LEFT JOIN public_record_consultation_responses USING (public_id)
+     WHERE public_id = $1 AND status = 'published' AND expires_at > $2
+     GROUP BY public_id`,
+    [publicId, requestedAt],
+  );
+  return parseConsultationAggregate(result.rows[0]);
 }
 
 async function findByPublicationKey(
@@ -258,6 +353,48 @@ function isReportReason(value: unknown): value is PublicRecordReportReason {
     value === "wrong_person" ||
     value === "other_safety_concern"
   );
+}
+
+function parseConsultationPosition(
+  value: unknown,
+): PublicConsultationPosition | null {
+  return isPublicConsultationPosition(value) ? value : null;
+}
+
+function parseConsultationAggregate(
+  value: unknown,
+): PublicConsultationAggregate | null {
+  if (!isRecord(value)) return null;
+  const total = safeCount(value.total);
+  const grievanceUpheld = safeCount(value.grievanceUpheld);
+  const grievanceDismissed = safeCount(value.grievanceDismissed);
+  const upheldWithCircumstancesNoted = safeCount(
+    value.upheldWithCircumstancesNoted,
+  );
+  if (
+    total === null ||
+    grievanceUpheld === null ||
+    grievanceDismissed === null ||
+    upheldWithCircumstancesNoted === null ||
+    total !==
+      grievanceUpheld + grievanceDismissed + upheldWithCircumstancesNoted
+  ) {
+    return null;
+  }
+  return {
+    total,
+    counts: {
+      grievanceUpheld,
+      grievanceDismissed,
+      upheldWithCircumstancesNoted,
+    },
+  };
+}
+
+function safeCount(value: unknown): number | null {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  const count = typeof value === "number" ? value : Number(value);
+  return Number.isSafeInteger(count) && count >= 0 ? count : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

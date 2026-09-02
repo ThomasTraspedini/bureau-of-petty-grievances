@@ -1,4 +1,4 @@
-export const PUBLIC_RECORD_SCHEMA_VERSION = 1 as const;
+export const PUBLIC_RECORD_SCHEMA_VERSION = 2 as const;
 
 export const PUBLIC_RECORD_SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS bureau_schema_migrations (
@@ -42,5 +42,21 @@ CREATE INDEX IF NOT EXISTS public_record_reports_open_idx
 
 INSERT INTO bureau_schema_migrations (version)
 VALUES (1)
+ON CONFLICT (version) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS public_record_consultation_responses (
+  response_id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  public_id text NOT NULL REFERENCES public_records(public_id) ON DELETE CASCADE,
+  participation_digest text NOT NULL CHECK (participation_digest ~ '^[a-f0-9]{64}$'),
+  position text NOT NULL CHECK (position IN ('grievance_upheld', 'grievance_dismissed', 'upheld_with_circumstances_noted')),
+  created_at timestamptz NOT NULL,
+  UNIQUE (public_id, participation_digest)
+);
+
+CREATE INDEX IF NOT EXISTS public_record_consultation_aggregate_idx
+  ON public_record_consultation_responses (public_id, position);
+
+INSERT INTO bureau_schema_migrations (version)
+VALUES (2)
 ON CONFLICT (version) DO NOTHING;
 `;

@@ -2,6 +2,23 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.10.0]
+
+### Added
+
+- Localized public consultation with the three approved advisory positions, honest zero-state counts, aggregate proportions, and clear separation from the immutable Bureau determination.
+- Random per-record browser participation keys with digest-only server storage, immutable idempotent replay, and an explicit proportionate boundary that avoids accounts, IP retention, fingerprinting, and CAPTCHA.
+- Durable PostgreSQL consultation responses with lifecycle-gated transactional submission, exact derived aggregates, owner-restoration continuity, and hard-delete cascade behavior.
+- Preserved failed selections, refresh recovery, restrained aggregate motion, immediate reduced-motion feedback, and localized unavailable states.
+- Domain, schema, privacy, idempotency, concurrency, lifecycle, component, pseudo-localization, accessibility, end-to-end, responsive, and visual consultation coverage.
+- An accepted decision record defining aggregate honesty, response identity, mutability, concurrency, lifecycle, privacy, and deferred abuse controls.
+
+### Changed
+
+- Available public records now present consultation before sharing and reporting while retaining unlisted, `noindex`, `no-store`, and separate owner-authority boundaries.
+- The public-record schema advances to version 2 with additive consultation response storage.
+- Public consultation is complete; evaluation access and cost control are the next ready capability.
+
 ## [0.9.0]
 
 ### Added

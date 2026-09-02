@@ -18,3 +18,4 @@ Accepted records:
 - [0010 — Transient determination experience](0010-transient-determination-experience.md)
 - [0011 — Persistent public record](0011-persistent-public-record.md)
 - [0012 — Sharing and social preview](0012-sharing-and-social-preview.md)
+- [0013 — Public consultation](0013-public-consultation.md)

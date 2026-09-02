@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.9.0` turns each available public Chronology determination into a deliberate share object. The public page now offers native device sharing, resilient public-link copying, localized record-specific social metadata, and a deterministic procedural preview image.
+Version `0.10.0` adds a complete public consultation to every available Chronology determination. Visitors can contribute one of three advisory positions without an account and see honest atomic counts and proportions, including a real zero-response state.
 
-Preview content is limited to bounded non-identifying facts and never includes the separate private owner credential. Public pages and images remain dynamic, `noindex`, lifecycle-aware, and uncached. Owner lifecycle controls and categorical reporting remain operational; public consultation is the next capability.
+A random per-record browser key discourages ordinary repeat responses without IP retention or fingerprinting; the database stores only its digest and one immutable position. Results follow the public-record lifecycle and never alter the official determination. Sharing, social previews, owner controls, and categorical reporting remain operational; evaluation access and cost control are next.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 

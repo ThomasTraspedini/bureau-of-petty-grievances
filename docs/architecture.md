@@ -2,7 +2,7 @@
 
 ## Status
 
-The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, and sharing described in decisions 0006 through 0012. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, and persistence boundaries.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, sharing, and public consultation described in decisions 0006 through 0013. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, and persistence boundaries.
 
 ## Application foundation
 
@@ -57,19 +57,19 @@ The localized `/{locale}/determination` route is a client-restored private resul
 
 The procedural reference is random and non-sensitive but explicitly transient. Its year and six-character suffix combine with the assessment visual seed only for curated presentation variation. The responsive record includes a semantic text equivalent for the visual timeline, uses locale-aware date, time, and number formatting, exposes no provider diagnostics, and is marked `noindex`. Loading exists only during real work, terminal failure preserves review and retry, and reduced motion collapses the single reveal.
 
-Later capabilities still own credits, access authorization, and consultation.
+Later capabilities still own credits and access authorization.
 
 ## Persistent public-record boundary
 
-`src/domain/public-record` owns language-neutral identifier grammars, lifecycle states, report reasons, availability, and owner-transition rules. The server revalidates the complete normalized filing, deterministic assessment, localized language, procedural identity, and presentation variant before a transient snapshot may cross into persistence. Publication is rejected after the 30-minute transient lifetime.
+`src/domain/public-record` owns language-neutral identifier grammars, lifecycle states, report reasons, consultation positions and aggregate rules, availability, and owner-transition rules. The server revalidates the complete normalized filing, deterministic assessment, localized language, procedural identity, and presentation variant before a transient snapshot may cross into persistence. Publication is rejected after the 30-minute transient lifetime.
 
 `src/server/public-record` owns repository contracts, cryptographic digests, atomic publication, idempotent replay, owner authorization, report recording, migrations, and failure normalization. Public identifiers use 128 random bits. Owner credentials use 256 random bits, travel only through client-private state or a URL fragment, and are retained only as SHA-256 digests. Constant-time comparison precedes every owner mutation.
 
-PostgreSQL owns relational identity, status, expiry, report metadata, and unique idempotency constraints; a versioned JSONB value owns the immutable validated determination snapshot. The portable production adapter uses a server-only `DATABASE_URL`, with Supabase as the initial managed target and prepared statements disabled for transaction-pooler compatibility. PGlite provides a repository-compatible embedded PostgreSQL runtime for local development and deterministic integration and browser tests.
+PostgreSQL owns relational identity, status, expiry, report metadata, consultation responses, and unique idempotency constraints; a versioned JSONB value owns the immutable validated determination snapshot. The portable production adapter uses a server-only `DATABASE_URL`, with Supabase as the initial managed target and prepared statements disabled for transaction-pooler compatibility. PGlite provides a repository-compatible embedded PostgreSQL runtime for local development and deterministic integration and browser tests.
 
 The localized `/{locale}/record/{publicId}` route renders only published, unexpired snapshots. The document is rendered on the server; its small interactive reporting island receives only the public identifier and localized interface copy, so non-rendered snapshot fields are not serialized into the public client payload. The separate `/manage` route receives an owner credential from the URL fragment, immediately removes it from browser history, retains it only in tab storage, and sends it only in protected server actions. Published routes and owner routes use dynamic rendering, `noindex`, `nofollow`, and `no-store`; unavailable results use one non-enumerating 404 presentation.
 
-Publication, status change, hard deletion with report cascade, categorical reporting, report resolution, and Bureau unpublishing are explicit database operations. A failed publication preserves the transient result and cannot expose a partial record. Reports contain record identity, a categorical reason, lifecycle status, and timestamps only; the operator command never prints the determination snapshot.
+Publication, status change, hard deletion with report and consultation cascades, categorical reporting, report resolution, and Bureau unpublishing are explicit database operations. A failed publication preserves the transient result and cannot expose a partial record. Reports contain record identity, a categorical reason, lifecycle status, and timestamps only; the operator command never prints the determination snapshot.
 
 ## Sharing boundary
 
@@ -80,6 +80,16 @@ The public route builds its canonical address only from a validated server-side 
 The available page exposes a small client sharing island. It attempts the native Web Share API, preserves user cancellation, falls back to the Clipboard API after unsupported or failed sharing, and focuses a read-only selectable public address after clipboard failure. The island receives one canonical public URL and bounded localized share copy; no owner credential or non-preview snapshot field is serialized to it.
 
 The localized social-image route renders a deterministic 1200 by 630 PNG from code. Its URL includes `updatedAt` as a lifecycle revision, and the handler verifies both current publication availability and the exact revision before rendering. The public page, metadata, and image are dynamic and `no-store`; unavailable metadata is generic and unavailable image requests return no asset. A process-global runtime repository promise ensures server actions, page metadata, public rendering, and image rendering share one embedded PGlite connection during local and browser verification. Production PostgreSQL remains the cross-process persistence authority.
+
+## Public-consultation boundary
+
+`src/domain/public-record/public-consultation.ts` owns the three language-neutral positions, aggregate shape, key grammar, count mapping, and bounded percentage calculation. Localized position labels, pluralized counts, advisory copy, empty and failure states, and browser interaction remain in the public-record feature.
+
+The browser creates a random 256-bit key scoped to one record and stores a versioned envelope containing that key, the selected position, and whether submission completed. Only the digest crosses persistence. This state restores ordinary same-browser participation after refresh without creating a cross-record identity; database uniqueness, rather than client state, remains authoritative. Clearing storage can bypass the boundary and no stronger claim is made.
+
+The repository inserts a response only by selecting a currently published, unexpired parent record. A unique `(public_id, participation_digest)` constraint makes retries idempotent and positions immutable. The insert and subsequent count query share one PostgreSQL transaction; aggregates are derived from response rows rather than mutable counters. Aggregate reads use the same lifecycle predicate. Unpublishing and expiry preserve rows but expose no results, owner restoration reuses them, and record deletion cascades to them.
+
+The public page server-renders the current aggregate, then a small localized client island owns submission, local recovery, live feedback, and the restrained result transition. It receives no owner authority and sends no aliases, witness prose, generated determination language, or other raw case content. Consultation cannot write to the determination snapshot and consumes no model call or filing credit.
 
 ## Prototype evidence
 

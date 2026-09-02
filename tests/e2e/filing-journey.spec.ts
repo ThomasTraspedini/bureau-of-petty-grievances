@@ -360,6 +360,38 @@ test("publishes, reports, unpublishes, restores, and deletes a public record", a
   expect(socialImage.headers()["x-robots-tag"]).toContain("noimageindex");
   expect((await socialImage.body()).byteLength).toBeGreaterThan(10_000);
 
+  await expect(page.locator(".consultation-summary")).toContainText(
+    "0 responses",
+  );
+  await expect(
+    page.getByText(
+      "No positions have been entered. The first response will establish the public result.",
+    ),
+  ).toBeVisible();
+  await page.getByRole("button", { name: /Grievance upheld/u }).click();
+  await expect(
+    page.getByText("Your position has been entered into the public record."),
+  ).toBeVisible();
+  await expect(page.locator(".consultation-summary")).toContainText(
+    "1 response",
+  );
+  await expect(
+    page.getByRole("button", { name: /Grievance upheld/u }),
+  ).toHaveAttribute("aria-pressed", "true");
+  const consultationMotion = await page
+    .locator(".consultation-meter > span")
+    .first()
+    .evaluate((element) =>
+      Number.parseFloat(getComputedStyle(element).transitionDuration),
+    );
+  expect(consultationMotion).toBeLessThan(0.001);
+  await page.reload();
+  await expect(
+    page.getByRole("button", { name: /Grievance upheld/u }),
+  ).toHaveAttribute("aria-pressed", "true");
+  const consultationAccessibility = await new AxeBuilder({ page }).analyze();
+  expect(consultationAccessibility.violations).toEqual([]);
+
   await page.getByRole("button", { name: "Share determination" }).click();
   await expect(
     page.getByText("The device sharing options are open."),
@@ -423,6 +455,12 @@ test("publishes, reports, unpublishes, restores, and deletes a public record", a
   await expect(
     page.getByText("Published", { exact: true }).last(),
   ).toBeVisible();
+  const restoredPublicPage = await page.context().newPage();
+  await restoredPublicPage.goto(publicAddress);
+  await expect(
+    restoredPublicPage.locator(".consultation-summary"),
+  ).toContainText("1 response");
+  await restoredPublicPage.close();
   await page.getByRole("button", { name: "Delete permanently" }).click();
   await expect(page.getByText("This cannot be undone.")).toBeVisible();
   await page

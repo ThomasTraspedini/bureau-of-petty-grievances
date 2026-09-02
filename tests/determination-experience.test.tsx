@@ -134,6 +134,14 @@ describe("determination experience", () => {
         locale="en"
         publicUrl={`https://bureau.example/en/record/rec_${"A".repeat(22)}`}
         messages={pseudo}
+        consultationAggregate={{
+          total: 0,
+          counts: {
+            grievanceUpheld: 0,
+            grievanceDismissed: 0,
+            upheldWithCircumstancesNoted: 0,
+          },
+        }}
         record={{
           snapshotVersion: 1,
           publicId: `rec_${"A".repeat(22)}`,

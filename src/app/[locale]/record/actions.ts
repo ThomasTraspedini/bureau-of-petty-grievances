@@ -7,9 +7,11 @@ import {
   getOwnedPublicRecordWith,
   publishPublicRecordWith,
   reportPublicRecordWith,
+  submitPublicConsultationWith,
   type OwnedPublicRecordResult,
   type OwnerRecordActionResult,
   type PublishPublicRecordResult,
+  type SubmitPublicConsultationResult,
 } from "@/server/public-record/public-record-service";
 import { getRuntimePublicRecordRepository } from "@/server/public-record/runtime-public-records";
 
@@ -17,6 +19,7 @@ export type {
   OwnedPublicRecordResult,
   OwnerRecordActionResult,
   PublishPublicRecordResult,
+  SubmitPublicConsultationResult,
 };
 
 export async function publishPublicRecord(
@@ -63,4 +66,13 @@ export async function reportPublicRecord(
   const repository = await getRuntimePublicRecordRepository();
   if (repository === null) return "failed";
   return reportPublicRecordWith(input, repository, new Date());
+}
+
+export async function submitPublicConsultation(
+  locale: string,
+  input: unknown,
+): Promise<SubmitPublicConsultationResult> {
+  const repository = await getRuntimePublicRecordRepository();
+  if (repository === null) return { status: "failed" };
+  return submitPublicConsultationWith(locale, input, repository, new Date());
 }

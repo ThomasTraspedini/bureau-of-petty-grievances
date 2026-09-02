@@ -312,6 +312,28 @@
     "manualStatus": "Automatic copying is unavailable. Select and copy the public address shown above.",
     "privacyNote": "Only the unlisted public address is shared. Private recovery credentials are never included."
   },
+  "Consultation": {
+    "panelKicker": "Public consultation",
+    "panelTitle": "Contribute to the public understanding of this matter.",
+    "panelBody": "Choose one of the three approved positions. The public result is recorded without an account and uses no generative credit.",
+    "officialBoundaryTitle": "Public opinion remains advisory.",
+    "officialBoundaryBody": "Consultation is recorded separately and cannot change the Bureau’s determination.",
+    "positionUpheld": "Grievance upheld",
+    "positionDismissed": "Grievance dismissed",
+    "positionCircumstances": "Upheld, with circumstances noted",
+    "responseCountOne": "{count} response",
+    "responseCountOther": "{count} responses",
+    "percentage": "{percentage}% of responses",
+    "emptyState": "No positions have been entered. The first response will establish the public result.",
+    "aggregateNote": "These are the complete responses currently entered for this public record.",
+    "participationBoundary": "A random key retained by this browser is used to discourage repeat responses without identifying you. Once recorded, the same key cannot revise its position.",
+    "selectionPrompt": "Select one position to enter it into the public record.",
+    "submitting": "Entering your position…",
+    "submitted": "Your position has been entered into the public record.",
+    "submitFailure": "Your position could not be recorded. It remains selected here so you can try again.",
+    "unavailable": "Consultation is no longer available for this public record. No response was added.",
+    "loadFailure": "Consultation results are temporarily unavailable. The determination remains available and unchanged."
+  },
   "NotFound": {
     "eyebrow": "Record unavailable",
     "title": "The Bureau cannot locate this route.",

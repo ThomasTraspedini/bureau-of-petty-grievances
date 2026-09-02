@@ -64,7 +64,7 @@ The localized determination presents provider and fallback output through the sa
 
 The transient reference and curated presentation signature exclude aliases, witness prose, relationship context, and exact clock time. The result is validated again before restoration from tab-scoped session state. Missing, expired, or inconsistent state returns to the preserved review; a terminal internal failure offers retry without discarding the safe draft. Loading reflects actual pending work, adds no artificial delay, and the single determination reveal becomes immediate under reduced motion.
 
-The experience explicitly states that it is transient until the filer opts into a public record. Consultation and dedicated sharing behavior remain separate capabilities.
+The experience explicitly states that it is transient until the filer opts into a public record. Publication, consultation, and sharing remain deliberate later stages rather than implied effects of completing a filing.
 
 ## Current persistent public-record contract
 
@@ -83,6 +83,14 @@ Every available public determination is a deliberate share object. Its public pa
 Localized canonical, Open Graph, and social-card metadata describe the department, fixed disposition, procedural reference, offence, discrepancy, and submitted mitigation category. A deterministic 1200 by 630 procedural image uses the record's curated visual variant. Metadata and imagery exclude the respondent alias, witness statement, exact clock times, full generated prose, relationship and impact context, visible public identity, and owner authority.
 
 Record HTML and preview images remain dynamic, `noindex`, and `no-store`. Image addresses carry the current lifecycle revision and are rejected after a status or revision change. External social crawlers can nevertheless retain a previously fetched preview outside Bureau control; the intentionally minimal preview limits that residual exposure.
+
+## Current public-consultation contract
+
+Every available public determination exposes three localized advisory positions: grievance upheld, grievance dismissed, and upheld with circumstances noted. Honest counts, rounded proportions, and total participation are visible from the beginning; an untouched consultation shows true zero values rather than seeded activity. Public opinion remains separate from and unable to alter the official determination.
+
+A visitor participates without an account. The browser creates a random per-record key and preserves it locally; the server stores only its digest, selected language-neutral position, and submission time. The same key can establish one immutable position and receives the established result on retry. This deters ordinary repeats without retaining IP addresses, fingerprinting the device, or pretending to prevent deliberate browser-storage resets.
+
+Responses and aggregate results are durable and transactional. Only published, unexpired records accept or reveal consultation. Temporary owner unpublishing preserves the responses for restoration, Bureau unpublishing and expiry keep them unavailable, and permanent record deletion removes them. Submission failure leaves the selected position available for retry, while successful results update with restrained motion and an immediate reduced-motion equivalent.
 
 ## Emotional outcome
 

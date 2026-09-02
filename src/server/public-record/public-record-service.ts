@@ -20,6 +20,12 @@ import {
   type PublicRecordAvailability,
   type PublicRecordReportReason,
 } from "@/domain/public-record/public-record";
+import {
+  isPublicConsultationParticipationKey,
+  isPublicConsultationPosition,
+  type PublicConsultationAggregate,
+  type PublicConsultationPosition,
+} from "@/domain/public-record/public-consultation";
 
 import type { PublicRecordRepository } from "./public-record-repository";
 
@@ -212,6 +218,65 @@ export async function reportPublicRecordWith(
   }
 }
 
+export type GetPublicConsultationResult =
+  | { status: "available"; aggregate: PublicConsultationAggregate }
+  | { status: "unavailable" | "failed" };
+
+export async function getPublicConsultationWith(
+  locale: string,
+  publicId: string,
+  repository: PublicRecordRepository,
+  now: Date,
+): Promise<GetPublicConsultationResult> {
+  if (locale !== "en" || !isPublicRecordId(publicId)) {
+    return { status: "unavailable" };
+  }
+  try {
+    const aggregate = await repository.consultationAggregate(
+      publicId,
+      now.toISOString(),
+    );
+    return aggregate === null
+      ? { status: "unavailable" }
+      : { status: "available", aggregate };
+  } catch {
+    return { status: "failed" };
+  }
+}
+
+export type SubmitPublicConsultationResult =
+  | {
+      status: "accepted";
+      aggregate: PublicConsultationAggregate;
+      selectedPosition: PublicConsultationPosition;
+      created: boolean;
+    }
+  | { status: "invalid" | "unavailable" | "failed" };
+
+export async function submitPublicConsultationWith(
+  locale: string,
+  input: unknown,
+  repository: PublicRecordRepository,
+  now: Date,
+): Promise<SubmitPublicConsultationResult> {
+  if (locale !== "en" || !isConsultationInput(input)) {
+    return { status: "invalid" };
+  }
+  try {
+    const result = await repository.submitConsultation({
+      publicId: input.publicId,
+      participationDigest: digest(input.participationKey),
+      position: input.position,
+      createdAt: now.toISOString(),
+    });
+    return result === "unavailable"
+      ? { status: "unavailable" }
+      : { status: "accepted", ...result };
+  } catch {
+    return { status: "failed" };
+  }
+}
+
 export async function bureauUnpublishWith(
   publicId: string,
   repository: PublicRecordRepository,
@@ -261,6 +326,20 @@ function isReportInput(value: unknown): value is {
     isPublicRecordId(value.publicId) &&
     isReportKey(value.reportKey) &&
     isPublicRecordReportReason(value.reason)
+  );
+}
+
+function isConsultationInput(value: unknown): value is {
+  publicId: string;
+  participationKey: string;
+  position: PublicConsultationPosition;
+} {
+  return (
+    isRecord(value) &&
+    hasExactly(value, ["publicId", "participationKey", "position"]) &&
+    isPublicRecordId(value.publicId) &&
+    isPublicConsultationParticipationKey(value.participationKey) &&
+    isPublicConsultationPosition(value.position)
   );
 }
 

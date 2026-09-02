@@ -16,14 +16,21 @@ import {
   ownerTransition,
   publicRecordAvailability,
 } from "@/domain/public-record/public-record";
+import {
+  consultationPercentage,
+  emptyPublicConsultationAggregate,
+  PUBLIC_CONSULTATION_POSITIONS,
+} from "@/domain/public-record/public-consultation";
 import { migratePublicRecords } from "@/server/public-record/migrate-public-records";
 import {
   applyOwnerRecordActionWith,
   bureauUnpublishWith,
   getOwnedPublicRecordWith,
+  getPublicConsultationWith,
   getPublicRecordWith,
   publishPublicRecordWith,
   reportPublicRecordWith,
+  submitPublicConsultationWith,
 } from "@/server/public-record/public-record-service";
 import { createEmbeddedPostgresDatabase } from "@/server/public-record/sql-adapters";
 import type { SqlDatabase } from "@/server/public-record/sql-database";
@@ -35,6 +42,8 @@ const publicationKey = `pub_${"C".repeat(22)}`;
 const publicId = `rec_${"D".repeat(22)}`;
 const secondPublicId = `rec_${"E".repeat(22)}`;
 const reportKey = `rpt_${"F".repeat(22)}`;
+const participationKey = `cns_${"G".repeat(43)}`;
+const secondParticipationKey = `cns_${"H".repeat(43)}`;
 const issuedAt = new Date("2026-09-02T12:00:00.000Z");
 const publishedAt = new Date("2026-09-02T12:05:00.000Z");
 
@@ -253,6 +262,213 @@ describe("persistent public records", () => {
     ).resolves.toMatchObject({ status: "available" });
   });
 
+  it("starts with honest zero aggregates and records one immutable response idempotently", async () => {
+    await createRecord();
+    await expect(
+      getPublicConsultationWith("en", publicId, repository, publishedAt),
+    ).resolves.toEqual({
+      status: "available",
+      aggregate: emptyPublicConsultationAggregate(),
+    });
+
+    const first = await submitPublicConsultationWith(
+      "en",
+      {
+        publicId,
+        participationKey,
+        position: "grievance_upheld",
+      },
+      repository,
+      publishedAt,
+    );
+    expect(first).toEqual({
+      status: "accepted",
+      aggregate: {
+        total: 1,
+        counts: {
+          grievanceUpheld: 1,
+          grievanceDismissed: 0,
+          upheldWithCircumstancesNoted: 0,
+        },
+      },
+      selectedPosition: "grievance_upheld",
+      created: true,
+    });
+
+    await expect(
+      submitPublicConsultationWith(
+        "en",
+        {
+          publicId,
+          participationKey,
+          position: "grievance_dismissed",
+        },
+        repository,
+        publishedAt,
+      ),
+    ).resolves.toMatchObject({
+      status: "accepted",
+      selectedPosition: "grievance_upheld",
+      created: false,
+      aggregate: { total: 1 },
+    });
+    const stored = await database.query(
+      `SELECT participation_digest AS "participationDigest", position
+       FROM public_record_consultation_responses
+       WHERE public_id = $1`,
+      [publicId],
+    );
+    expect(stored.rows).toHaveLength(1);
+    expect(stored.rows[0]?.participationDigest).toMatch(/^[a-f0-9]{64}$/u);
+    expect(stored.rows[0]?.participationDigest).not.toBe(participationKey);
+    expect(stored.rows[0]?.position).toBe("grievance_upheld");
+  });
+
+  it("preserves exact aggregates across concurrent distinct responses", async () => {
+    await createRecord();
+    const positions = [
+      "grievance_upheld",
+      "grievance_dismissed",
+      "upheld_with_circumstances_noted",
+    ] as const;
+    const submissions = Array.from({ length: 18 }, (_, index) =>
+      submitPublicConsultationWith(
+        "en",
+        {
+          publicId,
+          participationKey: `cns_${String(index).padStart(43, "A")}`,
+          position: positions[index % positions.length],
+        },
+        repository,
+        publishedAt,
+      ),
+    );
+    const results = await Promise.all(submissions);
+    expect(results.every((result) => result.status === "accepted")).toBe(true);
+    await expect(
+      getPublicConsultationWith("en", publicId, repository, publishedAt),
+    ).resolves.toEqual({
+      status: "available",
+      aggregate: {
+        total: 18,
+        counts: {
+          grievanceUpheld: 6,
+          grievanceDismissed: 6,
+          upheldWithCircumstancesNoted: 6,
+        },
+      },
+    });
+  });
+
+  it("gates consultation by lifecycle, preserves it through restoration, and deletes it with the record", async () => {
+    await createRecord();
+    await submitPublicConsultationWith(
+      "en",
+      {
+        publicId,
+        participationKey,
+        position: "upheld_with_circumstances_noted",
+      },
+      repository,
+      publishedAt,
+    );
+    await applyOwnerRecordActionWith(
+      publicId,
+      ownerCredential,
+      "unpublish",
+      repository,
+      publishedAt,
+    );
+    await expect(
+      getPublicConsultationWith("en", publicId, repository, publishedAt),
+    ).resolves.toEqual({ status: "unavailable" });
+    await expect(
+      submitPublicConsultationWith(
+        "en",
+        {
+          publicId,
+          participationKey: secondParticipationKey,
+          position: "grievance_dismissed",
+        },
+        repository,
+        publishedAt,
+      ),
+    ).resolves.toEqual({ status: "unavailable" });
+    await applyOwnerRecordActionWith(
+      publicId,
+      ownerCredential,
+      "restore",
+      repository,
+      publishedAt,
+    );
+    await expect(
+      getPublicConsultationWith("en", publicId, repository, publishedAt),
+    ).resolves.toMatchObject({
+      status: "available",
+      aggregate: { total: 1 },
+    });
+    await applyOwnerRecordActionWith(
+      publicId,
+      ownerCredential,
+      "delete",
+      repository,
+      publishedAt,
+    );
+    const retained = await database.query(
+      "SELECT response_id FROM public_record_consultation_responses WHERE public_id = $1",
+      [publicId],
+    );
+    expect(retained.rows).toEqual([]);
+  });
+
+  it("rejects malformed, unsupported-locale, and expired consultation submissions", async () => {
+    await createRecord();
+    await expect(
+      submitPublicConsultationWith(
+        "en",
+        { publicId, participationKey: "bad", position: "grievance_upheld" },
+        repository,
+        publishedAt,
+      ),
+    ).resolves.toEqual({ status: "invalid" });
+    await expect(
+      submitPublicConsultationWith(
+        "en",
+        {
+          publicId,
+          participationKey,
+          position: "binding_verdict",
+        },
+        repository,
+        publishedAt,
+      ),
+    ).resolves.toEqual({ status: "invalid" });
+    await expect(
+      submitPublicConsultationWith(
+        "fr",
+        {
+          publicId,
+          participationKey,
+          position: "grievance_upheld",
+        },
+        repository,
+        publishedAt,
+      ),
+    ).resolves.toEqual({ status: "invalid" });
+    await expect(
+      submitPublicConsultationWith(
+        "en",
+        {
+          publicId,
+          participationKey,
+          position: "grievance_upheld",
+        },
+        repository,
+        new Date("2027-03-01T12:05:00.000Z"),
+      ),
+    ).resolves.toEqual({ status: "unavailable" });
+  });
+
   it("makes expired records unavailable without deleting retained content", async () => {
     await createRecord();
     const expiresAt = new Date("2027-03-01T12:05:00.000Z");
@@ -318,6 +534,18 @@ describe("public-record domain lifecycle", () => {
     expect(publicRecordAvailability(record, publishedAt)).toEqual({
       status: "expired",
     });
+  });
+
+  it("derives bounded consultation percentages without inventing empty results", () => {
+    expect(PUBLIC_CONSULTATION_POSITIONS).toEqual([
+      "grievance_upheld",
+      "grievance_dismissed",
+      "upheld_with_circumstances_noted",
+    ]);
+    expect(consultationPercentage(0, 0)).toBe(0);
+    expect(consultationPercentage(1, 3)).toBe(33);
+    expect(consultationPercentage(2, 3)).toBe(67);
+    expect(consultationPercentage(4, 3)).toBe(0);
   });
 });
 

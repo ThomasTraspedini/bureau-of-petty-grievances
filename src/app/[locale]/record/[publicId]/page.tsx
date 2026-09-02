@@ -8,7 +8,10 @@ import { localizePublicRecordShare } from "@/features/public-record/public-recor
 import { getMessageCatalog } from "@/i18n/catalogs";
 import { openGraphLocales, routing } from "@/i18n/routing";
 import { getRuntimePublicRecordOrigin } from "@/server/public-record/public-record-origin";
-import { getPublicRecordWith } from "@/server/public-record/public-record-service";
+import {
+  getPublicConsultationWith,
+  getPublicRecordWith,
+} from "@/server/public-record/public-record-service";
 import { getRuntimePublicRecordRepository } from "@/server/public-record/runtime-public-records";
 
 export const dynamic = "force-dynamic";
@@ -46,7 +49,8 @@ export async function generateMetadata({
   if (origin.status !== "valid") return genericMetadata;
   const repository = await getRuntimePublicRecordRepository();
   if (repository === null) return genericMetadata;
-  const result = await getPublicRecordWith(publicId, repository, new Date());
+  const now = new Date();
+  const result = await getPublicRecordWith(publicId, repository, now);
   if (result.status !== "available") return genericMetadata;
 
   const descriptor = createPublicRecordShareDescriptor(result.record);
@@ -101,8 +105,15 @@ export default async function PublicRecordPage({
   if (origin.status !== "valid") notFound();
   const repository = await getRuntimePublicRecordRepository();
   if (repository === null) notFound();
-  const result = await getPublicRecordWith(publicId, repository, new Date());
+  const now = new Date();
+  const result = await getPublicRecordWith(publicId, repository, now);
   if (result.status !== "available") notFound();
+  const consultation = await getPublicConsultationWith(
+    locale,
+    publicId,
+    repository,
+    now,
+  );
 
   return (
     <PublicRecordExperience
@@ -113,6 +124,9 @@ export default async function PublicRecordPage({
         origin.origin,
       ).toString()}
       messages={getMessageCatalog(locale)}
+      consultationAggregate={
+        consultation.status === "available" ? consultation.aggregate : null
+      }
     />
   );
 }
