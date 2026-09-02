@@ -46,6 +46,25 @@ Before changing the repository:
 
 If an ambiguity appears during implementation, pause only the affected path. Continue independent, already-authorized work when safe. Record material accepted decisions; do not create decision records for trivial mechanics already governed by tooling.
 
+## `next task` protocol
+
+The human command `next task` authorizes the agent to identify and begin the next eligible planned capability. It does not authorize the agent to resolve an uncovered material decision.
+
+When receiving that command:
+
+1. Inspect the working tree and read this contract, `docs/roadmap.md`, accepted decisions, and documentation governing the candidate capability.
+2. If one capability is `in_progress`, continue that capability before selecting new work.
+3. Otherwise select the single capability marked `ready` whose dependencies are complete.
+4. If no capability qualifies, more than one qualifies, roadmap state conflicts with repository reality, or task decomposition has materially different valid directions, ask the human before changing the product.
+5. Define the smallest coherent vertical task that materially advances the selected capability while leaving the product usable and honest.
+6. Use an external private task record when one is available, but never make this repository depend on that workspace. Without private context, derive the task from the public capability and current repository evidence.
+7. Perform a decision audit. Ask only for material choices not already governed by human instruction, this contract, accepted records, or the selected capability.
+8. If the decision envelope is complete, proceed without asking the human to reconfirm the already-issued `next task` command.
+9. Mark the capability `in_progress` when implementation begins. Mark it `complete` only when its published outcome is fully true; otherwise leave it `in_progress` for the next agent task.
+10. After completing a capability, make only the first queued capability in roadmap order whose dependencies are complete `ready`.
+
+Capability identifiers and agent-task identifiers are different namespaces. A capability may span multiple agent tasks, and a task may support a capability without completing it.
+
 ## Agent-task releases
 
 The release unit is a completed agent task, not an item in a long-term product roadmap.
@@ -132,6 +151,7 @@ Update documentation in the same task when behavior, architecture, operations, t
 
 - `README.md` is evaluator-first and concise.
 - `docs/product.md` explains the public product contract.
+- `docs/roadmap.md` records capability order, dependencies, and current product reality without private task coordination.
 - `docs/architecture.md` describes current system boundaries and material constraints.
 - `docs/testing.md` describes executable verification strategy.
 - `docs/operations.md` describes deployment, cost, privacy, and recovery expectations.

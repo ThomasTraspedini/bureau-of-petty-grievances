@@ -9,3 +9,4 @@ Accepted records:
 - [0001 — Repository and information boundary](0001-repository-and-information-boundary.md)
 - [0002 — Internationalization from the foundation](0002-internationalization-from-the-foundation.md)
 - [0003 — Agent-task release versioning](0003-agent-task-release-versioning.md)
+- [0004 — Public roadmap and private execution queue](0004-public-roadmap-and-private-execution-queue.md)

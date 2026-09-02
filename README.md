@@ -8,7 +8,7 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.1.0` establishes the repository's product and engineering operating system. Product implementation has not started yet. Each later release must leave the repository coherent, tested, and deployable rather than exposing partially completed work.
+Version `0.1.1` establishes the repository's product and engineering operating system, including deterministic selection of the next ready capability. Product implementation has not started yet. Each later release must leave the repository coherent, tested, and deployable rather than exposing partially completed work.
 
 ## Product principles
 
@@ -23,6 +23,7 @@ Version `0.1.0` establishes the repository's product and engineering operating s
 ## Documentation
 
 - [Product direction](docs/product.md)
+- [Capability roadmap](docs/roadmap.md)
 - [Architecture constraints](docs/architecture.md)
 - [Testing strategy](docs/testing.md)
 - [Operations and release expectations](docs/operations.md)

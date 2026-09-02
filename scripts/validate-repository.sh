@@ -20,6 +20,7 @@ required_files=(
   "CHANGELOG.md"
   "VERSION"
   "docs/product.md"
+  "docs/roadmap.md"
   "docs/architecture.md"
   "docs/testing.md"
   "docs/operations.md"
@@ -33,6 +34,13 @@ done
 version="$(tr -d '[:space:]' < VERSION)"
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "VERSION must contain a SemVer-shaped X.Y.Z value"
 rg --fixed-strings --quiet "## [$version]" CHANGELOG.md || fail "CHANGELOG.md has no section for version $version"
+
+ready_count="$(rg --count '\| ready \|$' docs/roadmap.md || true)"
+in_progress_count="$(rg --count '\| in_progress \|$' docs/roadmap.md || true)"
+ready_count="${ready_count:-0}"
+in_progress_count="${in_progress_count:-0}"
+selectable_count="$((ready_count + in_progress_count))"
+[[ "$selectable_count" -eq 1 ]] || fail "roadmap must contain exactly one ready or in-progress capability"
 
 prohibited_reference_pattern='(/Users/|Lesto MVP/internal|\.\./internal(?:/|$)|bureau-of-petty-grievances-(foundation|taste-direction)\.md)'
 if rg --line-number --hidden \
