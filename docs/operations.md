@@ -15,9 +15,11 @@ The product is designed to support a focused public evaluation without assuming 
 
 The application foundation produces a full Node.js server build on Node.js 24. This preserves the framework capabilities required for later protected server actions and dynamic public records. The hosting provider remains deferred until persistence, preview isolation, cost, and operational needs can be evaluated together.
 
-The current application has no secrets or required environment variables. Production font files are bundled locally. CI and local verification use the same repository command after installing dependencies and the Playwright Chromium browser.
+The current rendered application has no required secrets because the filing UI does not yet invoke generation. The optional server adapter reads `OPENAI_API_KEY` and a configurable `BUREAU_OPENAI_MODEL` whose default is `gpt-5.6-luna`; credentials remain in ignored local or deployment configuration. Production font files are bundled locally. CI and local verification make no provider calls and use the same repository command after installing dependencies and the Playwright Chromium browser.
 
-The production filing sends a reviewed draft to the server for runtime validation and deterministic assessment. The server returns the versioned assessment but does not store filing content or assessment, invoke a provider, reserve credit, issue final determination language, or produce a record. Recovery data remains in the filer’s browser in a locale-bearing, versioned envelope for no longer than 30 days and can be reset explicitly. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in that envelope.
+The production filing sends a reviewed draft to the server for runtime validation and deterministic assessment. The current action returns that assessment but does not store content, invoke the available language pipeline, reserve credit, issue a determination, or produce a record. Recovery data remains in the filer’s browser in a locale-bearing, versioned envelope for no longer than 30 days and can be reset explicitly. Content rejected as serious, sensitive, or unnecessarily identifying is not retained in that envelope.
+
+The language seam sends a matching assessment command to the OpenAI Responses API only when deliberately invoked with configuration. Requests disable response storage, exclude the respondent alias and exact clock time, bound output, use a 12-second SDK timeout, and disable SDK retries. The product owns at most one retry and converts provider responses, refusals, and failures into typed outcomes. Raw provider errors and invalid text are discarded; a complete locale-owned fallback remains available for every valid Chronology command.
 
 ## Cost controls
 
@@ -57,6 +59,7 @@ Logs and analytics must use record identifiers and categorical metadata, never r
 - Lifecycle and retention remain configurable.
 - Social previews and caches require an invalidation path after unpublishing.
 - Backups, exports, and provider retention must be understood before public evaluation.
+- Provider data controls and retention must be reviewed before connecting the language seam to public filings; `store: false` is necessary but not the whole deployment privacy review.
 
 If the experiment is shelved, an explicit runbook should export anything intentionally retained, remove unnecessary records and secrets, disable paid services, and verify that public routes no longer expose case content.
 

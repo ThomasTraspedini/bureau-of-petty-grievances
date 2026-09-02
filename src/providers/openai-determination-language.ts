@@ -1,0 +1,191 @@
+import OpenAI, {
+  APIConnectionError,
+  APIConnectionTimeoutError,
+  APIError,
+  AuthenticationError,
+  BadRequestError,
+  PermissionDeniedError,
+  RateLimitError,
+  UnprocessableEntityError,
+} from "openai";
+import type { ResponseCreateParamsNonStreaming } from "openai/resources/responses/responses";
+
+import { DETERMINATION_LANGUAGE_JSON_SCHEMA } from "@/domain/determination/determination-language";
+import {
+  buildEnglishChronologyGenerationInput,
+  EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
+  EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
+} from "@/domain/determination/locales/en";
+import {
+  createUnavailableDeterminationLanguageProvider,
+  type DeterminationLanguageProvider,
+  type DeterminationLanguageProviderResult,
+} from "@/providers/determination-language-provider";
+
+export const DEFAULT_OPENAI_DETERMINATION_MODEL = "gpt-5.6-luna";
+export const OPENAI_DETERMINATION_TIMEOUT_MS = 12_000;
+export const OPENAI_DETERMINATION_MAX_RETRIES = 0;
+
+type CreateResponse = (
+  request: ResponseCreateParamsNonStreaming,
+) => Promise<unknown>;
+
+export interface OpenAIDeterminationLanguageProviderOptions {
+  apiKey: string;
+  model?: string;
+}
+
+export class OpenAIDeterminationLanguageProvider implements DeterminationLanguageProvider {
+  constructor(
+    private readonly createResponse: CreateResponse,
+    private readonly model = DEFAULT_OPENAI_DETERMINATION_MODEL,
+  ) {}
+
+  async generate(
+    command: Parameters<DeterminationLanguageProvider["generate"]>[0],
+    attempt: Parameters<DeterminationLanguageProvider["generate"]>[1],
+  ): Promise<DeterminationLanguageProviderResult> {
+    try {
+      const response = await this.createResponse({
+        model: this.model,
+        store: false,
+        instructions: EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
+        input: buildEnglishChronologyGenerationInput(
+          command,
+          attempt.previousValidationIssues,
+        ),
+        max_output_tokens: 1_200,
+        reasoning: { effort: "low", context: "current_turn" },
+        text: {
+          verbosity: "low",
+          format: {
+            type: "json_schema",
+            name: "bureau_determination_language",
+            description:
+              "Grounded localized Bureau determination language with explicit factual references.",
+            strict: true,
+            schema: DETERMINATION_LANGUAGE_JSON_SCHEMA,
+          },
+        },
+        metadata: {
+          editorial_policy_version: String(
+            EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
+          ),
+          language_schema_version: String(command.schemaVersion),
+        },
+      });
+
+      return normalizeOpenAIResponse(response, this.model);
+    } catch (error: unknown) {
+      return normalizeOpenAIError(error);
+    }
+  }
+}
+
+export function createOpenAIDeterminationLanguageProvider(
+  options: OpenAIDeterminationLanguageProviderOptions,
+): DeterminationLanguageProvider {
+  const client = new OpenAI({
+    apiKey: options.apiKey,
+    timeout: OPENAI_DETERMINATION_TIMEOUT_MS,
+    maxRetries: OPENAI_DETERMINATION_MAX_RETRIES,
+  });
+  return new OpenAIDeterminationLanguageProvider(
+    async (request) => client.responses.create(request),
+    options.model ?? DEFAULT_OPENAI_DETERMINATION_MODEL,
+  );
+}
+
+export function createConfiguredOpenAIDeterminationLanguageProvider(
+  environment: Readonly<Record<string, string | undefined>> = process.env,
+): DeterminationLanguageProvider {
+  const apiKey = environment.OPENAI_API_KEY?.trim();
+  if (!apiKey) return createUnavailableDeterminationLanguageProvider();
+
+  const configuredModel = environment.BUREAU_OPENAI_MODEL?.trim();
+  return createOpenAIDeterminationLanguageProvider({
+    apiKey,
+    ...(configuredModel ? { model: configuredModel } : {}),
+  });
+}
+
+function normalizeOpenAIResponse(
+  value: unknown,
+  requestedModel: string,
+): DeterminationLanguageProviderResult {
+  if (!isRecord(value)) {
+    return { status: "retryable_failure", reason: "provider_unavailable" };
+  }
+
+  const requestId = typeof value.id === "string" ? value.id : "unavailable";
+  const model = typeof value.model === "string" ? value.model : requestedModel;
+  if (hasRefusal(value.output)) {
+    return { status: "refusal", model, requestId };
+  }
+  if (value.status !== "completed" || typeof value.output_text !== "string") {
+    return { status: "retryable_failure", reason: "provider_unavailable" };
+  }
+
+  try {
+    const output: unknown = JSON.parse(value.output_text);
+    return {
+      status: "success",
+      output,
+      model,
+      requestId,
+    };
+  } catch {
+    return {
+      status: "success",
+      output: value.output_text,
+      model,
+      requestId,
+    };
+  }
+}
+
+function hasRefusal(value: unknown): boolean {
+  if (!Array.isArray(value)) return false;
+  return value.some(
+    (item) =>
+      isRecord(item) &&
+      Array.isArray(item.content) &&
+      item.content.some(
+        (content) => isRecord(content) && content.type === "refusal",
+      ),
+  );
+}
+
+function normalizeOpenAIError(
+  error: unknown,
+): DeterminationLanguageProviderResult {
+  if (error instanceof APIConnectionTimeoutError) {
+    return { status: "retryable_failure", reason: "timeout" };
+  }
+  if (error instanceof RateLimitError) {
+    return { status: "retryable_failure", reason: "rate_limited" };
+  }
+  if (error instanceof APIConnectionError) {
+    return { status: "retryable_failure", reason: "transport" };
+  }
+  if (
+    error instanceof AuthenticationError ||
+    error instanceof PermissionDeniedError
+  ) {
+    return { status: "terminal_failure", reason: "configuration" };
+  }
+  if (
+    error instanceof BadRequestError ||
+    error instanceof UnprocessableEntityError
+  ) {
+    return { status: "terminal_failure", reason: "request_rejected" };
+  }
+  if (error instanceof APIError && (error.status ?? 500) >= 500) {
+    return { status: "retryable_failure", reason: "provider_unavailable" };
+  }
+  return { status: "terminal_failure", reason: "request_rejected" };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}

@@ -50,6 +50,14 @@ Severity begins with explicit 15- and 30-minute boundaries. A concrete consequen
 
 The assessment selects an offence-specific remedy family and prohibits coercion, exclusion, material deprivation, monitoring, public humiliation, and health or safety restrictions. It also provides bounded timeline parameters and stable visual variation derived without the respondent alias, witness language, relationship, or exact clock time. These rules are inspectable domain policy, not localized determination prose.
 
+## Current determination-language contract
+
+A server-owned pipeline can transform a matching validated filing and assessment into determination-language schema version `1`. The shared shape carries explicit English locale and the deterministic `upheld_with_circumstances_noted` disposition, followed by a bounded allegation, finding, consequence, mitigation, remedy, and closing. Factual sections declare the language-neutral inputs that ground them.
+
+English editorial policy version `1` owns vocabulary, examples, Bureau tone, safety limits, and deterministic fallback language. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. The fallback covers every valid Chronology combination with the same schema.
+
+The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic realization after deterministic judgment. It receives no respondent alias or exact clock time and treats the witness statement only as submitted data. Refusal, unavailable configuration, invalid output, timeout, and terminal failure resolve to fallback rather than raw errors. The current UI does not yet present this language as an issued determination; that polished experience remains C06.
+
 ## Emotional outcome
 
 The filer should feel understood, amused by the seriousness of the process, surprised by the specificity of the result, and safe sharing it.

@@ -2,6 +2,21 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.6.0]
+
+### Added
+
+- A versioned determination-language schema with explicit locale, deterministic disposition, bounded localized sections, and language-neutral grounding references.
+- English Chronology editorial policy covering Bureau voice, vocabulary, prompt-injection treatment, safety, grounding, hard length limits, and independent curated contract fixtures.
+- A configurable OpenAI Responses adapter using `gpt-5.6-luna`, low reasoning effort, strict Structured Outputs, non-persistent requests, bounded output, and normalized provider outcomes.
+- Server orchestration with one owned retry, categorical validation feedback, complete compositional fallback, and no leakage of raw provider errors or invalid text.
+- Exhaustive fallback, schema, grounding, safety, tone, remedy, retry, refusal, timeout, adapter, and opt-in live-provider smoke coverage.
+
+### Changed
+
+- Locale-aware generation is complete; the polished determination experience is the next ready capability.
+- Operations now document optional provider configuration while the current filing UI remains assessment-only and provider-free.
+
 ## [0.5.0]
 
 ### Added

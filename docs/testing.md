@@ -8,7 +8,7 @@ Tests protect product behavior, safety, taste-critical states, and operational i
 
 Every product-changing task must run one documented canonical verification workflow. The workflow will grow with the application but must remain reproducible locally and in CI.
 
-At version `0.5.0`, use Node.js 24, install dependencies and the Playwright Chromium browser, then run:
+At version `0.6.0`, use Node.js 24, install dependencies and the Playwright Chromium browser, then run:
 
 ```sh
 npm ci
@@ -29,6 +29,10 @@ The canonical workflow includes repository and prototype validation, formatting,
 Vitest protects the typed locale allowlist, catalog pseudo-localization, placeholder preservation, explicit route navigation, honest shell content, adaptive Chronology fact variants, server-ready normalization, deterministic assessment, conservative content boundaries, 30-day draft lifecycle, storage tampering, recovery, and component validation. Playwright exercises the production build rather than a test-only rendering path.
 
 Assessment tests cover every Chronology grammar, the 14/15- and 29/30-minute severity boundaries, one-level consequence escalation and its cap, non-cancelling mitigation, remedy families and prohibitions, personal and professional privacy constraints, timeline bounds, repeatability, and exclusion of aliases, prose, relationship, and exact clock times from presentation variation. A server-boundary test proves that only runtime-validated input reaches assessment and that acceptance still does not issue a determination.
+
+Determination-language tests cover matching filing and assessment commands, schema and editorial-policy versions, grounding, locale and disposition, factual-number and lexical anchors, length, hostile free text, restricted claims, tone, and non-binding remedy constraints. An exhaustive supported-combination check proves the English fallback for all three offences, severity bands, impacts, mitigations, and personal or professional contexts. Independent curated fixtures establish representative Bureau language rather than reusing fallback as the only editorial evidence.
+
+Provider and orchestration tests exercise the exact non-persistent Luna Structured Outputs request, response parsing, refusal and timeout normalization, missing configuration, one bounded retry, categorical correction feedback, fallback selection, and exclusion of raw provider text. Ordinary tests inject provider results and make no network call.
 
 The filing browser journey covers all phases from a blank alias through server-validated completion, direct correction back to review, refresh recovery, exclusion of rejected witness text, unsupported step routes, keyboard radio behavior, reduced motion, axe-core accessibility, and mobile and desktop visual references. Browser controls remain disabled until the validated draft has loaded; this protects against recovery overwriting an immediate first input.
 
@@ -111,6 +115,14 @@ Ordinary tests must not call a live model.
 - Add locale-specific eval cases before enabling any new public language.
 
 Model quality evaluation should compare candidate behavior against curated cases. A passing schema is necessary but not sufficient evidence of a good determination.
+
+The live OpenAI smoke is intentionally outside canonical verification and consumes provider usage. With deliberate local credentials, run:
+
+```sh
+npm run test:provider:live
+```
+
+It exercises one safe fixture and fails unless validated provider output—not fallback—is returned. `BUREAU_OPENAI_MODEL` may select a candidate model; promotion still requires review against the curated English cases.
 
 ## Regression standard
 

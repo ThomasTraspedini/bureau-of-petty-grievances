@@ -2,7 +2,7 @@
 
 ## Status
 
-The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation described in decision 0006 and now carries the deterministic assessment boundary described in decision 0008. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, and provider boundaries.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation described in decision 0006 and now carries the deterministic assessment and locale-aware language boundaries described in decisions 0008 and 0009. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, and provider boundaries.
 
 ## Application foundation
 
@@ -16,7 +16,8 @@ Current source ownership is deliberately small:
 - `src/features` owns vertical user-facing application surfaces;
 - `src/i18n` owns locale validation, catalogs, navigation, and test-only pseudo-localization support;
 - `src/domain` owns deterministic filing and assessment policy and remains independent of React, Next.js, server, and provider imports;
-- future `src/providers` adapters may not import application routes or feature views.
+- `src/providers` translates owned language commands into external requests and may not import application routes or feature views;
+- `src/server` orchestrates bounded provider attempts, validation, and fallback without moving provider concerns into domain policy.
 
 ## Adaptive filing boundary
 
@@ -32,9 +33,21 @@ The reviewed filing crosses a server action and is validated again through the s
 
 The same output carries bounded timeline presentation parameters and a stable four-way visual variant. The seed is derived only from language-neutral assessment inputs approved for variation; aliases, witness prose, relationship context, and exact clock times cannot influence it. The assessment includes no localized prose and imports no framework, persistence, or provider code.
 
-Any rule change that can alter assessment output requires a new policy version. Later generation and fallback stages consume this owned contract rather than reinterpret raw filing fields or invent remedy authority.
+Any rule change that can alter assessment output requires a new policy version. Language generation and fallback consume this owned contract rather than reinterpret raw filing fields or invent remedy authority.
 
-ESLint enforces the domain and provider import direction before those later boundaries acquire implementation. This avoids speculative interfaces while making their allowed dependency direction explicit.
+ESLint enforces the domain and provider import direction. The provider adapter cannot import routes or feature views, and the domain cannot import provider or server code.
+
+## Determination-language boundary
+
+`src/domain/determination/determination-language.ts` owns schema version `1`, localized section limits, language-neutral grounding codes, and the command derived from a matching filing and assessment. The command fixes the disposition and remedy authority before any provider call. It includes the bounded witness statement but excludes the respondent alias and exact clock time.
+
+`src/domain/determination/locales/en.ts` owns English editorial policy version `1`, prompt guidance, vocabulary anchors, runtime editorial validation, and complete compositional fallback. The fallback and provider output share one shape. Validation is local and deterministic: exact schema, locale, disposition, grounding, length, supported numbers, factual anchors, safety, tone, and remedy compliance all precede acceptance.
+
+`src/providers/openai-determination-language.ts` implements the first owned adapter with the OpenAI Responses API and strict Structured Outputs. The configurable default model is `gpt-5.6-luna` with low reasoning effort. Provider response storage is disabled, output is bounded, the SDK timeout is 12 seconds, and SDK retries are disabled so the product owns its retry budget. Provider errors and refusals become categorical results without raw text.
+
+`src/server/determination/generate-determination-language.ts` permits at most two attempts. Invalid output and transient failures may use the second attempt; refusal and terminal configuration or request failures immediately select fallback. Every valid command therefore completes with provider or fallback language, while a mismatched filing and assessment is rejected before the provider boundary.
+
+This seam is not yet called by the filing UI. C06 owns honest loading, failure presentation, reveal, procedural reconstruction, and final rendering; later capabilities own persistence, idempotency, credits, and public records.
 
 ## Prototype evidence
 
@@ -104,7 +117,7 @@ Provider adapters translate owned domain commands into external calls. Provider-
 9. Use localized deterministic fallback after terminal provider failure.
 10. Persist the accepted localized snapshot and refund credit when required.
 
-The normal path targets one paid generative request per completed filing. Cost optimization must not reduce output quality; hard bounds protect the budget instead.
+The implemented language stage targets one paid request and permits one additional attempt only for a transient failure or rejected output. Cost optimization must not reduce output quality; strict validation, curated fixtures, fallback, and later budget controls protect the product instead.
 
 ## Internationalization boundary
 
@@ -146,7 +159,7 @@ Records should support explicit lifecycle states such as active, unpublished, ar
 - persistence provider;
 - deployment provider;
 - analytics provider;
-- exact model and model-routing policy;
+- production model promotion and routing beyond the configurable `gpt-5.6-luna` default;
 - detailed rate-limit implementation.
 
 These decisions require rendered product evidence, provider evaluation, or explicit human approval.
