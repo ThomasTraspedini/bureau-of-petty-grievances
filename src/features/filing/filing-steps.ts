@@ -5,6 +5,7 @@ export const FILING_STEP_CODES = [
   "classification",
   "chronology",
   "communications",
+  "domestic_evidence",
   "impact",
   "mitigation",
   "statement",
@@ -24,7 +25,8 @@ export function isFilingStep(value: string): value is FilingStepCode {
 
 export function previousFilingStep(
   step: FilingStepCode,
-  department: "chronology" | "digital_conduct" = "chronology",
+  department:
+    "chronology" | "digital_conduct" | "domestic_affairs" = "chronology",
 ): FilingStepCode | null {
   const sequence = sequenceFor(department);
   const index = sequence.indexOf(step);
@@ -33,7 +35,8 @@ export function previousFilingStep(
 
 export function nextFilingStep(
   step: FilingStepCode,
-  department: "chronology" | "digital_conduct" = "chronology",
+  department:
+    "chronology" | "digital_conduct" | "domestic_affairs" = "chronology",
 ): FilingStepCode | null {
   const sequence = sequenceFor(department);
   const index = sequence.indexOf(step);
@@ -44,20 +47,24 @@ export function nextFilingStep(
 
 export function filingStepIndex(
   step: FilingStepCode,
-  department: "chronology" | "digital_conduct",
+  department: "chronology" | "digital_conduct" | "domestic_affairs",
 ): number {
   return sequenceFor(department).indexOf(step) + 1;
 }
 
 function sequenceFor(
-  department: "chronology" | "digital_conduct",
+  department: "chronology" | "digital_conduct" | "domestic_affairs",
 ): readonly FilingStepCode[] {
   return [
     "respondent",
     "relationship",
     "department",
     "classification",
-    department === "chronology" ? "chronology" : "communications",
+    department === "chronology"
+      ? "chronology"
+      : department === "digital_conduct"
+        ? "communications"
+        : "domestic_evidence",
     "impact",
     "mitigation",
     "statement",

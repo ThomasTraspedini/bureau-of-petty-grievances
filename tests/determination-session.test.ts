@@ -2,14 +2,18 @@ import { describe, expect, it } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
+import { assessDomesticAffairsFiling } from "@/domain/determination/domestic-affairs-assessment";
 import {
   DETERMINATION_EXPERIENCE_VERSION,
   determinationPresentationVariant,
   type IssuedChronologyDetermination,
   type IssuedDigitalConductDetermination,
+  type IssuedDomesticAffairsDetermination,
 } from "@/domain/determination/determination-experience";
 import { createDigitalConductDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import { createDomesticAffairsDeterminationLanguageCommand } from "@/domain/determination/determination-language";
 import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
+import { createEnglishDomesticAffairsFallback } from "@/domain/determination/locales/en-domestic-affairs";
 import {
   type ChronologyDraft,
   createEmptyChronologyDraft,
@@ -20,6 +24,11 @@ import {
   type DigitalConductDraft,
   validateDigitalConductDraft,
 } from "@/domain/filing/digital-conduct";
+import {
+  createEmptyDomesticAffairsDraft,
+  type DomesticAffairsDraft,
+  validateDomesticAffairsDraft,
+} from "@/domain/filing/domestic-affairs";
 import {
   DETERMINATION_SESSION_LIFETIME_MS,
   parseDeterminationSession,
@@ -96,6 +105,43 @@ function issuedDigitalDetermination(): IssuedDigitalConductDetermination {
   };
 }
 
+function completeDomesticDraft(): DomesticAffairsDraft {
+  return {
+    ...createEmptyDomesticAffairsDraft(),
+    respondent: "Riley",
+    relationship: "roommate",
+    offence: "token_remainder",
+    facts: {
+      ...createEmptyDomesticAffairsDraft().facts,
+      tokenRemainder: { remainingServings: "1", capacityServings: "12" },
+    },
+    impact: "needed_item_unavailable",
+    mitigation: "usually_restocks",
+    statement: "One serving remained in the shared container.",
+  };
+}
+
+function issuedDomesticDetermination(): IssuedDomesticAffairsDetermination {
+  const validated = validateDomesticAffairsDraft(completeDomesticDraft(), "en");
+  if (validated.status === "invalid")
+    throw new Error("Invalid Domestic fixture.");
+  const assessment = assessDomesticAffairsFiling(validated.filing);
+  const command = createDomesticAffairsDeterminationLanguageCommand(
+    validated.filing,
+    assessment,
+  );
+  if (command.status === "invalid")
+    throw new Error("Invalid Domestic command.");
+  return {
+    experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+    locale: "en",
+    reference: "DOM · 2026 · H0M3A1",
+    issuedAt: "2026-09-02T12:00:00.000Z",
+    assessment,
+    language: createEnglishDomesticAffairsFallback(command.command),
+  };
+}
+
 describe("tab-scoped determination state", () => {
   const now = Date.parse("2026-09-02T12:01:00.000Z");
 
@@ -159,6 +205,26 @@ describe("tab-scoped determination state", () => {
     });
   });
 
+  it("restores a validated Domestic Affairs determination through the migrated envelope", () => {
+    const value = serializeDeterminationSession(
+      completeDomesticDraft(),
+      issuedDomesticDetermination(),
+      now,
+    );
+    expect(parseDeterminationSession(value, now + 1_000)).toMatchObject({
+      status: "restored",
+      snapshot: {
+        reference: "DOM · 2026 · H0M3A1",
+        filing: {
+          department: "domestic_affairs",
+          offence: "token_remainder",
+          facts: { remainingServings: 1, capacityServings: 12 },
+        },
+        assessment: { department: "domestic_affairs" },
+      },
+    });
+  });
+
   it("rejects tampered facts, prose, identity, and envelope versions", () => {
     const value = serializeDeterminationSession(
       completeDraft(),
@@ -185,7 +251,7 @@ describe("tab-scoped determination state", () => {
     ).toBe("invalid");
     expect(
       parseDeterminationSession(
-        value.replace('"version":2', '"version":3'),
+        value.replace('"version":3', '"version":4'),
         now,
       ).status,
     ).toBe("invalid");

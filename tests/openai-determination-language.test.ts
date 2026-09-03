@@ -3,14 +3,18 @@ import { describe, expect, it } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
+import { assessDomesticAffairsFiling } from "@/domain/determination/domestic-affairs-assessment";
 import {
   createChronologyDeterminationLanguageCommand,
   createDigitalConductDeterminationLanguageCommand,
+  createDomesticAffairsDeterminationLanguageCommand,
 } from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
 import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
+import { createEnglishDomesticAffairsFallback } from "@/domain/determination/locales/en-domestic-affairs";
 import type { ChronologyFiling } from "@/domain/filing/chronology";
 import type { DigitalConductFiling } from "@/domain/filing/digital-conduct";
+import type { DomesticAffairsFiling } from "@/domain/filing/domestic-affairs";
 import {
   createConfiguredOpenAIDeterminationLanguageProvider,
   DEFAULT_OPENAI_DETERMINATION_MODEL,
@@ -41,6 +45,18 @@ const digitalFiling: DigitalConductFiling = {
   statement: "The dinner plan arrived through eight separate notifications.",
 };
 
+const domesticFiling: DomesticAffairsFiling = {
+  locale: "en",
+  department: "domestic_affairs",
+  respondent: "Riley",
+  relationship: "roommate",
+  offence: "misplaced_object",
+  facts: { itemCount: 4, distanceSteps: 8, correctionSeconds: 45 },
+  impact: "shared_space_obstructed",
+  mitigation: "handles_other_chores",
+  statement: "Four objects remained beside their ordinary location.",
+};
+
 function command() {
   const result = createChronologyDeterminationLanguageCommand(
     filing,
@@ -54,6 +70,15 @@ function digitalCommand() {
   const result = createDigitalConductDeterminationLanguageCommand(
     digitalFiling,
     assessDigitalConductFiling(digitalFiling),
+  );
+  if (result.status === "invalid") throw new Error(result.reason);
+  return result.command;
+}
+
+function domesticCommand() {
+  const result = createDomesticAffairsDeterminationLanguageCommand(
+    domesticFiling,
+    assessDomesticAffairsFiling(domesticFiling),
   );
   if (result.status === "invalid") throw new Error(result.reason);
   return result.command;
@@ -169,6 +194,34 @@ describe("OpenAI determination-language adapter", () => {
     expect(serialized).toContain("Never require immediate replies");
     expect(serialized).toContain('\\"messageCount\\":8');
     expect(serialized).not.toContain("Alex");
+  });
+
+  it("uses the Domestic Affairs editorial boundary without external household access", async () => {
+    const requests: unknown[] = [];
+    const language = createEnglishDomesticAffairsFallback(domesticCommand());
+    const provider = new OpenAIDeterminationLanguageProvider((request) => {
+      requests.push(request);
+      return Promise.resolve({
+        id: "resp_domestic",
+        model: "gpt-5.6-luna",
+        status: "completed",
+        output_text: JSON.stringify(language),
+        output: [],
+      });
+    });
+    await expect(
+      provider.generate(domesticCommand(), {
+        attempt: 1,
+        previousValidationIssues: [],
+      }),
+    ).resolves.toMatchObject({ status: "success", output: language });
+    expect(requests[0]).toMatchObject({
+      metadata: { department: "domestic_affairs" },
+    });
+    const serialized = JSON.stringify(requests[0]);
+    expect(serialized).toContain("no photo, sensor, home map");
+    expect(serialized).toContain('\\"distanceSteps\\":8');
+    expect(serialized).not.toContain("Riley");
   });
 
   it("normalizes timeouts and incomplete responses as retryable failures", async () => {

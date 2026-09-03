@@ -22,6 +22,10 @@ import {
   validateDigitalConductDraftField,
 } from "@/domain/filing/digital-conduct";
 import {
+  type DomesticAffairsDraft,
+  validateDomesticAffairsDraftField,
+} from "@/domain/filing/domestic-affairs";
+import {
   createEmptyFilingDraft,
   type Filing,
   type FilingDraft,
@@ -39,11 +43,13 @@ import {
 } from "../access/generation-idempotency";
 import {
   DETERMINATION_SESSION_KEY,
+  LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
   LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
   serializeDeterminationSession,
 } from "../determination/determination-session";
 import {
   FILING_DRAFT_STORAGE_KEY,
+  LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY,
   LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY,
   parseStoredDraft,
   serializeDraft,
@@ -96,6 +102,7 @@ const FIELD_STEPS: Record<FilingField, FilingStepCode> = {
   offence: "classification",
   chronology: "chronology",
   communications: "communications",
+  domestic_evidence: "domestic_evidence",
   impact: "impact",
   mitigation: "mitigation",
   statement: "statement",
@@ -108,6 +115,7 @@ const STEP_FIELDS: Partial<Record<FilingStepCode, FilingField>> = {
   classification: "offence",
   chronology: "chronology",
   communications: "communications",
+  domestic_evidence: "domestic_evidence",
   impact: "impact",
   mitigation: "mitigation",
   statement: "statement",
@@ -141,6 +149,7 @@ export function FilingJourney({
     const timer = window.setTimeout(() => {
       const stored = parseStoredDraft(
         window.localStorage.getItem(FILING_DRAFT_STORAGE_KEY) ??
+          window.localStorage.getItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY) ??
           window.localStorage.getItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY),
         Date.now(),
       );
@@ -148,8 +157,10 @@ export function FilingJourney({
       setNotice(stored.status === "empty" ? null : stored.status);
       if (stored.status === "expired" || stored.status === "invalid") {
         window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
+        window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
         window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
       } else if (stored.status === "restored") {
+        window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
         window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
       }
       setHydrated(true);
@@ -175,6 +186,9 @@ export function FilingJourney({
 
   function updateDraft(update: (current: FilingDraft) => FilingDraft) {
     window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(
+      LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
+    );
     window.sessionStorage.removeItem(
       LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
     );
@@ -303,8 +317,12 @@ export function FilingJourney({
 
   function resetDraft() {
     window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
     window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
     window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(
+      LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
+    );
     window.sessionStorage.removeItem(
       LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
     );
@@ -318,6 +336,12 @@ export function FilingJourney({
   }
 
   const previous = previousFilingStep(step, draft.department);
+  const serviceName =
+    draft.department === "chronology"
+      ? copy.serviceName
+      : draft.department === "digital_conduct"
+        ? copy.digitalServiceName
+        : copy.domesticServiceName;
 
   return (
     <div className="filing-shell" data-locale={locale}>
@@ -351,26 +375,17 @@ export function FilingJourney({
             <small>{navigation.brandDescriptor}</small>
           </span>
         </a>
-        <span className="filing-service-name">
-          {draft.department === "chronology"
-            ? copy.serviceName
-            : copy.digitalServiceName}
-        </span>
+        <span className="filing-service-name">{serviceName}</span>
       </header>
 
       <main className="filing-main" id="filing-question">
-        <aside
-          className="filing-rail"
-          aria-label={
-            draft.department === "chronology"
-              ? copy.serviceName
-              : copy.digitalServiceName
-          }
-        >
+        <aside className="filing-rail" aria-label={serviceName}>
           <p>
             {draft.department === "chronology"
               ? copy.department
-              : copy.digitalDepartment}
+              : draft.department === "digital_conduct"
+                ? copy.digitalDepartment
+                : copy.domesticDepartment}
           </p>
           {showProgress ? (
             <>
@@ -381,7 +396,11 @@ export function FilingJourney({
                 })}
               </span>
               <div className="progress-track" aria-hidden="true">
-                <i style={{ width: `${String((questionIndex / 7) * 100)}%` }} />
+                <i
+                  style={{
+                    width: `${String((questionIndex / FILING_QUESTION_COUNT) * 100)}%`,
+                  }}
+                />
               </div>
             </>
           ) : null}
@@ -441,7 +460,7 @@ export function FilingJourney({
           ) : (
             <form noValidate onSubmit={handleContinue}>
               <fieldset className="filing-fieldset" disabled={!hydrated}>
-                <legend className="sr-only">{copy.serviceName}</legend>
+                <legend className="sr-only">{serviceName}</legend>
                 <QuestionStep
                   step={step}
                   draft={draft}
@@ -526,6 +545,12 @@ function analyticsPathCode(
       return "digital_conduct_excessive_voice_note";
     case "unacknowledged_coordination":
       return "digital_conduct_unacknowledged_coordination";
+    case "token_remainder":
+      return "domestic_affairs_token_remainder";
+    case "misplaced_object":
+      return "domestic_affairs_misplaced_object";
+    case "empty_packaging":
+      return "domestic_affairs_empty_packaging";
     default:
       return undefined;
   }
@@ -535,9 +560,11 @@ function validateActiveDraftField(
   field: FilingField,
   draft: FilingDraft,
 ): FilingErrorCode | null {
-  return draft.department === "chronology"
-    ? validateChronologyDraftField(field, draft)
-    : validateDigitalConductDraftField(field, draft);
+  if (draft.department === "chronology")
+    return validateChronologyDraftField(field, draft);
+  return draft.department === "digital_conduct"
+    ? validateDigitalConductDraftField(field, draft)
+    : validateDomesticAffairsDraftField(field, draft);
 }
 
 function analyticsValidationReason(
@@ -718,9 +745,19 @@ function QuestionStep({
               copy.departmentDigitalConduct,
               copy.departmentDigitalConductDescription,
             ],
+            [
+              "domestic_affairs",
+              copy.departmentDomesticAffairs,
+              copy.departmentDomesticAffairsDescription,
+            ],
           ]}
           onSelect={(value) => {
-            if (value !== "chronology" && value !== "digital_conduct") return;
+            if (
+              value !== "chronology" &&
+              value !== "digital_conduct" &&
+              value !== "domestic_affairs"
+            )
+              return;
             updateDraft((current) => switchDraftDepartment(current, value));
           }}
         />
@@ -747,35 +784,57 @@ function QuestionStep({
               copy.offenceEstimateDescription,
             ],
           ] as const)
-        : ([
-            [
-              "fragmented_messages",
-              copy.offenceFragmentedMessages,
-              copy.offenceFragmentedMessagesDescription,
-            ],
-            [
-              "excessive_voice_note",
-              copy.offenceExcessiveVoiceNote,
-              copy.offenceExcessiveVoiceNoteDescription,
-            ],
-            [
-              "unacknowledged_coordination",
-              copy.offenceUnacknowledgedCoordination,
-              copy.offenceUnacknowledgedCoordinationDescription,
-            ],
-          ] as const);
+        : draft.department === "digital_conduct"
+          ? ([
+              [
+                "fragmented_messages",
+                copy.offenceFragmentedMessages,
+                copy.offenceFragmentedMessagesDescription,
+              ],
+              [
+                "excessive_voice_note",
+                copy.offenceExcessiveVoiceNote,
+                copy.offenceExcessiveVoiceNoteDescription,
+              ],
+              [
+                "unacknowledged_coordination",
+                copy.offenceUnacknowledgedCoordination,
+                copy.offenceUnacknowledgedCoordinationDescription,
+              ],
+            ] as const)
+          : ([
+              [
+                "token_remainder",
+                copy.offenceTokenRemainder,
+                copy.offenceTokenRemainderDescription,
+              ],
+              [
+                "misplaced_object",
+                copy.offenceMisplacedObject,
+                copy.offenceMisplacedObjectDescription,
+              ],
+              [
+                "empty_packaging",
+                copy.offenceEmptyPackaging,
+                copy.offenceEmptyPackagingDescription,
+              ],
+            ] as const);
     return (
       <QuestionFrame
         kicker={copy.classificationKicker}
         title={
           draft.department === "chronology"
             ? copy.classificationTitle
-            : copy.digitalClassificationTitle
+            : draft.department === "digital_conduct"
+              ? copy.digitalClassificationTitle
+              : copy.domesticClassificationTitle
         }
         body={
           draft.department === "chronology"
             ? copy.classificationBody
-            : copy.digitalClassificationBody
+            : draft.department === "digital_conduct"
+              ? copy.digitalClassificationBody
+              : copy.domesticClassificationBody
         }
         why={copy.classificationWhy}
         copy={copy}
@@ -797,12 +856,23 @@ function QuestionStep({
                       : "",
                 };
               }
+              if (current.department === "digital_conduct") {
+                return {
+                  ...current,
+                  offence:
+                    value === "fragmented_messages" ||
+                    value === "excessive_voice_note" ||
+                    value === "unacknowledged_coordination"
+                      ? value
+                      : "",
+                };
+              }
               return {
                 ...current,
                 offence:
-                  value === "fragmented_messages" ||
-                  value === "excessive_voice_note" ||
-                  value === "unacknowledged_coordination"
+                  value === "token_remainder" ||
+                  value === "misplaced_object" ||
+                  value === "empty_packaging"
                     ? value
                     : "",
               };
@@ -858,6 +928,27 @@ function QuestionStep({
     );
   }
 
+  if (step === "domestic_evidence") {
+    if (draft.department !== "domestic_affairs") {
+      return (
+        <DepartmentEvidenceMismatch
+          copy={copy}
+          goToClassification={goToClassification}
+        />
+      );
+    }
+    return (
+      <DomesticAffairsQuestion
+        draft={draft}
+        copy={copy}
+        errorMessage={errorMessage}
+        errorId={errorId}
+        updateDraft={updateDraft}
+        goToClassification={goToClassification}
+      />
+    );
+  }
+
   if (step === "impact") {
     const options =
       draft.department === "chronology"
@@ -867,12 +958,19 @@ function QuestionStep({
             ["plans_compressed", copy.impactCompressed],
             ["irritation_only", copy.impactIrritation],
           ] as const)
-        : ([
-            ["notification_burden", copy.impactNotificationBurden],
-            ["coordination_delayed", copy.impactCoordinationDelayed],
-            ["attention_fragmented", copy.impactAttentionFragmented],
-            ["irritation_only", copy.impactIrritation],
-          ] as const);
+        : draft.department === "digital_conduct"
+          ? ([
+              ["notification_burden", copy.impactNotificationBurden],
+              ["coordination_delayed", copy.impactCoordinationDelayed],
+              ["attention_fragmented", copy.impactAttentionFragmented],
+              ["irritation_only", copy.impactIrritation],
+            ] as const)
+          : ([
+              ["needed_item_unavailable", copy.impactNeededItemUnavailable],
+              ["shared_space_obstructed", copy.impactSharedSpaceObstructed],
+              ["false_stock_signal", copy.impactFalseStockSignal],
+              ["irritation_only", copy.impactIrritation],
+            ] as const);
     return (
       <QuestionFrame
         kicker={copy.impactKicker}
@@ -899,12 +997,24 @@ function QuestionStep({
                       : "",
                 };
               }
+              if (current.department === "digital_conduct") {
+                return {
+                  ...current,
+                  impact:
+                    value === "notification_burden" ||
+                    value === "coordination_delayed" ||
+                    value === "attention_fragmented" ||
+                    value === "irritation_only"
+                      ? value
+                      : "",
+                };
+              }
               return {
                 ...current,
                 impact:
-                  value === "notification_burden" ||
-                  value === "coordination_delayed" ||
-                  value === "attention_fragmented" ||
+                  value === "needed_item_unavailable" ||
+                  value === "shared_space_obstructed" ||
+                  value === "false_stock_signal" ||
                   value === "irritation_only"
                     ? value
                     : "",
@@ -928,12 +1038,19 @@ function QuestionStep({
             ["helps_others", copy.mitigationHelp],
             ["useful_warning", copy.mitigationWarning],
           ] as const)
-        : ([
-            ["provides_summary", copy.mitigationProvidesSummary],
-            ["acknowledges_delay", copy.mitigationAcknowledgesDelay],
-            ["usually_clear", copy.mitigationUsuallyClear],
-            ["helps_coordinate", copy.mitigationHelpsCoordinate],
-          ] as const);
+        : draft.department === "digital_conduct"
+          ? ([
+              ["provides_summary", copy.mitigationProvidesSummary],
+              ["acknowledges_delay", copy.mitigationAcknowledgesDelay],
+              ["usually_clear", copy.mitigationUsuallyClear],
+              ["helps_coordinate", copy.mitigationHelpsCoordinate],
+            ] as const)
+          : ([
+              ["usually_restocks", copy.mitigationUsuallyRestocks],
+              ["corrects_when_asked", copy.mitigationCorrectsWhenAsked],
+              ["handles_other_chores", copy.mitigationHandlesOtherChores],
+              ["usually_orderly", copy.mitigationUsuallyOrderly],
+            ] as const);
     return (
       <QuestionFrame
         kicker={copy.mitigationKicker}
@@ -963,13 +1080,25 @@ function QuestionStep({
                       : "",
                 };
               }
+              if (current.department === "digital_conduct") {
+                return {
+                  ...current,
+                  mitigation:
+                    value === "provides_summary" ||
+                    value === "acknowledges_delay" ||
+                    value === "usually_clear" ||
+                    value === "helps_coordinate"
+                      ? value
+                      : "",
+                };
+              }
               return {
                 ...current,
                 mitigation:
-                  value === "provides_summary" ||
-                  value === "acknowledges_delay" ||
-                  value === "usually_clear" ||
-                  value === "helps_coordinate"
+                  value === "usually_restocks" ||
+                  value === "corrects_when_asked" ||
+                  value === "handles_other_chores" ||
+                  value === "usually_orderly"
                     ? value
                     : "",
               };
@@ -1469,6 +1598,234 @@ function DigitalConductQuestion({
   );
 }
 
+function DomesticAffairsQuestion({
+  draft,
+  copy,
+  errorMessage,
+  errorId,
+  updateDraft,
+  goToClassification,
+}: {
+  draft: DomesticAffairsDraft;
+  copy: FilingCopy;
+  errorMessage: string | null;
+  errorId: string | undefined;
+  updateDraft: (update: (current: FilingDraft) => FilingDraft) => void;
+  goToClassification: () => void;
+}) {
+  if (!draft.offence) {
+    return (
+      <DepartmentEvidenceMismatch
+        copy={copy}
+        goToClassification={goToClassification}
+      />
+    );
+  }
+  const updateDomestic = (
+    update: (current: DomesticAffairsDraft) => DomesticAffairsDraft,
+  ) => {
+    updateDraft((current) =>
+      current.department === "domestic_affairs" ? update(current) : current,
+    );
+  };
+  const shared = {
+    kicker: copy.domesticEvidenceKicker,
+    why: copy.domesticEvidenceWhy,
+    copy,
+  };
+  if (draft.offence === "token_remainder") {
+    const facts = draft.facts.tokenRemainder;
+    return (
+      <QuestionFrame
+        {...shared}
+        title={copy.tokenRemainderTitle}
+        body={copy.tokenRemainderBody}
+      >
+        <EvidenceNumberGrid
+          fields={[
+            [
+              copy.remainingServingsLabel,
+              facts.remainingServings,
+              1,
+              5,
+              copy.servingsSuffix,
+              (value) => {
+                updateDomestic((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    tokenRemainder: {
+                      ...current.facts.tokenRemainder,
+                      remainingServings: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.capacityServingsLabel,
+              facts.capacityServings,
+              2,
+              24,
+              copy.servingsSuffix,
+              (value) => {
+                updateDomestic((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    tokenRemainder: {
+                      ...current.facts.tokenRemainder,
+                      capacityServings: value,
+                    },
+                  },
+                }));
+              },
+            ],
+          ]}
+          errorId={errorId}
+        />
+        <p className="field-hint">{copy.domesticBoundary}</p>
+        {errorMessage ? (
+          <FieldError id={errorId}>{errorMessage}</FieldError>
+        ) : null}
+      </QuestionFrame>
+    );
+  }
+  if (draft.offence === "misplaced_object") {
+    const facts = draft.facts.misplacedObject;
+    return (
+      <QuestionFrame
+        {...shared}
+        title={copy.misplacedObjectTitle}
+        body={copy.misplacedObjectBody}
+      >
+        <EvidenceNumberGrid
+          fields={[
+            [
+              copy.itemCountLabel,
+              facts.itemCount,
+              1,
+              20,
+              copy.itemsSuffix,
+              (value) => {
+                updateDomestic((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    misplacedObject: {
+                      ...current.facts.misplacedObject,
+                      itemCount: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.distanceStepsLabel,
+              facts.distanceSteps,
+              1,
+              50,
+              copy.stepsSuffix,
+              (value) => {
+                updateDomestic((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    misplacedObject: {
+                      ...current.facts.misplacedObject,
+                      distanceSteps: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.correctionSecondsLabel,
+              facts.correctionSeconds,
+              1,
+              300,
+              copy.secondsSuffix,
+              (value) => {
+                updateDomestic((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    misplacedObject: {
+                      ...current.facts.misplacedObject,
+                      correctionSeconds: value,
+                    },
+                  },
+                }));
+              },
+            ],
+          ]}
+          errorId={errorId}
+        />
+        <p className="field-hint">{copy.domesticBoundary}</p>
+        {errorMessage ? (
+          <FieldError id={errorId}>{errorMessage}</FieldError>
+        ) : null}
+      </QuestionFrame>
+    );
+  }
+  const facts = draft.facts.emptyPackaging;
+  return (
+    <QuestionFrame
+      {...shared}
+      title={copy.emptyPackagingTitle}
+      body={copy.emptyPackagingBody}
+    >
+      <EvidenceNumberGrid
+        fields={[
+          [
+            copy.emptyPackageCountLabel,
+            facts.emptyPackageCount,
+            1,
+            10,
+            copy.packagesSuffix,
+            (value) => {
+              updateDomestic((current) => ({
+                ...current,
+                facts: {
+                  ...current.facts,
+                  emptyPackaging: {
+                    ...current.facts.emptyPackaging,
+                    emptyPackageCount: value,
+                  },
+                },
+              }));
+            },
+          ],
+          [
+            copy.recurrencesLabel,
+            facts.recurrencesInThirtyDays,
+            1,
+            30,
+            copy.occurrencesSuffix,
+            (value) => {
+              updateDomestic((current) => ({
+                ...current,
+                facts: {
+                  ...current.facts,
+                  emptyPackaging: {
+                    ...current.facts.emptyPackaging,
+                    recurrencesInThirtyDays: value,
+                  },
+                },
+              }));
+            },
+          ],
+        ]}
+        errorId={errorId}
+      />
+      <p className="field-hint">{copy.domesticBoundary}</p>
+      {errorMessage ? (
+        <FieldError id={errorId}>{errorMessage}</FieldError>
+      ) : null}
+    </QuestionFrame>
+  );
+}
+
 type EvidenceNumberField = readonly [
   label: string,
   value: string,
@@ -1659,7 +2016,9 @@ function ReviewStep({
       copy.reviewDepartment,
       draft.department === "chronology"
         ? copy.departmentChronology
-        : copy.departmentDigitalConduct,
+        : draft.department === "digital_conduct"
+          ? copy.departmentDigitalConduct
+          : copy.departmentDomesticAffairs,
       "department",
     ],
     [
@@ -1670,9 +2029,15 @@ function ReviewStep({
     [
       draft.department === "chronology"
         ? copy.reviewChronology
-        : copy.reviewCommunications,
+        : draft.department === "digital_conduct"
+          ? copy.reviewCommunications
+          : copy.reviewDomesticEvidence,
       evidenceSummary(draft, copy),
-      draft.department === "chronology" ? "chronology" : "communications",
+      draft.department === "chronology"
+        ? "chronology"
+        : draft.department === "digital_conduct"
+          ? "communications"
+          : "domestic_evidence",
     ],
     [copy.reviewImpact, impactLabel(draft.impact, copy), "impact"],
     [
@@ -1841,6 +2206,7 @@ function errorCopy(error: FilingErrorCode, copy: FilingCopy): string {
     estimate_not_exceeded: copy.errorEstimateNotExceeded,
     ratio_not_exceeded: copy.errorRatioNotExceeded,
     follow_up_required: copy.errorFollowUpRequired,
+    remainder_not_smaller: copy.errorRemainderNotSmaller,
     statement_too_long: copy.errorStatementTooLong,
     restricted_content: copy.errorRestricted,
     invalid_selection: copy.errorInvalidSelection,
@@ -1870,6 +2236,9 @@ function offenceLabel(value: FilingDraft["offence"], copy: FilingCopy): string {
     fragmented_messages: copy.offenceFragmentedMessages,
     excessive_voice_note: copy.offenceExcessiveVoiceNote,
     unacknowledged_coordination: copy.offenceUnacknowledgedCoordination,
+    token_remainder: copy.offenceTokenRemainder,
+    misplaced_object: copy.offenceMisplacedObject,
+    empty_packaging: copy.offenceEmptyPackaging,
     "": "—",
   }[value];
 }
@@ -1882,6 +2251,9 @@ function impactLabel(value: FilingDraft["impact"], copy: FilingCopy): string {
     notification_burden: copy.impactNotificationBurden,
     coordination_delayed: copy.impactCoordinationDelayed,
     attention_fragmented: copy.impactAttentionFragmented,
+    needed_item_unavailable: copy.impactNeededItemUnavailable,
+    shared_space_obstructed: copy.impactSharedSpaceObstructed,
+    false_stock_signal: copy.impactFalseStockSignal,
     irritation_only: copy.impactIrritation,
     "": "—",
   }[value];
@@ -1900,6 +2272,10 @@ function mitigationLabel(
     acknowledges_delay: copy.mitigationAcknowledgesDelay,
     usually_clear: copy.mitigationUsuallyClear,
     helps_coordinate: copy.mitigationHelpsCoordinate,
+    usually_restocks: copy.mitigationUsuallyRestocks,
+    corrects_when_asked: copy.mitigationCorrectsWhenAsked,
+    handles_other_chores: copy.mitigationHandlesOtherChores,
+    usually_orderly: copy.mitigationUsuallyOrderly,
     "": "—",
   }[value];
 }
@@ -1923,6 +2299,28 @@ function evidenceSummary(draft: FilingDraft, copy: FilingCopy): string {
       return format(copy.summaryUnacknowledgedCoordination, {
         hours: draft.facts.unacknowledgedCoordination.responseHours || "—",
         followUps: draft.facts.unacknowledgedCoordination.followUpCount || "—",
+      });
+    }
+    return "—";
+  }
+  if (draft.department === "domestic_affairs") {
+    if (draft.offence === "token_remainder") {
+      return format(copy.summaryTokenRemainder, {
+        remaining: draft.facts.tokenRemainder.remainingServings || "—",
+        capacity: draft.facts.tokenRemainder.capacityServings || "—",
+      });
+    }
+    if (draft.offence === "misplaced_object") {
+      return format(copy.summaryMisplacedObject, {
+        items: draft.facts.misplacedObject.itemCount || "—",
+        steps: draft.facts.misplacedObject.distanceSteps || "—",
+        seconds: draft.facts.misplacedObject.correctionSeconds || "—",
+      });
+    }
+    if (draft.offence === "empty_packaging") {
+      return format(copy.summaryEmptyPackaging, {
+        packages: draft.facts.emptyPackaging.emptyPackageCount || "—",
+        occurrences: draft.facts.emptyPackaging.recurrencesInThirtyDays || "—",
       });
     }
     return "—";

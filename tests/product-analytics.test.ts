@@ -23,7 +23,7 @@ const now = new Date("2026-09-03T12:00:00.000Z");
 
 function browserEvent(): BrowserProductAnalyticsEvent {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     eventId: `evt_${"e".repeat(22)}`,
     journeyId: `jrn_${"j".repeat(22)}`,
     occurredAt: now.toISOString(),
@@ -51,6 +51,29 @@ describe("product analytics contract", () => {
   it("accepts an exact language-neutral browser event", () => {
     expect(isBrowserProductAnalyticsEvent(browserEvent(), now)).toBe(true);
     expect(isProductAnalyticsEvent(browserEvent(), now)).toBe(true);
+  });
+
+  it("accepts Domestic Affairs path categories without household measures", () => {
+    const event = {
+      ...browserEvent(),
+      department: "domestic_affairs",
+      properties: {
+        step: "domestic_evidence",
+        direction: "forward",
+        durationMs: 1_800,
+        pathCode: "domestic_affairs_misplaced_object",
+      },
+    };
+    expect(isBrowserProductAnalyticsEvent(event, now)).toBe(true);
+    expect(
+      isBrowserProductAnalyticsEvent(
+        {
+          ...event,
+          properties: { ...event.properties, distanceSteps: 8 },
+        },
+        now,
+      ),
+    ).toBe(false);
   });
 
   it("rejects arbitrary metadata, raw case content, and stale event time", () => {

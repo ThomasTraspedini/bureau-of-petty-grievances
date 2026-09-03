@@ -8,6 +8,10 @@ import {
   createEmptyDigitalConductDraft,
   type DigitalConductDraft,
 } from "@/domain/filing/digital-conduct";
+import {
+  createEmptyDomesticAffairsDraft,
+  type DomesticAffairsDraft,
+} from "@/domain/filing/domestic-affairs";
 import { createUnavailableDeterminationLanguageProvider } from "@/providers/determination-language-provider";
 import { completeFilingReviewWith } from "@/server/determination/complete-filing-review";
 import { completeFilingReviewControlledWith } from "@/server/determination/complete-filing-review";
@@ -47,6 +51,25 @@ function completeDigitalDraft(): DigitalConductDraft {
     impact: "notification_burden",
     mitigation: "provides_summary",
     statement: "The dinner plan arrived through eight separate notifications.",
+  };
+}
+
+function completeDomesticDraft(): DomesticAffairsDraft {
+  return {
+    ...createEmptyDomesticAffairsDraft(),
+    respondent: "Riley",
+    relationship: "roommate",
+    offence: "empty_packaging",
+    facts: {
+      ...createEmptyDomesticAffairsDraft().facts,
+      emptyPackaging: {
+        emptyPackageCount: "2",
+        recurrencesInThirtyDays: "6",
+      },
+    },
+    impact: "false_stock_signal",
+    mitigation: "handles_other_chores",
+    statement: "The empty carton returned to the shared shelf twice this week.",
   };
 }
 
@@ -113,6 +136,24 @@ describe("complete filing server boundary", () => {
         language: {
           remedy: { title: "Message batching protocol" },
         },
+      },
+    });
+  });
+
+  it("issues a complete Domestic Affairs determination through deterministic fallback", async () => {
+    await expect(
+      completeFilingReviewWith("en", completeDomesticDraft(), dependencies),
+    ).resolves.toMatchObject({
+      status: "accepted",
+      determination: {
+        reference: "DOM · 2026 · A1B2C3",
+        assessment: {
+          department: "domestic_affairs",
+          offence: "empty_packaging",
+          evidence: { emptyPackageCount: 2, recurrencesInThirtyDays: 6 },
+          remedyConstraints: { family: "empty_packaging_protocol" },
+        },
+        language: { remedy: { title: "Empty-packaging protocol" } },
       },
     });
   });

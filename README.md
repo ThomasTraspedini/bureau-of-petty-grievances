@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.14.0` opens the Department of Digital Conduct as the second complete filing path. Filers can establish fragmented-message density, an excessive voice memorandum, or an unacknowledged coordination interval through bounded counts and durations, then receive a distinct communications-docket determination and publish its privacy-bounded public record.
+Version `0.15.0` opens the Department of Domestic Affairs as the third complete filing path. Filers can establish a token remainder in a shared container, an object stopped near its proper location, or empty packaging returned to storage through bounded quantities, correction effort, and recurrence, then receive a distinct domestic property register and publish its privacy-bounded public record.
 
-Digital Conduct uses only facts the filer deliberately enters. It never accesses messages, devices, accounts, presence, read receipts, or response monitoring, and it cannot impose continuous availability or infer urgency. Chronology remains fully supported, including migration of existing local drafts and transient determinations. Department expansion continues with Domestic Affairs and Social Planning.
+Domestic Affairs uses only facts the filer deliberately enters. It never requests photos, sensors, a home map, room names, or household surveillance, and it cannot govern safety, access, caregiving, health, work duties, hygiene, food, property disposal, or financial penalties. Chronology and Digital Conduct remain fully supported through explicit local-state migration. Department expansion continues with Social Planning.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 

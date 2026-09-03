@@ -16,6 +16,11 @@ import {
   EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION,
   validateEnglishDigitalConductLanguage,
 } from "@/domain/determination/locales/en-digital-conduct";
+import {
+  createEnglishDomesticAffairsFallback,
+  EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION,
+  validateEnglishDomesticAffairsLanguage,
+} from "@/domain/determination/locales/en-domestic-affairs";
 import type {
   DeterminationLanguageProvider,
   ProviderRetryableFailureReason,
@@ -174,7 +179,9 @@ function fallbackResult(
     language:
       command.department === "chronology"
         ? createEnglishChronologyFallback(command)
-        : createEnglishDigitalConductFallback(command),
+        : command.department === "digital_conduct"
+          ? createEnglishDigitalConductFallback(command)
+          : createEnglishDomesticAffairsFallback(command),
     editorialPolicyVersion: editorialPolicyVersion(command),
     attempts,
     reason,
@@ -187,15 +194,19 @@ function validateLanguage(
   value: unknown,
   command: DeterminationLanguageCommand,
 ) {
-  return command.department === "chronology"
-    ? validateEnglishChronologyLanguage(value, command)
-    : validateEnglishDigitalConductLanguage(value, command);
+  if (command.department === "chronology")
+    return validateEnglishChronologyLanguage(value, command);
+  return command.department === "digital_conduct"
+    ? validateEnglishDigitalConductLanguage(value, command)
+    : validateEnglishDomesticAffairsLanguage(value, command);
 }
 
 function editorialPolicyVersion(command: DeterminationLanguageCommand): 1 {
-  return command.department === "chronology"
-    ? EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION
-    : EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION;
+  if (command.department === "chronology")
+    return EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION;
+  return command.department === "digital_conduct"
+    ? EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION
+    : EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION;
 }
 
 function addUsage(

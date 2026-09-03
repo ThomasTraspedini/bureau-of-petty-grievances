@@ -20,6 +20,7 @@ import {
   createEmptyChronologyDraft,
   validateChronologyDraft,
 } from "@/domain/filing/chronology";
+import { createEmptyDomesticAffairsDraft } from "@/domain/filing/domestic-affairs";
 import {
   FILING_DRAFT_STORAGE_KEY,
   serializeDraft,
@@ -202,6 +203,39 @@ describe("filing journey", () => {
       }),
     ).toBeVisible();
     expect(screen.getByText(pseudo.Filing.respondentWhy)).toBeInTheDocument();
+  });
+
+  it("renders the adaptive Domestic Affairs evidence register", async () => {
+    const draft = {
+      ...createEmptyDomesticAffairsDraft(),
+      respondent: "Riley",
+      relationship: "roommate" as const,
+      offence: "misplaced_object" as const,
+    };
+    window.localStorage.setItem(
+      FILING_DRAFT_STORAGE_KEY,
+      serializeDraft(draft, Date.now()),
+    );
+    render(
+      <FilingJourney
+        locale="en"
+        step="domestic_evidence"
+        returnToReview={false}
+        copy={messages.Filing}
+        navigation={messages.Navigation}
+        completeFiling={completeFiling}
+      />,
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: messages.Filing.misplacedObjectTitle,
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByRole("spinbutton", { name: /Objects awaiting placement/u }),
+    ).toBeVisible();
+    expect(screen.getByText(messages.Filing.domesticBoundary)).toBeVisible();
+    expect(screen.getByText(messages.Filing.domesticDepartment)).toBeVisible();
   });
 
   it("keeps a server-rejected review visible with safe work preserved", async () => {

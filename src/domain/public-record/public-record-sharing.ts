@@ -1,7 +1,8 @@
 import type { DigitalConductDeterminationSnapshot } from "@/domain/determination/determination-experience";
+import type { DomesticAffairsDeterminationSnapshot } from "@/domain/determination/determination-experience";
 import type { PublicRecord } from "./public-record";
 
-export const PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION = 2 as const;
+export const PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION = 3 as const;
 
 interface ShareDescriptorCommon {
   descriptorVersion: typeof PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION;
@@ -38,6 +39,31 @@ export type PublicRecordShareDescriptor =
         | "acknowledges_delay"
         | "usually_clear"
         | "helps_coordinate";
+    })
+  | (ShareDescriptorCommon & {
+      department: "domestic_affairs";
+      offence: "token_remainder" | "misplaced_object" | "empty_packaging";
+      evidence:
+        | {
+            kind: "container_remainder";
+            remainingServings: number;
+            capacityServings: number;
+          }
+        | {
+            kind: "correction_path";
+            itemCount: number;
+            distanceSteps: number;
+          }
+        | {
+            kind: "empty_inventory";
+            emptyPackageCount: number;
+            recurrencesInThirtyDays: number;
+          };
+      mitigation:
+        | "usually_restocks"
+        | "corrects_when_asked"
+        | "handles_other_chores"
+        | "usually_orderly";
     });
 
 export function createPublicRecordShareDescriptor(
@@ -71,6 +97,37 @@ export function createPublicRecordShareDescriptor(
       presentationVariant: snapshot.presentationVariant,
     };
   }
+  if (isDomesticSnapshot(snapshot)) {
+    const source = snapshot.assessment.evidence;
+    const evidence =
+      source.kind === "container_remainder"
+        ? {
+            kind: source.kind,
+            remainingServings: source.remainingServings,
+            capacityServings: source.capacityServings,
+          }
+        : source.kind === "correction_path"
+          ? {
+              kind: source.kind,
+              itemCount: source.itemCount,
+              distanceSteps: source.distanceSteps,
+            }
+          : {
+              kind: source.kind,
+              emptyPackageCount: source.emptyPackageCount,
+              recurrencesInThirtyDays: source.recurrencesInThirtyDays,
+            };
+    return {
+      descriptorVersion: PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION,
+      department: "domestic_affairs",
+      disposition: "upheld_with_circumstances_noted",
+      reference: snapshot.reference,
+      offence: snapshot.filing.offence,
+      evidence,
+      mitigation: snapshot.filing.mitigation,
+      presentationVariant: snapshot.presentationVariant,
+    };
+  }
   return {
     descriptorVersion: PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION,
     department: "chronology",
@@ -87,4 +144,10 @@ function isDigitalSnapshot(
   snapshot: PublicRecord["snapshot"],
 ): snapshot is DigitalConductDeterminationSnapshot {
   return snapshot.filing.department === "digital_conduct";
+}
+
+function isDomesticSnapshot(
+  snapshot: PublicRecord["snapshot"],
+): snapshot is DomesticAffairsDeterminationSnapshot {
+  return snapshot.filing.department === "domestic_affairs";
 }

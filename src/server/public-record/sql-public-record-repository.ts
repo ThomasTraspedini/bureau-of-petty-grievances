@@ -49,7 +49,7 @@ export class SqlPublicRecordRepository implements PublicRecordRepository {
           public_id, publication_key, owner_credential_digest, snapshot_digest,
           snapshot_version, locale, department, status, snapshot, issued_at,
           published_at, expires_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, 'chronology', $7, $8::jsonb, $9, $10, $11, $12)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11, $12, $13)
         ON CONFLICT (publication_key) DO NOTHING
         RETURNING ${RECORD_COLUMNS}`,
         [
@@ -59,6 +59,7 @@ export class SqlPublicRecordRepository implements PublicRecordRepository {
           input.snapshotDigest,
           input.record.snapshotVersion,
           input.record.snapshot.locale,
+          input.record.snapshot.filing.department,
           input.record.status,
           JSON.stringify(input.record.snapshot),
           input.record.snapshot.issuedAt,
@@ -291,7 +292,9 @@ function parseStoredRecord(value: unknown): StoredPublicRecord | null {
     typeof row.snapshotDigest !== "string" ||
     Number(row.snapshotVersion) !== PUBLIC_RECORD_SNAPSHOT_VERSION ||
     row.locale !== "en" ||
-    row.department !== "chronology" ||
+    (row.department !== "chronology" &&
+      row.department !== "digital_conduct" &&
+      row.department !== "domestic_affairs") ||
     !isPublicRecordStatus(row.status) ||
     !isDateValue(row.publishedAt) ||
     !isDateValue(row.expiresAt) ||

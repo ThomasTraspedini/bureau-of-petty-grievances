@@ -2,14 +2,22 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
+import { assessDomesticAffairsFiling } from "@/domain/determination/domestic-affairs-assessment";
 import {
   DETERMINATION_EXPERIENCE_VERSION,
   type IssuedChronologyDetermination,
+  type IssuedDomesticAffairsDetermination,
 } from "@/domain/determination/determination-experience";
 import {
   createEmptyChronologyDraft,
   validateChronologyDraft,
 } from "@/domain/filing/chronology";
+import {
+  createEmptyDomesticAffairsDraft,
+  validateDomesticAffairsDraft,
+} from "@/domain/filing/domestic-affairs";
+import { createDomesticAffairsDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import { createEnglishDomesticAffairsFallback } from "@/domain/determination/locales/en-domestic-affairs";
 import { DeterminationExperience } from "@/features/determination/determination-experience";
 import {
   DETERMINATION_SESSION_KEY,
@@ -47,6 +55,43 @@ function determinationFixture() {
     issuedAt: "2026-09-02T12:00:00.000Z",
     assessment: assessChronologyFiling(validated.filing),
     language: fixture.language,
+  };
+  return { draft, determination };
+}
+
+function domesticDeterminationFixture() {
+  const draft = {
+    ...createEmptyDomesticAffairsDraft(),
+    respondent: "Riley",
+    relationship: "roommate" as const,
+    offence: "misplaced_object" as const,
+    facts: {
+      ...createEmptyDomesticAffairsDraft().facts,
+      misplacedObject: {
+        itemCount: "4",
+        distanceSteps: "8",
+        correctionSeconds: "45",
+      },
+    },
+    impact: "shared_space_obstructed" as const,
+    mitigation: "handles_other_chores" as const,
+    statement: "Four items waited beside their ordinary location.",
+  };
+  const validated = validateDomesticAffairsDraft(draft, "en");
+  if (validated.status === "invalid") throw new Error("Invalid fixture.");
+  const assessment = assessDomesticAffairsFiling(validated.filing);
+  const command = createDomesticAffairsDeterminationLanguageCommand(
+    validated.filing,
+    assessment,
+  );
+  if (command.status === "invalid") throw new Error("Invalid command.");
+  const determination: IssuedDomesticAffairsDetermination = {
+    experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+    locale: "en",
+    reference: "DOM · 2026 · H0M3A1",
+    issuedAt: "2026-09-02T12:00:00.000Z",
+    assessment,
+    language: createEnglishDomesticAffairsFallback(command.command),
   };
   return { draft, determination };
 }
@@ -116,6 +161,36 @@ describe("determination experience", () => {
       await screen.findByText(pseudo.Determination.chronologyBody),
     ).toBeVisible();
     expect(screen.getByText(pseudo.Determination.transientBody)).toBeVisible();
+  });
+
+  it("renders the Domestic Affairs register with its no-access boundary", async () => {
+    const fixture = domesticDeterminationFixture();
+    window.sessionStorage.setItem(
+      DETERMINATION_SESSION_KEY,
+      serializeDeterminationSession(
+        fixture.draft,
+        fixture.determination,
+        Date.now(),
+      ),
+    );
+    render(
+      <DeterminationExperience
+        locale="en"
+        copy={messages.Determination}
+        navigation={messages.Navigation}
+        publicRecord={messages.PublicRecord}
+      />,
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: messages.Determination.domesticReconstructionTitle,
+      }),
+    ).toBeVisible();
+    expect(screen.getByText("8 steps")).toBeVisible();
+    expect(screen.getByText("45 seconds")).toBeVisible();
+    expect(
+      screen.getByText(messages.Determination.domesticReconstructionBody),
+    ).toBeVisible();
   });
 
   it("renders a public localized snapshot and expanded reporting controls", () => {

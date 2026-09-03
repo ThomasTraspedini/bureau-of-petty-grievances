@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createEmptyChronologyDraft } from "@/domain/filing/chronology";
+import { createEmptyDomesticAffairsDraft } from "@/domain/filing/domestic-affairs";
 import {
   FILING_DRAFT_LIFETIME_MS,
   parseStoredDraft,
@@ -53,5 +54,25 @@ describe("device-local filing drafts", () => {
       `"declaredTime":"${"1".repeat(100)}"`,
     );
     expect(parseStoredDraft(oversized, 101).status).toBe("invalid");
+  });
+
+  it("restores a bounded Domestic Affairs draft", () => {
+    const draft = {
+      ...createEmptyDomesticAffairsDraft(),
+      respondent: "Riley",
+      offence: "misplaced_object" as const,
+      facts: {
+        ...createEmptyDomesticAffairsDraft().facts,
+        misplacedObject: {
+          itemCount: "3",
+          distanceSteps: "8",
+          correctionSeconds: "40",
+        },
+      },
+    };
+    expect(parseStoredDraft(serializeDraft(draft, 100), 101)).toEqual({
+      status: "restored",
+      draft,
+    });
   });
 });

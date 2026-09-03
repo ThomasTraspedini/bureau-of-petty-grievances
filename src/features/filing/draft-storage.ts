@@ -15,17 +15,24 @@ import {
   type DigitalConductDraft,
 } from "@/domain/filing/digital-conduct";
 import {
+  DOMESTIC_AFFAIRS_IMPACT_CODES,
+  DOMESTIC_AFFAIRS_MITIGATION_CODES,
+  DOMESTIC_AFFAIRS_OFFENCE_CODES,
+  type DomesticAffairsDraft,
+} from "@/domain/filing/domestic-affairs";
+import {
   createEmptyFilingDraft,
   type FilingDraft,
 } from "@/domain/filing/filing";
 
-export const FILING_DRAFT_STORAGE_KEY = "bpg:filing:en:v2";
+export const FILING_DRAFT_STORAGE_KEY = "bpg:filing:en:v3";
+export const LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY = "bpg:filing:en:v2";
 export const LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY =
   "bpg:filing:chronology:en:v1";
 export const FILING_DRAFT_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface DraftEnvelope {
-  version: 2;
+  version: 3;
   locale: "en";
   updatedAt: number;
   draft: FilingDraft;
@@ -39,7 +46,7 @@ export type StoredDraftResult =
 
 export function serializeDraft(draft: FilingDraft, now: number): string {
   const envelope: DraftEnvelope = {
-    version: 2,
+    version: 3,
     locale: "en",
     updatedAt: now,
     draft: safeDraft(draft),
@@ -58,7 +65,7 @@ export function parseStoredDraft(
     const parsed: unknown = JSON.parse(value);
     if (
       !isRecord(parsed) ||
-      (parsed.version !== 1 && parsed.version !== 2) ||
+      (parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3) ||
       parsed.locale !== "en" ||
       typeof parsed.updatedAt !== "number" ||
       !Number.isFinite(parsed.updatedAt)
@@ -90,12 +97,16 @@ function safeDraft(draft: FilingDraft): FilingDraft {
   };
 }
 
-function normalizeDraft(value: unknown, version: 1 | 2): FilingDraft | null {
+function normalizeDraft(
+  value: unknown,
+  version: 1 | 2 | 3,
+): FilingDraft | null {
   if (version === 1 && isChronologyDraft(value, true)) {
     return { ...value, department: "chronology" };
   }
   if (isChronologyDraft(value, false)) return value;
   if (isDigitalConductDraft(value)) return value;
+  if (isDomesticAffairsDraft(value)) return value;
   return null;
 }
 
@@ -195,6 +206,55 @@ function isDigitalConductDraft(value: unknown): value is DigitalConductDraft {
     stringsWithin(voice, ["durationMinutes", "ideaCount"], 3) &&
     isRecord(coordination) &&
     stringsWithin(coordination, ["responseHours", "followUpCount"], 3)
+  );
+}
+
+function isDomesticAffairsDraft(value: unknown): value is DomesticAffairsDraft {
+  if (
+    !isRecord(value) ||
+    value.department !== "domestic_affairs" ||
+    !isRecord(value.facts)
+  )
+    return false;
+  const remainder = value.facts.tokenRemainder;
+  const object = value.facts.misplacedObject;
+  const packaging = value.facts.emptyPackaging;
+  const statementIssue =
+    typeof value.statement === "string" && value.statement.length > 0
+      ? validateWitnessStatement(value.statement)
+      : null;
+  return (
+    typeof value.respondent === "string" &&
+    countCharacters(value.respondent) <= 32 &&
+    !containsUnnecessaryIdentifier(value.respondent) &&
+    (value.relationship === "" ||
+      RELATIONSHIP_CODES.some((code) => code === value.relationship)) &&
+    (value.offence === "" ||
+      DOMESTIC_AFFAIRS_OFFENCE_CODES.some((code) => code === value.offence)) &&
+    (value.impact === "" ||
+      DOMESTIC_AFFAIRS_IMPACT_CODES.some((code) => code === value.impact)) &&
+    (value.mitigation === "" ||
+      DOMESTIC_AFFAIRS_MITIGATION_CODES.some(
+        (code) => code === value.mitigation,
+      )) &&
+    typeof value.statement === "string" &&
+    statementIssue !== "statement_too_long" &&
+    statementIssue !== "restricted_content" &&
+    statementIssue !== "unnecessary_identifier" &&
+    isRecord(remainder) &&
+    stringsWithin(remainder, ["remainingServings", "capacityServings"], 3) &&
+    isRecord(object) &&
+    stringsWithin(
+      object,
+      ["itemCount", "distanceSteps", "correctionSeconds"],
+      3,
+    ) &&
+    isRecord(packaging) &&
+    stringsWithin(
+      packaging,
+      ["emptyPackageCount", "recurrencesInThirtyDays"],
+      3,
+    )
   );
 }
 

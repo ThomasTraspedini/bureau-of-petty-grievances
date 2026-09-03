@@ -24,6 +24,17 @@ import type {
 } from "@/domain/filing/digital-conduct";
 import type { DeterminationAssessment } from "./assessment";
 import type { Filing } from "@/domain/filing/filing";
+import {
+  assessDomesticAffairsFiling,
+  type DomesticAffairsAssessment,
+  type DomesticAffairsProhibitedRemedyCode,
+  type DomesticAffairsRemedyFamilyCode,
+} from "./domestic-affairs-assessment";
+import type {
+  DomesticAffairsFiling,
+  DomesticAffairsImpactCode,
+  DomesticAffairsMitigationCode,
+} from "@/domain/filing/domestic-affairs";
 
 export const DETERMINATION_LANGUAGE_SCHEMA_VERSION = 1 as const;
 
@@ -120,9 +131,31 @@ export interface DigitalConductDeterminationLanguageCommand {
   };
 }
 
+export interface DomesticAffairsDeterminationLanguageCommand {
+  schemaVersion: typeof DETERMINATION_LANGUAGE_SCHEMA_VERSION;
+  assessmentVersion: DomesticAffairsAssessment["assessmentVersion"];
+  locale: DomesticAffairsFiling["locale"];
+  department: DomesticAffairsFiling["department"];
+  disposition: DeterminationDispositionCode;
+  offence: DomesticAffairsFiling["offence"];
+  evidence: DomesticAffairsAssessment["evidence"];
+  severity: SeverityCode;
+  impact: DomesticAffairsImpactCode;
+  mitigation: DomesticAffairsMitigationCode;
+  witnessStatement: string;
+  remedy: {
+    family: DomesticAffairsRemedyFamilyCode;
+    audience: RemedyAudienceCode;
+    maximumOccasions: 1 | 3;
+    binding: "non_binding";
+    prohibited: readonly DomesticAffairsProhibitedRemedyCode[];
+  };
+}
+
 export type DeterminationLanguageCommand =
   | ChronologyDeterminationLanguageCommand
-  | DigitalConductDeterminationLanguageCommand;
+  | DigitalConductDeterminationLanguageCommand
+  | DomesticAffairsDeterminationLanguageCommand;
 
 export type ChronologyLanguageCommandResult =
   | {
@@ -257,6 +290,44 @@ export function createDigitalConductDeterminationLanguageCommand(
   };
 }
 
+export function createDomesticAffairsDeterminationLanguageCommand(
+  filing: DomesticAffairsFiling,
+  assessment: DomesticAffairsAssessment,
+):
+  | { status: "valid"; command: DomesticAffairsDeterminationLanguageCommand }
+  | { status: "invalid"; reason: "assessment_mismatch" } {
+  const expectedAssessment = assessDomesticAffairsFiling(filing);
+  if (JSON.stringify(expectedAssessment) !== JSON.stringify(assessment)) {
+    return { status: "invalid", reason: "assessment_mismatch" };
+  }
+  return {
+    status: "valid",
+    command: {
+      schemaVersion: DETERMINATION_LANGUAGE_SCHEMA_VERSION,
+      assessmentVersion: assessment.assessmentVersion,
+      locale: assessment.locale,
+      department: assessment.department,
+      disposition: "upheld_with_circumstances_noted",
+      offence: assessment.offence,
+      evidence: assessment.evidence,
+      severity: assessment.severity.assessed,
+      impact: assessment.acceptedFactors.impact.code,
+      mitigation: assessment.acceptedFactors.mitigation.code,
+      witnessStatement: redactProviderWitnessStatement(
+        filing.statement,
+        filing.respondent,
+      ),
+      remedy: {
+        family: assessment.remedyConstraints.family,
+        audience: assessment.remedyConstraints.audience,
+        maximumOccasions: assessment.remedyConstraints.maximumOccasions,
+        binding: assessment.remedyConstraints.binding,
+        prohibited: assessment.remedyConstraints.prohibited,
+      },
+    },
+  };
+}
+
 export function createDeterminationLanguageCommand(
   filing: Filing,
   assessment: DeterminationAssessment,
@@ -274,6 +345,15 @@ export function createDeterminationLanguageCommand(
     assessment.department === "digital_conduct"
   ) {
     return createDigitalConductDeterminationLanguageCommand(filing, assessment);
+  }
+  if (
+    filing.department === "domestic_affairs" &&
+    assessment.department === "domestic_affairs"
+  ) {
+    return createDomesticAffairsDeterminationLanguageCommand(
+      filing,
+      assessment,
+    );
   }
   return { status: "invalid", reason: "assessment_mismatch" };
 }

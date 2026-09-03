@@ -32,7 +32,7 @@ Each implemented increment must leave a coherent experience. Later capabilities 
 
 ## Current production filing contract
 
-Chronology and Digital Conduct are enabled filing departments. Chronology supports three classifications with distinct submitted-fact grammars:
+Chronology, Digital Conduct, and Domestic Affairs are enabled filing departments. Chronology supports three classifications with distinct submitted-fact grammars:
 
 - a premature declaration records the declaration time and minutes until actual readiness;
 - chronic lateness records the agreed time and submitted delay;
@@ -44,7 +44,13 @@ Digital Conduct supports three deliberately narrow communication classifications
 - an excessive voice memorandum records its duration and principal-idea count;
 - unacknowledged coordination records the ordinary response interval and number of filer follow-ups.
 
-The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, change department without carrying incompatible facts, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review. Existing version-1 Chronology drafts migrate into the version-2 department-aware envelope.
+Domestic Affairs supports three deliberately narrow shared-household classifications:
+
+- a token remainder records remaining and total container servings;
+- an object near its proper location records object count, correction distance, and plausible effort;
+- empty packaging returned to storage records package count and recurrence within 30 days.
+
+The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, change department without carrying incompatible facts, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review. Existing version-1 Chronology and version-2 department drafts migrate into the version-3 envelope.
 
 Completion means that the server accepts the structured filing boundary, produces its deterministic assessment, and prepares a localized determination through an authorized provider call or the complete fallback path. The issued result is available in the current browser tab for 30 minutes. Completion alone does not publish a record or create an access entitlement; publication is a separate explicit choice.
 
@@ -74,19 +80,21 @@ Severity begins with explicit 15- and 30-minute boundaries. A concrete consequen
 
 Digital Conduct policy separately evaluates submitted message-to-idea density, voice-note minutes, or response hours at explicit boundaries. Consequence may raise severity once, mitigation remains visible, and remedies are limited to batching complete ideas, adding a brief voice-note summary, or acknowledging non-urgent coordination. Its prohibited outcomes additionally exclude compelled availability, response surveillance, read-receipt or presence monitoring, and assumptions that ordinary messages are urgent.
 
+Domestic Affairs policy evaluates the submitted remainder ratio, object quantity and correction path, or empty-package quantity and recurrence at explicit boundaries. Consequence may raise severity once, mitigation remains visible, and remedies are limited to completing the shared-container handoff, placing objects in their correct location, or removing or plainly marking empty packaging on no more than three future shared-household occasions. It excludes household surveillance, hygiene enforcement, food restriction, property disposal, financial penalties, and every safety, access, caregiving, health, or work-duty matter.
+
 Each assessment selects an offence-specific remedy family and prohibits coercion, exclusion, material deprivation, monitoring, public humiliation, and health or safety restrictions. It also provides bounded presentation parameters and stable visual variation derived without the respondent alias, witness language, relationship, exact clock time, or communication content. These rules are inspectable domain policy, not localized determination prose.
 
 ## Current determination-language contract
 
 A server-owned pipeline can transform a matching validated filing and assessment into determination-language schema version `1`. The shared shape carries explicit English locale and the deterministic `upheld_with_circumstances_noted` disposition, followed by a bounded allegation, finding, consequence, mitigation, remedy, and closing. Factual sections declare the language-neutral inputs that ground them.
 
-Each enabled department owns English editorial guidance, vocabulary, factual anchors, safety checks, and a complete deterministic fallback behind the shared language schema. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. Digital Conduct validation also rejects surveillance, compelled responsiveness, fabricated message access, and invented urgency.
+Each enabled department owns English editorial guidance, vocabulary, factual anchors, safety checks, and a complete deterministic fallback behind the shared language schema. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. Department policy also rejects surveillance, fabricated observation, compelled responsiveness, binding household control, and serious excluded matters.
 
-The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic realization after deterministic judgment. It receives no respondent alias or exact clock time and treats the witness statement only as submitted data. For Digital Conduct it receives structured filer-submitted counts and intervals, not messages, account data, read receipts, or device access. Refusal, unavailable configuration, invalid output, timeout, and terminal failure resolve to fallback rather than raw errors.
+The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic realization after deterministic judgment. It receives no respondent alias or exact clock time and treats the witness statement only as submitted data. For Digital Conduct it receives structured aggregate counts and intervals, not messages or account data; for Domestic Affairs it receives only the filed quantities, correction measures, recurrence, and statement, not photos, sensors, or a household map. Refusal, unavailable configuration, invalid output, timeout, and terminal failure resolve to fallback rather than raw errors.
 
 ## Current determination experience
 
-The localized determination presents provider and fallback output through the same official hierarchy. Its first viewport establishes a transient department reference, issue date, respondent context, disposition, and allegation. Chronology reconstructs accepted timing facts on a measured scale; Digital Conduct uses a communications docket that visualizes only submitted counts or intervals and states that the Bureau did not access messages, devices, or accounts. Both separate finding, consequence, and mitigation, preserve the witness statement as the filer’s account, and give the non-binding remedy visual priority.
+The localized determination presents provider and fallback output through the same official hierarchy. Its first viewport establishes a transient department reference, issue date, respondent context, disposition, and allegation. Chronology reconstructs timing facts on a measured scale; Digital Conduct uses a communications docket; Domestic Affairs uses a property register with a container gauge, correction path, or inventory markers. Each visualization is derived only from approved submitted facts and states its evidence source. All departments separate finding, consequence, and mitigation, preserve the witness statement as the filer’s account, and give the non-binding remedy visual priority.
 
 The transient reference and curated presentation signature exclude aliases, witness prose, relationship context, and exact clock time. The result is validated again before restoration from tab-scoped session state. Missing, expired, or inconsistent state returns to the preserved review; a terminal internal failure offers retry without discarding the safe draft. Loading reflects actual pending work, adds no artificial delay, and the single determination reveal becomes immediate under reduced motion.
 
@@ -106,7 +114,7 @@ Visitors may report an available record using one localized categorical reason a
 
 Every available public determination is a deliberate share object. Its public page offers the device share sheet where supported, a dedicated copy action, and a selectable address when browser clipboard access is unavailable. All paths use the same durable read-only public address. They never include the separate owner recovery credential or create an invitation.
 
-Localized canonical, Open Graph, and social-card metadata describe the department, fixed disposition, procedural reference, offence, approved bounded evidence, and submitted mitigation category. Chronology may expose only the discrepancy duration; Digital Conduct may expose only message and idea counts, voice-note duration, or response interval and follow-up count. A deterministic 1200 by 630 procedural image uses the record's curated visual variant. Metadata and imagery exclude the respondent alias, witness statement, exact clock times, message content, full generated prose, relationship and impact context, visible public identity, and owner authority.
+Localized canonical, Open Graph, and social-card metadata describe the department, fixed disposition, procedural reference, offence, approved bounded evidence, and submitted mitigation category. Chronology may expose only the discrepancy duration; Digital Conduct may expose only its approved aggregate counts or intervals; Domestic Affairs may expose only remaining and capacity servings, object count and correction distance, or empty-package count and recurrence. A deterministic 1200 by 630 procedural image uses the record's curated visual variant. Metadata and imagery exclude the respondent alias, witness statement, exact clock times, correction seconds, message content, full generated prose, relationship and impact context, visible public identity, and owner authority.
 
 Record HTML and preview images remain dynamic, `noindex`, and `no-store`. Image addresses carry the current lifecycle revision and are rejected after a status or revision change. External social crawlers can nevertheless retain a previously fetched preview outside Bureau control; the intentionally minimal preview limits that residual exposure.
 
@@ -160,7 +168,7 @@ The model may improve wording. It may not invent facts, diagnose a person, infer
 
 Production learning uses explicit, versioned product events rather than automatic interaction capture. One random identifier connects the steps performed in a single browser tab. It is neither a cookie nor a person, account, device, or cross-session identifier. Purpose-separated keyed pseudonyms permit aggregate public-record and successor-invitation analysis without exposing the underlying identifier or credential.
 
-The measurements cover entry, the complete filing funnel, rendered Chronology and Digital Conduct paths, step completion and correction, categorical validation, determination outcome, provider attempts, tokens and estimated cost, publication, sharing, public views, consultation, reports, access redemption, and successor handoff. Analytics schema version `2` adds department selection, communications steps, and the three Digital Conduct path codes without admitting any submitted counts, durations, text, or other filing values. Application version, deployment environment, locale, and department make before-and-after release comparison explicit.
+The measurements cover entry, the complete filing funnel, rendered department paths, step completion and correction, categorical validation, determination outcome, provider attempts, tokens and estimated cost, publication, sharing, public views, consultation, reports, access redemption, and successor handoff. Analytics schema version `3` adds the Domestic Affairs evidence step and its three path codes without admitting quantities, distances, effort, recurrence, room names, text, or any other filing value. Application version, deployment environment, locale, and department make before-and-after release comparison explicit.
 
 This evidence can reveal what people do, which paths they choose, where the journey weakens, and which outcomes move between releases. It cannot reveal user motivation, prove that a release caused a change, or make low-volume segments statistically meaningful. Product decisions should combine these signals with qualitative evidence and preserve the same report definitions across comparisons.
 
@@ -188,7 +196,7 @@ Interface locale and determination locale are separate. A generated determinatio
 
 - **Chronology:** promised and actual times, delays, warnings, and repeated declarations.
 - **Digital Conduct:** fragmented messages, notification density, response intervals, and message-to-idea ratios.
-- **Domestic Affairs:** object location, recurrence, required effort, and household effects.
+- **Domestic Affairs:** shared-container remainders, object placement, empty-package recurrence, and bounded correction effort.
 - **Social Planning:** rejected options, revision histories, participant impact, and time to decision.
 
 Departments change the grammar used to represent facts, not the Bureau's identity.

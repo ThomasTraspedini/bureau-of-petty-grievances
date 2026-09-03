@@ -7,12 +7,17 @@ import {
   type DigitalConductAssessment,
 } from "./digital-conduct-assessment";
 import type { Filing } from "@/domain/filing/filing";
+import {
+  assessDomesticAffairsFiling,
+  type DomesticAffairsAssessment,
+} from "./domestic-affairs-assessment";
 
 export type DeterminationAssessment =
-  ChronologyAssessment | DigitalConductAssessment;
+  ChronologyAssessment | DigitalConductAssessment | DomesticAffairsAssessment;
 
 export function assessFiling(filing: Filing): DeterminationAssessment {
-  return filing.department === "chronology"
-    ? assessChronologyFiling(filing)
-    : assessDigitalConductFiling(filing);
+  if (filing.department === "chronology") return assessChronologyFiling(filing);
+  return filing.department === "digital_conduct"
+    ? assessDigitalConductFiling(filing)
+    : assessDomesticAffairsFiling(filing);
 }

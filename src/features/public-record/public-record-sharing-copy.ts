@@ -36,17 +36,24 @@ export function localizePublicRecordShare(
   };
   if (descriptor.department === "chronology") {
     values.minutes = number.format(descriptor.discrepancyMinutes);
-  } else {
+  } else if (descriptor.department === "digital_conduct") {
     values.evidence = digitalEvidenceSummary(descriptor, number, copy);
+  } else {
+    values.evidence = domesticEvidenceSummary(descriptor, number, copy);
   }
   const digitalConduct = descriptor.department === "digital_conduct";
+  const domesticAffairs = descriptor.department === "domestic_affairs";
 
   return {
     brandName: copy.brandName,
     brandInitial: copy.brandInitial,
     imageStatus: copy.imageStatus,
     imageMotto: copy.imageMotto,
-    department: digitalConduct ? copy.digitalDepartment : copy.department,
+    department: digitalConduct
+      ? copy.digitalDepartment
+      : domesticAffairs
+        ? copy.domesticDepartment
+        : copy.department,
     disposition: copy.disposition,
     offence,
     mitigation,
@@ -54,15 +61,27 @@ export function localizePublicRecordShare(
     title: format(copy.sharePayloadTitle, values),
     metadataTitle: format(copy.metadataTitle, values),
     summary: format(
-      digitalConduct ? copy.digitalSummary : copy.summary,
+      digitalConduct
+        ? copy.digitalSummary
+        : domesticAffairs
+          ? copy.domesticSummary
+          : copy.summary,
       values,
     ),
     shareText: format(
-      digitalConduct ? copy.digitalShareText : copy.shareText,
+      digitalConduct
+        ? copy.digitalShareText
+        : domesticAffairs
+          ? copy.domesticShareText
+          : copy.shareText,
       values,
     ),
     imageAlt: format(
-      digitalConduct ? copy.digitalImageAlt : copy.imageAlt,
+      digitalConduct
+        ? copy.digitalImageAlt
+        : domesticAffairs
+          ? copy.domesticImageAlt
+          : copy.imageAlt,
       values,
     ),
   };
@@ -85,6 +104,12 @@ function offenceLabel(
       return copy.offenceExcessiveVoiceNote;
     case "unacknowledged_coordination":
       return copy.offenceUnacknowledgedCoordination;
+    case "token_remainder":
+      return copy.offenceTokenRemainder;
+    case "misplaced_object":
+      return copy.offenceMisplacedObject;
+    case "empty_packaging":
+      return copy.offenceEmptyPackaging;
   }
 }
 
@@ -109,6 +134,14 @@ function mitigationLabel(
       return copy.mitigationUsuallyClear;
     case "helps_coordinate":
       return copy.mitigationHelpsCoordinate;
+    case "usually_restocks":
+      return copy.mitigationUsuallyRestocks;
+    case "corrects_when_asked":
+      return copy.mitigationCorrectsWhenAsked;
+    case "handles_other_chores":
+      return copy.mitigationHandlesOtherChores;
+    case "usually_orderly":
+      return copy.mitigationUsuallyOrderly;
   }
 }
 
@@ -134,6 +167,33 @@ function digitalEvidenceSummary(
       return format(copy.evidenceResponseInterval, {
         hours: number.format(descriptor.evidence.responseHours),
         followUps: number.format(descriptor.evidence.followUpCount),
+      });
+  }
+}
+
+function domesticEvidenceSummary(
+  descriptor: Extract<
+    PublicRecordShareDescriptor,
+    { department: "domestic_affairs" }
+  >,
+  number: Intl.NumberFormat,
+  copy: PublicRecordSharingCopy,
+): string {
+  switch (descriptor.evidence.kind) {
+    case "container_remainder":
+      return format(copy.evidenceContainerRemainder, {
+        remaining: number.format(descriptor.evidence.remainingServings),
+        capacity: number.format(descriptor.evidence.capacityServings),
+      });
+    case "correction_path":
+      return format(copy.evidenceCorrectionPath, {
+        items: number.format(descriptor.evidence.itemCount),
+        steps: number.format(descriptor.evidence.distanceSteps),
+      });
+    case "empty_inventory":
+      return format(copy.evidenceEmptyInventory, {
+        packages: number.format(descriptor.evidence.emptyPackageCount),
+        occurrences: number.format(descriptor.evidence.recurrencesInThirtyDays),
       });
   }
 }

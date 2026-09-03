@@ -22,6 +22,11 @@ import {
   EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION,
 } from "@/domain/determination/locales/en-digital-conduct";
 import {
+  buildEnglishDomesticAffairsGenerationInput,
+  EN_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS,
+  EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION,
+} from "@/domain/determination/locales/en-domestic-affairs";
+import {
   createUnavailableDeterminationLanguageProvider,
   type DeterminationLanguageProvider,
   type DeterminationLanguageProviderResult,
@@ -53,22 +58,38 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
     attempt: Parameters<DeterminationLanguageProvider["generate"]>[1],
   ): Promise<DeterminationLanguageProviderResult> {
     try {
-      const digitalConduct = command.department === "digital_conduct";
-      const response = await this.createResponse({
-        model: this.model,
-        store: false,
-        instructions: digitalConduct
-          ? EN_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
-          : EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
-        input: digitalConduct
-          ? buildEnglishDigitalConductGenerationInput(
+      const instructions =
+        command.department === "chronology"
+          ? EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS
+          : command.department === "digital_conduct"
+            ? EN_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
+            : EN_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS;
+      const input =
+        command.department === "chronology"
+          ? buildEnglishChronologyGenerationInput(
               command,
               attempt.previousValidationIssues,
             )
-          : buildEnglishChronologyGenerationInput(
-              command,
-              attempt.previousValidationIssues,
-            ),
+          : command.department === "digital_conduct"
+            ? buildEnglishDigitalConductGenerationInput(
+                command,
+                attempt.previousValidationIssues,
+              )
+            : buildEnglishDomesticAffairsGenerationInput(
+                command,
+                attempt.previousValidationIssues,
+              );
+      const editorialPolicyVersion =
+        command.department === "chronology"
+          ? EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION
+          : command.department === "digital_conduct"
+            ? EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION
+            : EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION;
+      const response = await this.createResponse({
+        model: this.model,
+        store: false,
+        instructions,
+        input,
         max_output_tokens: 1_200,
         reasoning: { effort: "low", context: "current_turn" },
         text: {
@@ -83,11 +104,7 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
           },
         },
         metadata: {
-          editorial_policy_version: String(
-            digitalConduct
-              ? EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION
-              : EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
-          ),
+          editorial_policy_version: String(editorialPolicyVersion),
           department: command.department,
           language_schema_version: String(command.schemaVersion),
         },

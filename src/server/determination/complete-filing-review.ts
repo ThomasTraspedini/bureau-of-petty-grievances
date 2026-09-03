@@ -301,10 +301,13 @@ function analyticsAccessKind(
 function analyticsPathCode(
   filing:
     | import("@/domain/filing/chronology").ChronologyFiling
-    | import("@/domain/filing/digital-conduct").DigitalConductFiling,
+    | import("@/domain/filing/digital-conduct").DigitalConductFiling
+    | import("@/domain/filing/domestic-affairs").DomesticAffairsFiling,
 ): AnalyticsPathCode {
   if (filing.department === "chronology") return `chronology_${filing.offence}`;
-  return `digital_conduct_${filing.offence}`;
+  return filing.department === "digital_conduct"
+    ? `digital_conduct_${filing.offence}`
+    : `domestic_affairs_${filing.offence}`;
 }
 
 function elapsed(

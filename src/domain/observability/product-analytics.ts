@@ -1,4 +1,4 @@
-export const PRODUCT_ANALYTICS_SCHEMA_VERSION = 2 as const;
+export const PRODUCT_ANALYTICS_SCHEMA_VERSION = 3 as const;
 
 export const ANALYTICS_RETENTION_DAYS = 180 as const;
 export const ANALYTICS_EVENT_ID_PATTERN = /^evt_[A-Za-z0-9_-]{22}$/u;
@@ -12,6 +12,7 @@ export const ANALYTICS_FILING_STEPS = [
   "classification",
   "chronology",
   "communications",
+  "domestic_evidence",
   "impact",
   "mitigation",
   "statement",
@@ -35,8 +36,12 @@ export type AnalyticsPathCode =
   | "chronology_optimistic_estimate"
   | "digital_conduct_fragmented_messages"
   | "digital_conduct_excessive_voice_note"
-  | "digital_conduct_unacknowledged_coordination";
-export type AnalyticsDepartmentCode = "chronology" | "digital_conduct";
+  | "digital_conduct_unacknowledged_coordination"
+  | "domestic_affairs_token_remainder"
+  | "domestic_affairs_misplaced_object"
+  | "domestic_affairs_empty_packaging";
+export type AnalyticsDepartmentCode =
+  "chronology" | "digital_conduct" | "domestic_affairs";
 export type AnalyticsAccessKind = "anonymous" | "evaluation" | "standard";
 
 interface EventEnvelope<Name extends string, Properties> {
@@ -276,6 +281,9 @@ const PATH_CODES = new Set<AnalyticsPathCode>([
   "digital_conduct_fragmented_messages",
   "digital_conduct_excessive_voice_note",
   "digital_conduct_unacknowledged_coordination",
+  "domestic_affairs_token_remainder",
+  "domestic_affairs_misplaced_object",
+  "domestic_affairs_empty_packaging",
 ]);
 const FILING_STEPS = new Set<string>(ANALYTICS_FILING_STEPS);
 const FALLBACK_REASONS = new Set<AnalyticsFallbackReason>([
@@ -363,7 +371,8 @@ function isEnvelope(
     (value.journeyId !== null && !isAnalyticsJourneyId(value.journeyId)) ||
     value.locale !== "en" ||
     (value.department !== "chronology" &&
-      value.department !== "digital_conduct") ||
+      value.department !== "digital_conduct" &&
+      value.department !== "domestic_affairs") ||
     typeof value.name !== "string" ||
     !isRecord(value.properties)
   )

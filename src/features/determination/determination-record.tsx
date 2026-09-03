@@ -4,6 +4,7 @@ import type {
   ChronologyDeterminationSnapshot,
   DeterminationSnapshot,
   DigitalConductDeterminationSnapshot,
+  DomesticAffairsDeterminationSnapshot,
 } from "@/domain/determination/determination-experience";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
@@ -44,6 +45,7 @@ export function DeterminationRecord({
   publicMetadata,
 }: DeterminationRecordProps) {
   const digitalConduct = isDigitalConductSnapshot(snapshot);
+  const domesticAffairs = isDomesticAffairsSnapshot(snapshot);
   const issuedDate = new Intl.DateTimeFormat(locale, {
     dateStyle: "long",
   }).format(new Date(snapshot.issuedAt));
@@ -112,7 +114,11 @@ export function DeterminationRecord({
             </div>
 
             <p className="eyebrow">
-              {digitalConduct ? copy.digitalDepartment : copy.department}
+              {digitalConduct
+                ? copy.digitalDepartment
+                : domesticAffairs
+                  ? copy.domesticDepartment
+                  : copy.department}
             </p>
             <h1>
               {format(copy.title, { respondent: snapshot.filing.respondent })}
@@ -127,6 +133,12 @@ export function DeterminationRecord({
 
           {digitalConduct ? (
             <DigitalConductReconstruction
+              snapshot={snapshot}
+              copy={copy}
+              locale={locale}
+            />
+          ) : domesticAffairs ? (
+            <DomesticAffairsReconstruction
               snapshot={snapshot}
               copy={copy}
               locale={locale}
@@ -204,6 +216,12 @@ function isDigitalConductSnapshot(
   snapshot: DeterminationSnapshot,
 ): snapshot is DigitalConductDeterminationSnapshot {
   return snapshot.filing.department === "digital_conduct";
+}
+
+function isDomesticAffairsSnapshot(
+  snapshot: DeterminationSnapshot,
+): snapshot is DomesticAffairsDeterminationSnapshot {
+  return snapshot.filing.department === "domestic_affairs";
 }
 
 function ChronologyReconstruction({
@@ -362,6 +380,93 @@ function DigitalConductReconstruction({
           <div>
             <span>{copy.digitalDocketLabel}</span>
             <strong>{copy.digitalDocketValue}</strong>
+          </div>
+        </figcaption>
+      </figure>
+    </section>
+  );
+}
+
+function DomesticAffairsReconstruction({
+  snapshot,
+  copy,
+  locale,
+}: {
+  snapshot: DomesticAffairsDeterminationSnapshot;
+  copy: DeterminationCopy;
+  locale: InterfaceLocale;
+}) {
+  const number = new Intl.NumberFormat(locale);
+  const evidence = snapshot.assessment.evidence;
+  const primaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.primaryBasisPoints / 100))}%`;
+  const secondaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.secondaryBasisPoints / 100))}%`;
+  let primaryValue: string;
+  let secondaryValue: string;
+  if (evidence.kind === "container_remainder") {
+    primaryValue = format(copy.servingsValue, {
+      count: number.format(evidence.remainingServings),
+    });
+    secondaryValue = format(copy.servingsValue, {
+      count: number.format(evidence.capacityServings),
+    });
+  } else if (evidence.kind === "correction_path") {
+    primaryValue = format(copy.stepsValue, {
+      count: number.format(evidence.distanceSteps),
+    });
+    secondaryValue = format(copy.secondsValue, {
+      count: number.format(evidence.correctionSeconds),
+    });
+  } else {
+    primaryValue = format(copy.packagesValue, {
+      count: number.format(evidence.emptyPackageCount),
+    });
+    secondaryValue = format(copy.occurrencesValue, {
+      count: number.format(evidence.recurrencesInThirtyDays),
+    });
+  }
+  return (
+    <section
+      className="domestic-reconstruction"
+      aria-labelledby="domestic-affairs-title"
+    >
+      <div className="determination-section-heading">
+        <p className="eyebrow">{copy.chronologyKicker}</p>
+        <h2 id="domestic-affairs-title">{copy.domesticReconstructionTitle}</h2>
+        <p>{copy.domesticReconstructionBody}</p>
+      </div>
+      <figure className="domestic-register">
+        <div className="domestic-register-diagram" aria-hidden="true">
+          <div className="domestic-container-gauge">
+            <i style={{ height: primaryWidth }} />
+          </div>
+          <div className="domestic-correction-path">
+            <span />
+            <i style={{ width: secondaryWidth }} />
+            <span />
+          </div>
+          <div className="domestic-inventory">
+            {Array.from(
+              {
+                length: Math.min(8, snapshot.assessment.presentation.itemCount),
+              },
+              (_, index) => (
+                <i key={index} />
+              ),
+            )}
+          </div>
+        </div>
+        <figcaption>
+          <div>
+            <span>{copy.domesticPrimaryLabel}</span>
+            <strong>{primaryValue}</strong>
+          </div>
+          <div>
+            <span>{copy.domesticSecondaryLabel}</span>
+            <strong>{secondaryValue}</strong>
+          </div>
+          <div>
+            <span>{copy.domesticSourceLabel}</span>
+            <strong>{copy.domesticSourceValue}</strong>
           </div>
         </figcaption>
       </figure>

@@ -88,6 +88,7 @@ export type FilingField =
   | "offence"
   | "chronology"
   | "communications"
+  | "domestic_evidence"
   | "impact"
   | "mitigation"
   | "statement";
@@ -101,6 +102,7 @@ export type FilingErrorCode =
   | "estimate_not_exceeded"
   | "ratio_not_exceeded"
   | "follow_up_required"
+  | "remainder_not_smaller"
   | "statement_too_long"
   | "restricted_content"
   | "invalid_selection";

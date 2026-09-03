@@ -3,18 +3,22 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
+import { assessDomesticAffairsFiling } from "@/domain/determination/domestic-affairs-assessment";
 import {
   DETERMINATION_EXPERIENCE_VERSION,
   determinationPresentationVariant,
   type ChronologyDeterminationSnapshot,
   type DigitalConductDeterminationSnapshot,
+  type DomesticAffairsDeterminationSnapshot,
 } from "@/domain/determination/determination-experience";
 import {
   createChronologyDeterminationLanguageCommand,
   createDigitalConductDeterminationLanguageCommand,
+  createDomesticAffairsDeterminationLanguageCommand,
 } from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
 import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
+import { createEnglishDomesticAffairsFallback } from "@/domain/determination/locales/en-domestic-affairs";
 import {
   createEmptyChronologyDraft,
   validateChronologyDraft,
@@ -23,6 +27,10 @@ import {
   createEmptyDigitalConductDraft,
   validateDigitalConductDraft,
 } from "@/domain/filing/digital-conduct";
+import {
+  createEmptyDomesticAffairsDraft,
+  validateDomesticAffairsDraft,
+} from "@/domain/filing/domestic-affairs";
 import type { PublicRecord } from "@/domain/public-record/public-record";
 import { createPublicRecordShareDescriptor } from "@/domain/public-record/public-record-sharing";
 import { PublicRecordSharing } from "@/features/public-record/public-record-sharing";
@@ -42,7 +50,7 @@ describe("public-record sharing boundary", () => {
   it("derives only the approved non-identifying preview facts", () => {
     const descriptor = createPublicRecordShareDescriptor(recordFixture());
     expect(descriptor).toEqual({
-      descriptorVersion: 2,
+      descriptorVersion: 3,
       department: "chronology",
       disposition: "upheld_with_circumstances_noted",
       reference: "CHR · 2026 · A1B2C3",
@@ -65,7 +73,7 @@ describe("public-record sharing boundary", () => {
       snapshot: digitalDeterminationSnapshot(),
     });
     expect(descriptor).toEqual({
-      descriptorVersion: 2,
+      descriptorVersion: 3,
       department: "digital_conduct",
       disposition: "upheld_with_circumstances_noted",
       reference: "DIG · 2026 · D4E5F6",
@@ -79,6 +87,28 @@ describe("public-record sharing boundary", () => {
     expect(serialized).not.toContain("dinner plan");
     expect(serialized).not.toContain("notifications");
     expect(serialized).not.toContain("burstMinutes");
+  });
+
+  it("shares only approved Domestic Affairs measures and excludes private household context", () => {
+    const descriptor = createPublicRecordShareDescriptor({
+      ...recordFixture(),
+      snapshot: domesticDeterminationSnapshot(),
+    });
+    expect(descriptor).toEqual({
+      descriptorVersion: 3,
+      department: "domestic_affairs",
+      disposition: "upheld_with_circumstances_noted",
+      reference: "DOM · 2026 · H0M3A1",
+      offence: "misplaced_object",
+      evidence: { kind: "correction_path", itemCount: 4, distanceSteps: 8 },
+      mitigation: "handles_other_chores",
+      presentationVariant: descriptor.presentationVariant,
+    });
+    const serialized = JSON.stringify(descriptor);
+    expect(serialized).not.toContain("Riley");
+    expect(serialized).not.toContain("hallway");
+    expect(serialized).not.toContain("correctionSeconds");
+    expect(serialized).not.toContain("address");
   });
 
   it("localizes a bounded metadata and share payload", () => {
@@ -328,6 +358,48 @@ function digitalDeterminationSnapshot(): DigitalConductDeterminationSnapshot {
     filing: validation.filing,
     assessment,
     language: createEnglishDigitalConductFallback(command.command),
+    presentationVariant: determinationPresentationVariant(
+      reference,
+      assessment.presentation.visualSeed,
+    ),
+  };
+}
+
+function domesticDeterminationSnapshot(): DomesticAffairsDeterminationSnapshot {
+  const draft = {
+    ...createEmptyDomesticAffairsDraft(),
+    respondent: "Riley",
+    relationship: "roommate" as const,
+    offence: "misplaced_object" as const,
+    facts: {
+      ...createEmptyDomesticAffairsDraft().facts,
+      misplacedObject: {
+        itemCount: "4",
+        distanceSteps: "8",
+        correctionSeconds: "45",
+      },
+    },
+    impact: "shared_space_obstructed" as const,
+    mitigation: "handles_other_chores" as const,
+    statement: "Four items waited in the hallway beside their usual place.",
+  };
+  const validation = validateDomesticAffairsDraft(draft, "en");
+  if (validation.status === "invalid") throw new Error("Invalid fixture.");
+  const assessment = assessDomesticAffairsFiling(validation.filing);
+  const command = createDomesticAffairsDeterminationLanguageCommand(
+    validation.filing,
+    assessment,
+  );
+  if (command.status === "invalid") throw new Error("Invalid command.");
+  const reference = "DOM · 2026 · H0M3A1";
+  return {
+    experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+    locale: "en",
+    reference,
+    issuedAt: "2026-09-02T12:00:00.000Z",
+    filing: validation.filing,
+    assessment,
+    language: createEnglishDomesticAffairsFallback(command.command),
     presentationVariant: determinationPresentationVariant(
       reference,
       assessment.presentation.visualSeed,

@@ -9,13 +9,16 @@ import {
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
+import { assessDomesticAffairsFiling } from "@/domain/determination/domestic-affairs-assessment";
 import { DETERMINATION_EXPERIENCE_VERSION } from "@/domain/determination/determination-experience";
 import {
   createChronologyDeterminationLanguageCommand,
   createDigitalConductDeterminationLanguageCommand,
+  createDomesticAffairsDeterminationLanguageCommand,
 } from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
 import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
+import { createEnglishDomesticAffairsFallback } from "@/domain/determination/locales/en-domestic-affairs";
 import {
   type ChronologyDraft,
   validateChronologyDraft,
@@ -26,10 +29,18 @@ import {
   validateDigitalConductDraft,
 } from "@/domain/filing/digital-conduct";
 import {
+  createEmptyDomesticAffairsDraft,
+  type DomesticAffairsDraft,
+  validateDomesticAffairsDraft,
+} from "@/domain/filing/domestic-affairs";
+import {
   DETERMINATION_SESSION_KEY,
   serializeDeterminationSession,
 } from "@/features/determination/determination-session";
-import { FILING_DRAFT_STORAGE_KEY } from "@/features/filing/draft-storage";
+import {
+  FILING_DRAFT_STORAGE_KEY,
+  serializeDraft,
+} from "@/features/filing/draft-storage";
 
 declare global {
   interface Window {
@@ -74,6 +85,24 @@ const completeDigitalDraft = {
   mitigation: "provides_summary",
   statement: "The dinner plan arrived through eight separate notifications.",
 } satisfies DigitalConductDraft;
+
+const completeDomesticDraft = {
+  ...createEmptyDomesticAffairsDraft(),
+  respondent: "Riley",
+  relationship: "roommate",
+  offence: "misplaced_object",
+  facts: {
+    ...createEmptyDomesticAffairsDraft().facts,
+    misplacedObject: {
+      itemCount: "4",
+      distanceSteps: "8",
+      correctionSeconds: "45",
+    },
+  },
+  impact: "shared_space_obstructed",
+  mitigation: "handles_other_chores",
+  statement: "Four items waited beside their ordinary location.",
+} satisfies DomesticAffairsDraft;
 
 async function choose(page: Page, name: string) {
   await page.getByRole("radio", { name }).check();
@@ -140,6 +169,37 @@ function fixedDigitalDeterminationSession(): string {
   );
 }
 
+function fixedDomesticDeterminationSession(): string {
+  const validation = validateDomesticAffairsDraft(completeDomesticDraft, "en");
+  if (validation.status === "invalid") {
+    throw new Error(
+      "The Domestic Affairs end-to-end fixture must remain valid.",
+    );
+  }
+  const assessment = assessDomesticAffairsFiling(validation.filing);
+  const command = createDomesticAffairsDeterminationLanguageCommand(
+    validation.filing,
+    assessment,
+  );
+  if (command.status === "invalid") {
+    throw new Error("The Domestic Affairs assessment must match its filing.");
+  }
+  const issuedAt = new Date();
+  issuedAt.setMilliseconds(0);
+  return serializeDeterminationSession(
+    completeDomesticDraft,
+    {
+      experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+      locale: "en",
+      reference: "DOM · 2026 · H0M3A1",
+      issuedAt: issuedAt.toISOString(),
+      assessment,
+      language: createEnglishDomesticAffairsFallback(command.command),
+    },
+    Date.now(),
+  );
+}
+
 async function openFixedDetermination(page: Page) {
   await page.addInitScript(
     ({ key, value }) => {
@@ -169,6 +229,22 @@ async function openFixedDigitalDetermination(page: Page) {
   ).toBeVisible();
 }
 
+async function openFixedDomesticDetermination(page: Page) {
+  await page.addInitScript(
+    ({ key, value }) => {
+      window.sessionStorage.setItem(key, value);
+    },
+    {
+      key: DETERMINATION_SESSION_KEY,
+      value: fixedDomesticDeterminationSession(),
+    },
+  );
+  await page.goto("/en/determination");
+  await expect(
+    page.getByRole("heading", { name: "Review concerning Riley" }),
+  ).toBeVisible();
+}
+
 async function publishFixedRecord(page: Page) {
   await openFixedDetermination(page);
   await page.getByRole("checkbox").check();
@@ -188,6 +264,21 @@ async function publishFixedRecord(page: Page) {
     );
   }
   return { publicAddress, ownerAddress };
+}
+
+async function publishFixedDomesticRecord(page: Page) {
+  await openFixedDomesticDetermination(page);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create the public record" }).click();
+  await expect(
+    page.getByRole("heading", { name: "The public record is available." }),
+  ).toBeVisible();
+  const publicAddress = await page
+    .getByRole("link", { name: "Open the public record" })
+    .getAttribute("href");
+  if (!publicAddress)
+    throw new Error("Domestic publication must return a public address.");
+  return publicAddress;
 }
 
 test("completes, corrects, and receives a Chronology determination", async ({
@@ -323,6 +414,78 @@ test("completes and publishes a Digital Conduct communications docket", async ({
   const head = await page.locator("head").innerHTML();
   expect(head).toContain("Fragmented message sequence");
   expect(head).not.toContain("Alex");
+});
+
+test("completes and publishes a Domestic Affairs property register", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/en/file/respondent");
+  await page.getByRole("textbox", { name: "Respondent alias" }).fill("Riley");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await choose(page, "Roommate");
+  await choose(
+    page,
+    "Domestic Affairs Shared containers, object placement, and household stock signals.",
+  );
+  await choose(
+    page,
+    "Stopped just short of the correct location Record the objects, correction path, and plausible final effort.",
+  );
+  await page.getByLabel("Objects awaiting placement").fill("4");
+  await page.getByLabel("Distance to correct location").fill("8");
+  await page.getByLabel("Plausible correction effort").fill("45");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await choose(page, "Ordinary use of shared space was obstructed");
+  await choose(page, "Reliably handles other shared tasks");
+  await page
+    .getByRole("textbox", { name: "Submitted statement" })
+    .fill("Four items waited beside their ordinary location.");
+  await page.getByRole("button", { name: "Review the record" }).click();
+
+  await expect(
+    page.getByText("Domestic Affairs", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "4 objects, 8 steps from the correct location, requiring 45 seconds",
+    ),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Submit for determination" }).click();
+
+  await expect(page).toHaveURL(/\/en\/determination$/u);
+  await expect(
+    page.getByText("Department of Domestic Affairs").first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "The domestic property register is established.",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("Correct-location protocol")).toBeVisible();
+  await expect(page.getByText("Filer-submitted measures")).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create the public record" }).click();
+  const publicAddress = await page
+    .getByRole("link", { name: "Open the public record" })
+    .getAttribute("href");
+  if (!publicAddress)
+    throw new Error(
+      "Domestic Affairs publication must return a public address.",
+    );
+  await page.goto(publicAddress);
+  await expect(
+    page.getByText("Department of Domestic Affairs").first(),
+  ).toBeVisible();
+  await expect(page.locator(".share-object")).toContainText(
+    "4 objects; 8-step correction path",
+  );
+  const head = await page.locator("head").innerHTML();
+  expect(head).toContain("Incomplete object placement");
+  expect(head).not.toContain("Riley");
+  expect(head).not.toContain("45 seconds");
 });
 
 test("preserves a safe draft across refresh and excludes rejected text", async ({
@@ -754,6 +917,56 @@ test.describe("filing visual contract", () => {
     await openFixedDigitalDetermination(page);
     await expect(page).toHaveScreenshot(
       "digital-conduct-determination-desktop.png",
+      {
+        fullPage: true,
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
+  });
+
+  test("mobile Domestic Affairs evidence", async ({ page }) => {
+    await page.addInitScript(
+      ({ key, value }) => {
+        window.localStorage.setItem(key, value);
+      },
+      {
+        key: storageKey,
+        value: serializeDraft(completeDomesticDraft, Date.now()),
+      },
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/en/file/domestic_evidence");
+    await expect(page.getByText("Draft restored")).toBeVisible();
+    await expect(page).toHaveScreenshot(
+      "domestic-affairs-evidence-mobile.png",
+      {
+        fullPage: true,
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
+  });
+
+  test("desktop Domestic Affairs determination", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await openFixedDomesticDetermination(page);
+    await expect(page).toHaveScreenshot(
+      "domestic-affairs-determination-desktop.png",
+      {
+        fullPage: true,
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
+  });
+
+  test("mobile Domestic Affairs public record", async ({ page }) => {
+    const publicAddress = await publishFixedDomesticRecord(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(publicAddress);
+    await expect(page).toHaveScreenshot(
+      "domestic-affairs-public-record-mobile.png",
       {
         fullPage: true,
         animations: "disabled",

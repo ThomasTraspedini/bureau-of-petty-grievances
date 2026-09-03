@@ -2,6 +2,23 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.15.0]
+
+### Added
+
+- A complete Department of Domestic Affairs filing path for shared-container remainders, objects stopped near their correct location, and empty packaging returned to storage using bounded filer-entered quantities, correction measures, and recurrence.
+- Deterministic Domestic Affairs assessment policy, department-owned English editorial validation and fallback, grounded provider commands, and private non-binding remedies limited to three future shared-household occasions.
+- A distinct domestic property register with container-gauge, correction-path, and inventory-marker grammars derived only from approved submitted facts.
+- End-to-end Domestic filing, determination, publication, accessibility, preview privacy, and manually reviewed mobile and desktop visual coverage plus focused domain, language, migration, provider, session, sharing, persistence, and analytics tests.
+- An accepted decision record defining the department's scope, anti-surveillance and serious-matter exclusions, migration, persistence, sharing, and analytics boundaries.
+
+### Changed
+
+- Device draft and tab determination envelopes advance to version 3 with validated migration of earlier Chronology and department state; share descriptors advance to version 3 with Domestic-specific preview allowlists.
+- Product analytics advances to schema version 3 with the Domestic evidence step and three Domestic path codes while excluding every submitted quantity, distance, effort, recurrence, location, or prose value.
+- PostgreSQL schema advances to version 5 to persist Domestic records and `DOM` procedural references while retaining existing Chronology and Digital Conduct records.
+- Department expansion remains in progress; Social Planning is still required for the published capability outcome.
+
 ## [0.14.0]
 
 ### Added
