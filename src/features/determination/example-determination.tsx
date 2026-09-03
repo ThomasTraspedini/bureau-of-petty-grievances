@@ -7,6 +7,10 @@ import {
 } from "@/domain/determination/determination-experience";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
 import { createItalianChronologyFallback } from "@/domain/determination/locales/it";
+import { createFrenchChronologyFallback } from "@/domain/determination/locales/fr";
+import { createGermanChronologyFallback } from "@/domain/determination/locales/de";
+import { createSpanishChronologyFallback } from "@/domain/determination/locales/es";
+import { createBrazilianPortugueseChronologyFallback } from "@/domain/determination/locales/pt-BR";
 import type { ChronologyFiling } from "@/domain/filing/chronology";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
@@ -55,16 +59,33 @@ export function createRepresentativeDetermination(
     reference: EXAMPLE_REFERENCE,
     issuedAt: EXAMPLE_ISSUED_AT,
     assessment,
-    language:
-      locale === "it"
-        ? createItalianChronologyFallback(command.command)
-        : createEnglishChronologyFallback(command.command),
+    language: representativeLanguage(locale, command.command),
     filing,
     presentationVariant: determinationPresentationVariant(
       EXAMPLE_REFERENCE,
       assessment.presentation.visualSeed,
     ),
   };
+}
+
+function representativeLanguage(
+  locale: InterfaceLocale,
+  command: Parameters<typeof createEnglishChronologyFallback>[0],
+) {
+  switch (locale) {
+    case "it":
+      return createItalianChronologyFallback(command);
+    case "fr":
+      return createFrenchChronologyFallback(command);
+    case "de":
+      return createGermanChronologyFallback(command);
+    case "es":
+      return createSpanishChronologyFallback(command);
+    case "pt-BR":
+      return createBrazilianPortugueseChronologyFallback(command);
+    default:
+      return createEnglishChronologyFallback(command);
+  }
 }
 
 export function ExampleDetermination({

@@ -1,4 +1,4 @@
-export const PUBLIC_RECORD_SCHEMA_VERSION = 7 as const;
+export const PUBLIC_RECORD_SCHEMA_VERSION = 8 as const;
 
 export const PUBLIC_RECORD_SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS bureau_schema_migrations (
@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public_records (
   owner_credential_digest text NOT NULL CHECK (owner_credential_digest ~ '^[a-f0-9]{64}$'),
   snapshot_digest text NOT NULL CHECK (snapshot_digest ~ '^[a-f0-9]{64}$'),
   snapshot_version integer NOT NULL CHECK (snapshot_version = 1),
-  locale text NOT NULL CHECK (locale IN ('en', 'it')),
+  locale text NOT NULL CHECK (locale IN ('en', 'it', 'fr', 'de', 'es', 'pt-BR')),
   department text NOT NULL CHECK (department = 'chronology'),
   status text NOT NULL CHECK (status IN ('published', 'owner_unpublished', 'bureau_unpublished')),
   snapshot jsonb NOT NULL,
@@ -329,5 +329,15 @@ ALTER TABLE public_records
 
 INSERT INTO bureau_schema_migrations (version)
 VALUES (7)
+ON CONFLICT (version) DO NOTHING;
+
+ALTER TABLE public_records
+  DROP CONSTRAINT IF EXISTS public_records_locale_check;
+ALTER TABLE public_records
+  ADD CONSTRAINT public_records_locale_check
+  CHECK (locale IN ('en', 'it', 'fr', 'de', 'es', 'pt-BR'));
+
+INSERT INTO bureau_schema_migrations (version)
+VALUES (8)
 ON CONFLICT (version) DO NOTHING;
 `;

@@ -156,7 +156,7 @@ test("loads the production shell without external asset requests", async ({
 test("rejects an unsupported locale through the localized unavailable state", async ({
   page,
 }) => {
-  const response = await page.goto("/fr");
+  const response = await page.goto("/ja");
 
   expect(response?.status()).toBe(404);
   await expect(

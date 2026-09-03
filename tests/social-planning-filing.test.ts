@@ -84,7 +84,7 @@ describe("Social Planning filing domain", () => {
     const draft = completeDraft();
     draft.statement = "They made a threat about attending the event.";
     expect(validateSocialPlanningDraft(draft, "en").status).toBe("invalid");
-    expect(validateSocialPlanningDraft(completeDraft(), "fr").status).toBe(
+    expect(validateSocialPlanningDraft(completeDraft(), "ja").status).toBe(
       "invalid",
     );
   });

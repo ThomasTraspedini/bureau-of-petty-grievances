@@ -309,8 +309,9 @@ export function validateSocialPlanningFiling(
 export function validateSocialPlanningDraftField(
   field: FilingError["field"],
   draft: SocialPlanningDraft,
+  locale: ProductLocale = "en",
 ) {
-  const result = validateSocialPlanningDraft(draft, "en");
+  const result = validateSocialPlanningDraft(draft, locale);
   if (result.status === "valid") return null;
   return result.errors.find((error) => error.field === field)?.code ?? null;
 }

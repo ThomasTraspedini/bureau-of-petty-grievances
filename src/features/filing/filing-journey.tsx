@@ -43,7 +43,7 @@ import type { AnalyticsPathCode } from "@/domain/observability/product-analytics
 
 import { CivicSeal } from "../application-shell/application-shell";
 import {
-  GENERATION_IDEMPOTENCY_STORAGE_KEY,
+  generationIdempotencyStorageKey,
   getOrCreateGenerationIdempotencyKey,
 } from "../access/generation-idempotency";
 import {
@@ -157,6 +157,10 @@ export function FilingJourney({
   const stepStartedAt = useRef<number | null>(null);
   const draftStorageKey = filingDraftStorageKey(locale);
   const currentDeterminationSessionKey = determinationSessionKey(locale);
+  const currentGenerationIdempotencyKey = generationIdempotencyStorageKey(
+    locale,
+    draft.department,
+  );
 
   useEffect(() => {
     stepStartedAt.current = Date.now();
@@ -224,7 +228,7 @@ export function FilingJourney({
     window.sessionStorage.removeItem(
       LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
     );
-    window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
+    window.sessionStorage.removeItem(currentGenerationIdempotencyKey);
     setDraft(update);
     setError(null);
     setServerError(false);
@@ -264,7 +268,7 @@ export function FilingJourney({
     event.preventDefault();
     const field = STEP_FIELDS[step];
     if (field) {
-      const issue = validateActiveDraftField(field, draft);
+      const issue = validateActiveDraftField(field, draft, locale);
       if (issue) {
         setError(issue);
         trackBrowserProductEvent(
@@ -338,13 +342,14 @@ export function FilingJourney({
       try {
         const idempotencyKey = getOrCreateGenerationIdempotencyKey(
           window.sessionStorage,
+          currentGenerationIdempotencyKey,
         );
         const journeyId = currentAnalyticsJourneyId();
         const result = journeyId
           ? await completeFiling(locale, draft, idempotencyKey, journeyId)
           : await completeFiling(locale, draft, idempotencyKey);
         if (result.status === "accepted") {
-          window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
+          window.sessionStorage.removeItem(currentGenerationIdempotencyKey);
           window.sessionStorage.setItem(
             currentDeterminationSessionKey,
             serializeDeterminationSession(
@@ -384,7 +389,7 @@ export function FilingJourney({
     window.sessionStorage.removeItem(
       LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
     );
-    window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
+    window.sessionStorage.removeItem(currentGenerationIdempotencyKey);
     setDraft(createEmptyFilingDraft());
     setNotice(null);
     setError(null);
@@ -529,6 +534,7 @@ export function FilingJourney({
               <fieldset className="filing-fieldset" disabled={!hydrated}>
                 <legend className="sr-only">{serviceName}</legend>
                 <QuestionStep
+                  locale={locale}
                   step={step}
                   draft={draft}
                   copy={copy}
@@ -644,14 +650,15 @@ function analyticsPathCode(
 function validateActiveDraftField(
   field: FilingField,
   draft: FilingDraft,
+  locale: InterfaceLocale,
 ): FilingErrorCode | null {
   if (draft.department === "chronology")
-    return validateChronologyDraftField(field, draft);
+    return validateChronologyDraftField(field, draft, locale);
   if (draft.department === "digital_conduct")
-    return validateDigitalConductDraftField(field, draft);
+    return validateDigitalConductDraftField(field, draft, locale);
   return draft.department === "domestic_affairs"
-    ? validateDomesticAffairsDraftField(field, draft)
-    : validateSocialPlanningDraftField(field, draft);
+    ? validateDomesticAffairsDraftField(field, draft, locale)
+    : validateSocialPlanningDraftField(field, draft, locale);
 }
 
 function analyticsValidationReason(
@@ -710,6 +717,7 @@ function DeterminationLimited({
 }
 
 interface QuestionStepProps {
+  locale: InterfaceLocale;
   step: FilingStepCode;
   draft: FilingDraft;
   copy: FilingCopy;
@@ -719,6 +727,7 @@ interface QuestionStepProps {
 }
 
 function QuestionStep({
+  locale,
   step,
   draft,
   copy,
@@ -772,7 +781,7 @@ function QuestionStep({
         kicker={copy.relationshipKicker}
         title={format(copy.relationshipTitle, {
           respondent:
-            draft.respondent || copy.reviewRespondent.toLocaleLowerCase("en"),
+            draft.respondent || copy.reviewRespondent.toLocaleLowerCase(locale),
         })}
         body={copy.relationshipBody}
         why={copy.relationshipWhy}
@@ -1232,7 +1241,7 @@ function QuestionStep({
         kicker={copy.mitigationKicker}
         title={format(copy.mitigationTitle, {
           respondent:
-            draft.respondent || copy.reviewRespondent.toLocaleLowerCase("en"),
+            draft.respondent || copy.reviewRespondent.toLocaleLowerCase(locale),
         })}
         body={copy.mitigationBody}
         why={copy.mitigationWhy}
@@ -1329,7 +1338,7 @@ function QuestionStep({
       <div className="statement-meta">
         <span id="statement-counter">
           {format(copy.statementCounter, {
-            count: countCharacters(draft.statement, "en"),
+            count: countCharacters(draft.statement, locale),
           })}
         </span>
         <span id="statement-boundary">{copy.statementBoundary}</span>

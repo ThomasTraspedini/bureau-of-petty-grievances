@@ -94,9 +94,9 @@ Each assessment selects an offence-specific remedy family and prohibits coercion
 
 ## Current determination-language contract
 
-A server-owned pipeline can transform a matching validated filing and assessment into determination-language schema version `1`. The shared shape carries an explicit English or Italian content locale and the deterministic `upheld_with_circumstances_noted` disposition, followed by a bounded allegation, finding, consequence, mitigation, remedy, and closing. Factual sections declare the language-neutral inputs that ground them.
+A server-owned pipeline can transform a matching validated filing and assessment into determination-language schema version `1`. The shared shape carries an explicit `en`, `it`, `fr`, `de`, `es`, or `pt-BR` content locale and the deterministic `upheld_with_circumstances_noted` disposition, followed by a bounded allegation, finding, consequence, mitigation, remedy, and closing. Factual sections declare the language-neutral inputs that ground them.
 
-Each enabled department owns English and Italian editorial guidance, vocabulary, factual anchors, safety checks, and a complete deterministic fallback behind the shared language schema. Italian uses a formal `Lei` register and retains the same calm, exact, sincere Bureau voice. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. Department policy also rejects surveillance, fabricated observation, compelled responsiveness, binding household control, and serious excluded matters.
+Each enabled department owns editorial guidance, vocabulary, factual anchors, safety checks, and a complete deterministic fallback for every supported locale behind the shared language schema. Italian uses formal `Lei`, French respectful `vous`, German formal `Sie`, Spanish formal `usted`, and Brazilian Portuguese a courteous formal Brazilian register; each retains the same calm, exact, sincere Bureau voice. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. Department policy also rejects surveillance, fabricated observation, compelled responsiveness, binding household control, and serious excluded matters.
 
 The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic realization after deterministic judgment. It receives no respondent alias or exact clock time and treats the witness statement only as submitted data. For Digital Conduct it receives structured aggregate counts and intervals, not messages or account data; for Domestic Affairs it receives only the filed quantities, correction measures, recurrence, and statement, not photos, sensors, or a household map; for Social Planning it receives only the filed planning counts, intervals, and statement, not calendars, messages, contacts, locations, invitations, attendance, guest lists, or social-network data. Refusal, unavailable configuration, invalid output, timeout, and terminal failure resolve to fallback rather than raw errors.
 
@@ -112,7 +112,7 @@ The experience explicitly states that it is transient until the filer opts into 
 
 ## Current persistent public-record contract
 
-During the 30-minute transient window, a filer may explicitly publish the complete validated determination after reviewing which submitted information will become public. Publication atomically stores an immutable, versioned English snapshot behind an unguessable public identifier. It preserves the procedural reference and presentation while giving the record a distinct public address.
+During the 30-minute transient window, a filer may explicitly publish the complete validated determination after reviewing which submitted information will become public. Publication atomically stores an immutable, versioned localized snapshot behind an unguessable public identifier. It preserves the content locale, procedural reference, and presentation while giving the record a distinct public address; changing interface locale never retranslates it.
 
 The public address carries no authority. A separate private recovery address holds a 256-bit owner credential in its URL fragment; only its digest is retained server-side. The owner can immediately unpublish, restore an owner-unpublished record before expiry, or permanently delete the record and associated reports. A Bureau-unpublished record cannot be restored by the owner.
 
@@ -198,7 +198,7 @@ The product supports low-stakes teasing among people who know one another.
 
 ## Internationalization
 
-English and Italian are enabled product languages. English remains the default. Locale remains explicit throughout routing, validation, formatting, persistence, deterministic copy, generative instructions, output validation, sharing, and tests.
+English, Italian, French, German, Spanish, and Brazilian Portuguese are enabled product languages through `/en`, `/it`, `/fr`, `/de`, `/es`, and `/pt-BR`. English remains the default. Locale remains explicit throughout routing, browser storage, validation, formatting, generation commands, persistence, deterministic copy, generative instructions, output validation, sharing, and tests.
 
 Interface locale and determination locale are separate. A generated determination remains an immutable localized snapshot unless a deliberate future feature creates another translation.
 

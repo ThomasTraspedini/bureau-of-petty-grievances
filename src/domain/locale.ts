@@ -1,5 +1,5 @@
 /** Locale codes admitted at persisted and server boundaries. */
-export const PRODUCT_LOCALES = ["en", "it"] as const;
+export const PRODUCT_LOCALES = ["en", "it", "fr", "de", "es", "pt-BR"] as const;
 export type ProductLocale = (typeof PRODUCT_LOCALES)[number];
 
 export function isProductLocale(value: unknown): value is ProductLocale {

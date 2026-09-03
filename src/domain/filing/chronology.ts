@@ -307,8 +307,9 @@ export function validateChronologyFiling(
 export function validateDraftField(
   field: FilingField,
   draft: ChronologyDraft,
+  locale: ProductLocale = "en",
 ): FilingErrorCode | null {
-  const result = validateChronologyDraft(draft, "en");
+  const result = validateChronologyDraft(draft, locale);
   if (result.status === "valid") return null;
   return result.errors.find((error) => error.field === field)?.code ?? null;
 }
@@ -338,7 +339,10 @@ export function containsUnnecessaryIdentifier(value: string): boolean {
 }
 
 export function containsRestrictedContent(value: string): boolean {
-  const normalized = value.normalize("NFKC").toLocaleLowerCase("en");
+  const normalized = value
+    .normalize("NFKD")
+    .replace(/\p{M}/gu, "")
+    .toLocaleLowerCase("en");
   const terms = [
     "abuse",
     "abusive",
@@ -358,6 +362,56 @@ export function containsRestrictedContent(value: string): boolean {
     "threat",
     "violence",
     "violent",
+    "abuso",
+    "abusivo",
+    "aggressione",
+    "bambino",
+    "coercizione",
+    "diagnosi",
+    "minaccia",
+    "minore",
+    "razzista",
+    "stupro",
+    "suicidio",
+    "violenza",
+    "abus",
+    "agression",
+    "coercition",
+    "diagnostic",
+    "enfant",
+    "menace",
+    "mineur",
+    "raciste",
+    "suicide",
+    "violence",
+    "missbrauch",
+    "angriff",
+    "bedrohung",
+    "diagnose",
+    "gewalt",
+    "kind",
+    "minderjahrig",
+    "rassistisch",
+    "selbstverletzung",
+    "suizid",
+    "vergewaltigung",
+    "amenaza",
+    "agresion",
+    "coaccion",
+    "diagnostico",
+    "menor",
+    "nino",
+    "racista",
+    "suicidio",
+    "violacion",
+    "violencia",
+    "agressao",
+    "ameaca",
+    "assedio",
+    "coercao",
+    "crianca",
+    "estupro",
+    "perseguicao",
   ];
   return terms.some((term) => normalized.includes(term));
 }

@@ -4,7 +4,11 @@ import {
 } from "@/domain/determination/chronology-assessment";
 import {
   createChronologyDeterminationLanguageCommand,
+  type ChronologyDeterminationLanguageCommand,
   type DeterminationLanguage,
+  type DigitalConductDeterminationLanguageCommand,
+  type DomesticAffairsDeterminationLanguageCommand,
+  type SocialPlanningDeterminationLanguageCommand,
 } from "@/domain/determination/determination-language";
 import { validateEnglishChronologyLanguage } from "@/domain/determination/locales/en";
 import {
@@ -43,6 +47,31 @@ import {
   validateItalianDomesticAffairsLanguage,
   validateItalianSocialPlanningLanguage,
 } from "@/domain/determination/locales/it";
+import {
+  validateFrenchChronologyLanguage,
+  validateFrenchDigitalConductLanguage,
+  validateFrenchDomesticAffairsLanguage,
+  validateFrenchSocialPlanningLanguage,
+} from "@/domain/determination/locales/fr";
+import {
+  validateGermanChronologyLanguage,
+  validateGermanDigitalConductLanguage,
+  validateGermanDomesticAffairsLanguage,
+  validateGermanSocialPlanningLanguage,
+} from "@/domain/determination/locales/de";
+import {
+  validateSpanishChronologyLanguage,
+  validateSpanishDigitalConductLanguage,
+  validateSpanishDomesticAffairsLanguage,
+  validateSpanishSocialPlanningLanguage,
+} from "@/domain/determination/locales/es";
+import {
+  validateBrazilianPortugueseChronologyLanguage,
+  validateBrazilianPortugueseDigitalConductLanguage,
+  validateBrazilianPortugueseDomesticAffairsLanguage,
+  validateBrazilianPortugueseSocialPlanningLanguage,
+} from "@/domain/determination/locales/pt-BR";
+import { isProductLocale } from "@/domain/locale";
 import {
   type SocialPlanningFiling,
   validateSocialPlanningFiling,
@@ -188,7 +217,7 @@ export function validateChronologyDeterminationSnapshot(
       "presentationVariant",
     ]) ||
     value.experienceVersion !== DETERMINATION_EXPERIENCE_VERSION ||
-    (value.locale !== "en" && value.locale !== "it") ||
+    !isProductLocale(value.locale) ||
     !isDeterminationReference(value.reference) ||
     typeof value.issuedAt !== "string"
   ) {
@@ -207,10 +236,7 @@ export function validateChronologyDeterminationSnapshot(
     assessment,
   );
   if (command.status === "invalid") return { status: "invalid" };
-  const language =
-    command.command.locale === "it"
-      ? validateItalianChronologyLanguage(value.language, command.command)
-      : validateEnglishChronologyLanguage(value.language, command.command);
+  const language = validateChronologyLanguage(value.language, command.command);
   if (language.status === "invalid") return { status: "invalid" };
 
   const issuedAt = new Date(value.issuedAt);
@@ -263,7 +289,7 @@ export function validateDigitalConductDeterminationSnapshot(
       "presentationVariant",
     ]) ||
     value.experienceVersion !== DETERMINATION_EXPERIENCE_VERSION ||
-    (value.locale !== "en" && value.locale !== "it") ||
+    !isProductLocale(value.locale) ||
     !isDeterminationReference(value.reference) ||
     typeof value.issuedAt !== "string"
   )
@@ -278,10 +304,10 @@ export function validateDigitalConductDeterminationSnapshot(
     assessment,
   );
   if (command.status === "invalid") return { status: "invalid" };
-  const language =
-    command.command.locale === "it"
-      ? validateItalianDigitalConductLanguage(value.language, command.command)
-      : validateEnglishDigitalConductLanguage(value.language, command.command);
+  const language = validateDigitalConductLanguage(
+    value.language,
+    command.command,
+  );
   if (language.status === "invalid") return { status: "invalid" };
   const issuedAt = new Date(value.issuedAt);
   if (
@@ -329,7 +355,7 @@ export function validateDomesticAffairsDeterminationSnapshot(
       "presentationVariant",
     ]) ||
     value.experienceVersion !== DETERMINATION_EXPERIENCE_VERSION ||
-    (value.locale !== "en" && value.locale !== "it") ||
+    !isProductLocale(value.locale) ||
     !isDeterminationReference(value.reference) ||
     typeof value.issuedAt !== "string"
   )
@@ -347,10 +373,10 @@ export function validateDomesticAffairsDeterminationSnapshot(
     assessment,
   );
   if (command.status === "invalid") return { status: "invalid" };
-  const language =
-    command.command.locale === "it"
-      ? validateItalianDomesticAffairsLanguage(value.language, command.command)
-      : validateEnglishDomesticAffairsLanguage(value.language, command.command);
+  const language = validateDomesticAffairsLanguage(
+    value.language,
+    command.command,
+  );
   if (language.status === "invalid") return { status: "invalid" };
   const issuedAt = new Date(value.issuedAt);
   if (
@@ -398,7 +424,7 @@ export function validateSocialPlanningDeterminationSnapshot(
       "presentationVariant",
     ]) ||
     value.experienceVersion !== DETERMINATION_EXPERIENCE_VERSION ||
-    (value.locale !== "en" && value.locale !== "it") ||
+    !isProductLocale(value.locale) ||
     !isDeterminationReference(value.reference) ||
     typeof value.issuedAt !== "string"
   )
@@ -413,10 +439,10 @@ export function validateSocialPlanningDeterminationSnapshot(
     assessment,
   );
   if (command.status === "invalid") return { status: "invalid" };
-  const language =
-    command.command.locale === "it"
-      ? validateItalianSocialPlanningLanguage(value.language, command.command)
-      : validateEnglishSocialPlanningLanguage(value.language, command.command);
+  const language = validateSocialPlanningLanguage(
+    value.language,
+    command.command,
+  );
   if (language.status === "invalid") return { status: "invalid" };
   const issuedAt = new Date(value.issuedAt);
   if (
@@ -573,6 +599,86 @@ export function determinationPresentationVariant(
       return 2;
     default:
       return 3;
+  }
+}
+
+function validateChronologyLanguage(
+  value: unknown,
+  command: ChronologyDeterminationLanguageCommand,
+) {
+  switch (command.locale) {
+    case "it":
+      return validateItalianChronologyLanguage(value, command);
+    case "fr":
+      return validateFrenchChronologyLanguage(value, command);
+    case "de":
+      return validateGermanChronologyLanguage(value, command);
+    case "es":
+      return validateSpanishChronologyLanguage(value, command);
+    case "pt-BR":
+      return validateBrazilianPortugueseChronologyLanguage(value, command);
+    default:
+      return validateEnglishChronologyLanguage(value, command);
+  }
+}
+
+function validateDigitalConductLanguage(
+  value: unknown,
+  command: DigitalConductDeterminationLanguageCommand,
+) {
+  switch (command.locale) {
+    case "it":
+      return validateItalianDigitalConductLanguage(value, command);
+    case "fr":
+      return validateFrenchDigitalConductLanguage(value, command);
+    case "de":
+      return validateGermanDigitalConductLanguage(value, command);
+    case "es":
+      return validateSpanishDigitalConductLanguage(value, command);
+    case "pt-BR":
+      return validateBrazilianPortugueseDigitalConductLanguage(value, command);
+    default:
+      return validateEnglishDigitalConductLanguage(value, command);
+  }
+}
+
+function validateDomesticAffairsLanguage(
+  value: unknown,
+  command: DomesticAffairsDeterminationLanguageCommand,
+) {
+  switch (command.locale) {
+    case "it":
+      return validateItalianDomesticAffairsLanguage(value, command);
+    case "fr":
+      return validateFrenchDomesticAffairsLanguage(value, command);
+    case "de":
+      return validateGermanDomesticAffairsLanguage(value, command);
+    case "es":
+      return validateSpanishDomesticAffairsLanguage(value, command);
+    case "pt-BR":
+      return validateBrazilianPortugueseDomesticAffairsLanguage(value, command);
+    default:
+      return validateEnglishDomesticAffairsLanguage(value, command);
+  }
+}
+
+function validateSocialPlanningLanguage(
+  value: unknown,
+  command: SocialPlanningDeterminationLanguageCommand,
+) {
+  switch (command.locale) {
+    case "it":
+      return validateItalianSocialPlanningLanguage(value, command);
+    case "fr":
+      return validateFrenchSocialPlanningLanguage(value, command);
+    case "de":
+      return validateGermanSocialPlanningLanguage(value, command);
+    case "es":
+      return validateSpanishSocialPlanningLanguage(value, command);
+    case "pt-BR":
+      return validateBrazilianPortugueseSocialPlanningLanguage(value, command);
+    default:
+      return validateEnglishSocialPlanningLanguage(value, command);
   }
 }
 

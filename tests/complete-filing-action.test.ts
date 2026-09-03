@@ -133,7 +133,7 @@ describe("complete filing server boundary", () => {
 
   it("does not issue a determination for malformed or unsupported-locale input", async () => {
     await expect(
-      completeFilingReviewWith("fr", completeDraft(), dependencies),
+      completeFilingReviewWith("ja", completeDraft(), dependencies),
     ).resolves.toMatchObject({ status: "rejected" });
     await expect(
       completeFilingReviewWith(

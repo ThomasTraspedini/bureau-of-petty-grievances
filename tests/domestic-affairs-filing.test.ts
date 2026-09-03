@@ -74,7 +74,7 @@ describe("Domestic Affairs filing domain", () => {
     const draft = completeDraft();
     draft.statement = "They made a threat over the shared groceries.";
     expect(validateDomesticAffairsDraft(draft, "en").status).toBe("invalid");
-    expect(validateDomesticAffairsDraft(completeDraft(), "fr").status).toBe(
+    expect(validateDomesticAffairsDraft(completeDraft(), "ja").status).toBe(
       "invalid",
     );
   });

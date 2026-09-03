@@ -180,7 +180,7 @@ describe("persistent public records", () => {
     ).resolves.toEqual({ status: "invalid" });
     await expect(
       publishPublicRecordWith(
-        "fr",
+        "ja",
         {},
         {
           repository,
@@ -477,7 +477,7 @@ describe("persistent public records", () => {
     ).resolves.toEqual({ status: "invalid" });
     await expect(
       submitPublicConsultationWith(
-        "fr",
+        "ja",
         {
           publicId,
           participationKey,

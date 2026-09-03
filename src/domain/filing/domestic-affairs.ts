@@ -293,8 +293,9 @@ export function validateDomesticAffairsFiling(
 export function validateDomesticAffairsDraftField(
   field: FilingError["field"],
   draft: DomesticAffairsDraft,
+  locale: ProductLocale = "en",
 ) {
-  const result = validateDomesticAffairsDraft(draft, "en");
+  const result = validateDomesticAffairsDraft(draft, locale);
   if (result.status === "valid") return null;
   return result.errors.find((error) => error.field === field)?.code ?? null;
 }

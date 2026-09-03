@@ -289,8 +289,9 @@ export function validateDigitalConductFiling(
 export function validateDigitalConductDraftField(
   field: FilingError["field"],
   draft: DigitalConductDraft,
+  locale: ProductLocale = "en",
 ) {
-  const result = validateDigitalConductDraft(draft, "en");
+  const result = validateDigitalConductDraft(draft, locale);
   if (result.status === "valid") return null;
   return result.errors.find((error) => error.field === field)?.code ?? null;
 }

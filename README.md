@@ -25,7 +25,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Open `http://localhost:3000/en` or `http://localhost:3000/it`. The root route redirects to English; each explicit locale provides the complete production filing journey (`/{locale}/file/respondent`).
+Open `http://localhost:3000/en`, replacing `en` with any supported locale when needed: `en`, `it`, `fr`, `de`, `es`, or `pt-BR`. The root route redirects to English; every explicit locale provides the complete production filing journey (`/{locale}/file/respondent`).
 
 For the ordinary local journey, keep `DATABASE_URL` empty and retain
 `BUREAU_EMBEDDED_DATABASE_PATH=.data/public-records`; publication and public
@@ -104,7 +104,7 @@ npm run analytics:operate -- status
 - **Benevolence must be real.** Safety, fairness, privacy, recovery, and proportionate remedies are product behavior.
 - **Internal complexity is not user burden.** The Bureau may dramatize procedure, but it must remain effortless to use.
 - **Cost is bounded by design.** Generative actions must have server-side budgets, limits, and graceful fallbacks.
-- **Internationalization starts at the boundary.** English and Italian are enabled end to end; English remains the default rather than a hardcoded assumption.
+- **Internationalization starts at the boundary.** English, Italian, French, German, Spanish, and Brazilian Portuguese are enabled end to end; English remains the default rather than a hardcoded assumption.
 
 ## Documentation
 

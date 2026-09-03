@@ -4,6 +4,10 @@ import { pseudoLocalize, pseudoLocalizeCatalog } from "@/i18n/pseudo";
 import { isInterfaceLocale, routing } from "@/i18n/routing";
 import messages from "../messages/en.json";
 import italianMessages from "../messages/it.json";
+import frenchMessages from "../messages/fr.json";
+import germanMessages from "../messages/de.json";
+import spanishMessages from "../messages/es.json";
+import brazilianPortugueseMessages from "../messages/pt-BR.json";
 
 type CatalogNode = string | { readonly [key: string]: CatalogNode };
 
@@ -52,11 +56,15 @@ function expectCatalogContract(
 
 describe("interface locale boundary", () => {
   it("enables the evaluated public locales and rejects unsupported locales", () => {
-    expect(routing.locales).toEqual(["en", "it"]);
+    expect(routing.locales).toEqual(["en", "it", "fr", "de", "es", "pt-BR"]);
     expect(routing.defaultLocale).toBe("en");
     expect(isInterfaceLocale("en")).toBe(true);
     expect(isInterfaceLocale("it")).toBe(true);
-    expect(isInterfaceLocale("fr")).toBe(false);
+    expect(isInterfaceLocale("fr")).toBe(true);
+    expect(isInterfaceLocale("de")).toBe(true);
+    expect(isInterfaceLocale("es")).toBe(true);
+    expect(isInterfaceLocale("pt-BR")).toBe(true);
+    expect(isInterfaceLocale("pt")).toBe(false);
   });
 
   it("can pseudo-localize the complete catalog without losing its shape", () => {
@@ -78,4 +86,16 @@ describe("interface locale boundary", () => {
     expectCatalogContract(messages, italianMessages);
     expect(italianMessages.Home.title).toBe("L'armonia, amministrata.");
   });
+
+  it.each([
+    ["French", frenchMessages],
+    ["German", germanMessages],
+    ["Spanish", spanishMessages],
+    ["Brazilian Portuguese", brazilianPortugueseMessages],
+  ])(
+    "keeps the %s catalog structurally and parametrically compatible",
+    (_, catalog) => {
+      expectCatalogContract(messages, catalog);
+    },
+  );
 });

@@ -78,7 +78,7 @@ describe("Digital Conduct filing domain", () => {
         code: "restricted_content",
       });
     }
-    expect(validateDigitalConductDraft(completeDraft(), "fr").status).toBe(
+    expect(validateDigitalConductDraft(completeDraft(), "ja").status).toBe(
       "invalid",
     );
   });

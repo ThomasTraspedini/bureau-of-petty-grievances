@@ -37,6 +37,50 @@ import {
   validateItalianDomesticAffairsLanguage,
   validateItalianSocialPlanningLanguage,
 } from "@/domain/determination/locales/it";
+import {
+  createFrenchChronologyFallback,
+  createFrenchDigitalConductFallback,
+  createFrenchDomesticAffairsFallback,
+  createFrenchSocialPlanningFallback,
+  FR_EDITORIAL_POLICY_VERSION,
+  validateFrenchChronologyLanguage,
+  validateFrenchDigitalConductLanguage,
+  validateFrenchDomesticAffairsLanguage,
+  validateFrenchSocialPlanningLanguage,
+} from "@/domain/determination/locales/fr";
+import {
+  createGermanChronologyFallback,
+  createGermanDigitalConductFallback,
+  createGermanDomesticAffairsFallback,
+  createGermanSocialPlanningFallback,
+  DE_EDITORIAL_POLICY_VERSION,
+  validateGermanChronologyLanguage,
+  validateGermanDigitalConductLanguage,
+  validateGermanDomesticAffairsLanguage,
+  validateGermanSocialPlanningLanguage,
+} from "@/domain/determination/locales/de";
+import {
+  createSpanishChronologyFallback,
+  createSpanishDigitalConductFallback,
+  createSpanishDomesticAffairsFallback,
+  createSpanishSocialPlanningFallback,
+  ES_EDITORIAL_POLICY_VERSION,
+  validateSpanishChronologyLanguage,
+  validateSpanishDigitalConductLanguage,
+  validateSpanishDomesticAffairsLanguage,
+  validateSpanishSocialPlanningLanguage,
+} from "@/domain/determination/locales/es";
+import {
+  createBrazilianPortugueseChronologyFallback,
+  createBrazilianPortugueseDigitalConductFallback,
+  createBrazilianPortugueseDomesticAffairsFallback,
+  createBrazilianPortugueseSocialPlanningFallback,
+  PT_BR_EDITORIAL_POLICY_VERSION,
+  validateBrazilianPortugueseChronologyLanguage,
+  validateBrazilianPortugueseDigitalConductLanguage,
+  validateBrazilianPortugueseDomesticAffairsLanguage,
+  validateBrazilianPortugueseSocialPlanningLanguage,
+} from "@/domain/determination/locales/pt-BR";
 import type {
   DeterminationLanguageProvider,
   ProviderRetryableFailureReason,
@@ -193,15 +237,15 @@ function fallbackResult(
     status: "completed",
     source: "fallback",
     language:
-      command.locale === "it"
-        ? italianFallback(command)
-        : command.department === "chronology"
+      command.locale === "en"
+        ? command.department === "chronology"
           ? createEnglishChronologyFallback(command)
           : command.department === "digital_conduct"
             ? createEnglishDigitalConductFallback(command)
             : command.department === "domestic_affairs"
               ? createEnglishDomesticAffairsFallback(command)
-              : createEnglishSocialPlanningFallback(command),
+              : createEnglishSocialPlanningFallback(command)
+        : localizedFallback(command),
     editorialPolicyVersion: editorialPolicyVersion(command),
     attempts,
     reason,
@@ -210,31 +254,71 @@ function fallbackResult(
   };
 }
 
-function italianFallback(
+function localizedFallback(
   command: DeterminationLanguageCommand,
 ): DeterminationLanguage {
-  if (command.department === "chronology")
-    return createItalianChronologyFallback(command);
-  if (command.department === "digital_conduct")
-    return createItalianDigitalConductFallback(command);
-  if (command.department === "domestic_affairs")
-    return createItalianDomesticAffairsFallback(command);
-  return createItalianSocialPlanningFallback(command);
+  switch (command.locale) {
+    case "it":
+      if (command.department === "chronology")
+        return createItalianChronologyFallback(command);
+      if (command.department === "digital_conduct")
+        return createItalianDigitalConductFallback(command);
+      if (command.department === "domestic_affairs")
+        return createItalianDomesticAffairsFallback(command);
+      return createItalianSocialPlanningFallback(command);
+    case "fr":
+      if (command.department === "chronology")
+        return createFrenchChronologyFallback(command);
+      if (command.department === "digital_conduct")
+        return createFrenchDigitalConductFallback(command);
+      if (command.department === "domestic_affairs")
+        return createFrenchDomesticAffairsFallback(command);
+      return createFrenchSocialPlanningFallback(command);
+    case "de":
+      if (command.department === "chronology")
+        return createGermanChronologyFallback(command);
+      if (command.department === "digital_conduct")
+        return createGermanDigitalConductFallback(command);
+      if (command.department === "domestic_affairs")
+        return createGermanDomesticAffairsFallback(command);
+      return createGermanSocialPlanningFallback(command);
+    case "es":
+      if (command.department === "chronology")
+        return createSpanishChronologyFallback(command);
+      if (command.department === "digital_conduct")
+        return createSpanishDigitalConductFallback(command);
+      if (command.department === "domestic_affairs")
+        return createSpanishDomesticAffairsFallback(command);
+      return createSpanishSocialPlanningFallback(command);
+    case "pt-BR":
+      if (command.department === "chronology")
+        return createBrazilianPortugueseChronologyFallback(command);
+      if (command.department === "digital_conduct")
+        return createBrazilianPortugueseDigitalConductFallback(command);
+      if (command.department === "domestic_affairs")
+        return createBrazilianPortugueseDomesticAffairsFallback(command);
+      return createBrazilianPortugueseSocialPlanningFallback(command);
+    default:
+      if (command.department === "chronology")
+        return createEnglishChronologyFallback(command);
+      if (command.department === "digital_conduct")
+        return createEnglishDigitalConductFallback(command);
+      if (command.department === "domestic_affairs")
+        return createEnglishDomesticAffairsFallback(command);
+      return createEnglishSocialPlanningFallback(command);
+  }
 }
 
 function validateLanguage(
   value: unknown,
   command: DeterminationLanguageCommand,
 ) {
-  if (command.locale === "it") {
-    if (command.department === "chronology")
-      return validateItalianChronologyLanguage(value, command);
-    if (command.department === "digital_conduct")
-      return validateItalianDigitalConductLanguage(value, command);
-    return command.department === "domestic_affairs"
-      ? validateItalianDomesticAffairsLanguage(value, command)
-      : validateItalianSocialPlanningLanguage(value, command);
-  }
+  if (command.locale === "it") return validateItalian(value, command);
+  if (command.locale === "fr") return validateFrench(value, command);
+  if (command.locale === "de") return validateGerman(value, command);
+  if (command.locale === "es") return validateSpanish(value, command);
+  if (command.locale === "pt-BR")
+    return validateBrazilianPortuguese(value, command);
   if (command.department === "chronology")
     return validateEnglishChronologyLanguage(value, command);
   if (command.department === "digital_conduct")
@@ -246,6 +330,10 @@ function validateLanguage(
 
 function editorialPolicyVersion(command: DeterminationLanguageCommand): 1 {
   if (command.locale === "it") return IT_EDITORIAL_POLICY_VERSION;
+  if (command.locale === "fr") return FR_EDITORIAL_POLICY_VERSION;
+  if (command.locale === "de") return DE_EDITORIAL_POLICY_VERSION;
+  if (command.locale === "es") return ES_EDITORIAL_POLICY_VERSION;
+  if (command.locale === "pt-BR") return PT_BR_EDITORIAL_POLICY_VERSION;
   if (command.department === "chronology")
     return EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION;
   if (command.department === "digital_conduct")
@@ -253,6 +341,65 @@ function editorialPolicyVersion(command: DeterminationLanguageCommand): 1 {
   return command.department === "domestic_affairs"
     ? EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION
     : EN_SOCIAL_PLANNING_EDITORIAL_POLICY_VERSION;
+}
+
+function validateItalian(
+  value: unknown,
+  command: DeterminationLanguageCommand,
+) {
+  if (command.department === "chronology")
+    return validateItalianChronologyLanguage(value, command);
+  if (command.department === "digital_conduct")
+    return validateItalianDigitalConductLanguage(value, command);
+  return command.department === "domestic_affairs"
+    ? validateItalianDomesticAffairsLanguage(value, command)
+    : validateItalianSocialPlanningLanguage(value, command);
+}
+
+function validateFrench(value: unknown, command: DeterminationLanguageCommand) {
+  if (command.department === "chronology")
+    return validateFrenchChronologyLanguage(value, command);
+  if (command.department === "digital_conduct")
+    return validateFrenchDigitalConductLanguage(value, command);
+  return command.department === "domestic_affairs"
+    ? validateFrenchDomesticAffairsLanguage(value, command)
+    : validateFrenchSocialPlanningLanguage(value, command);
+}
+
+function validateGerman(value: unknown, command: DeterminationLanguageCommand) {
+  if (command.department === "chronology")
+    return validateGermanChronologyLanguage(value, command);
+  if (command.department === "digital_conduct")
+    return validateGermanDigitalConductLanguage(value, command);
+  return command.department === "domestic_affairs"
+    ? validateGermanDomesticAffairsLanguage(value, command)
+    : validateGermanSocialPlanningLanguage(value, command);
+}
+
+function validateSpanish(
+  value: unknown,
+  command: DeterminationLanguageCommand,
+) {
+  if (command.department === "chronology")
+    return validateSpanishChronologyLanguage(value, command);
+  if (command.department === "digital_conduct")
+    return validateSpanishDigitalConductLanguage(value, command);
+  return command.department === "domestic_affairs"
+    ? validateSpanishDomesticAffairsLanguage(value, command)
+    : validateSpanishSocialPlanningLanguage(value, command);
+}
+
+function validateBrazilianPortuguese(
+  value: unknown,
+  command: DeterminationLanguageCommand,
+) {
+  if (command.department === "chronology")
+    return validateBrazilianPortugueseChronologyLanguage(value, command);
+  if (command.department === "digital_conduct")
+    return validateBrazilianPortugueseDigitalConductLanguage(value, command);
+  return command.department === "domestic_affairs"
+    ? validateBrazilianPortugueseDomesticAffairsLanguage(value, command)
+    : validateBrazilianPortugueseSocialPlanningLanguage(value, command);
 }
 
 function addUsage(

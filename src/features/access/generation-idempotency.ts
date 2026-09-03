@@ -1,12 +1,23 @@
+import type { DepartmentCode } from "@/domain/filing/filing";
+import type { ProductLocale } from "@/domain/locale";
+
+export function generationIdempotencyStorageKey(
+  locale: ProductLocale,
+  department: DepartmentCode,
+): string {
+  return `bpg:generation:idempotency:${department}:${locale}:v2`;
+}
+
 export const GENERATION_IDEMPOTENCY_STORAGE_KEY =
-  "bpg:generation:idempotency:chronology:en:v1";
+  generationIdempotencyStorageKey("en", "chronology");
 
 export function getOrCreateGenerationIdempotencyKey(
   storage: Pick<Storage, "getItem" | "setItem">,
+  storageKey = GENERATION_IDEMPOTENCY_STORAGE_KEY,
   randomValues: (bytes: Uint8Array) => Uint8Array = (bytes) =>
     crypto.getRandomValues(bytes),
 ): string {
-  const existing = storage.getItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
+  const existing = storage.getItem(storageKey);
   if (/^fil_[A-Za-z0-9_-]{22}$/u.test(existing ?? "")) {
     return existing ?? "";
   }
@@ -18,6 +29,6 @@ export function getOrCreateGenerationIdempotencyKey(
     .replaceAll("+", "-")
     .replaceAll("/", "_")
     .replace(/=+$/u, "")}`;
-  storage.setItem(GENERATION_IDEMPOTENCY_STORAGE_KEY, key);
+  storage.setItem(storageKey, key);
   return key;
 }

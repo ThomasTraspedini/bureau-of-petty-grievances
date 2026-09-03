@@ -2,6 +2,18 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.21.0]
+
+### Added
+
+- Complete French, German, Spanish, and Brazilian Portuguese product routes, including filing, access, determinations, public records, sharing, consultation, recovery, metadata, and accessibility copy.
+- Locale-owned provider instructions, deterministic fallbacks, factual anchors, hostile-output validators, and four-department safety evaluations for every newly enabled language.
+- Production-rendered filing-to-public-consultation journeys for each new locale, with refresh recovery and axe-core accessibility verification.
+
+### Changed
+
+- The locale allowlist, generated-language schema, provider dispatch, representative determination, browser storage boundaries, and persistent public-record schema now preserve all six supported product locales end to end.
+
 ## [0.20.0]
 
 ### Added

@@ -121,8 +121,18 @@ describe("Chronology filing domain", () => {
         "en",
       ).status,
     ).toBe("invalid");
-    expect(validateChronologyDraft(completeDraft(), "fr").status).toBe(
+    expect(validateChronologyDraft(completeDraft(), "ja").status).toBe(
       "invalid",
     );
+  });
+
+  it.each([
+    "Ha descritto una minaccia.",
+    "Il a décrit une menace.",
+    "Es wurde eine Bedrohung beschrieben.",
+    "Describió una amenaza.",
+    "Descreveu uma ameaça.",
+  ])("rejects localized serious content: %s", (statement) => {
+    expect(containsRestrictedContent(statement)).toBe(true);
   });
 });

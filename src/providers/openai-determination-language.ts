@@ -42,6 +42,10 @@ import {
   IT_EDITORIAL_POLICY_VERSION,
   IT_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS,
 } from "@/domain/determination/locales/it";
+import * as french from "@/domain/determination/locales/fr";
+import * as german from "@/domain/determination/locales/de";
+import * as spanish from "@/domain/determination/locales/es";
+import * as brazilianPortuguese from "@/domain/determination/locales/pt-BR";
 import {
   createUnavailableDeterminationLanguageProvider,
   type DeterminationLanguageProvider,
@@ -74,55 +78,10 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
     attempt: Parameters<DeterminationLanguageProvider["generate"]>[1],
   ): Promise<DeterminationLanguageProviderResult> {
     try {
-      const instructions =
-        command.locale === "it" && command.department === "chronology"
-          ? IT_CHRONOLOGY_EDITORIAL_INSTRUCTIONS
-          : command.locale === "it" && command.department === "digital_conduct"
-            ? IT_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
-            : command.locale === "it" &&
-                command.department === "domestic_affairs"
-              ? IT_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS
-              : command.locale === "it"
-                ? IT_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS
-                : command.department === "chronology"
-                  ? EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS
-                  : command.department === "digital_conduct"
-                    ? EN_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
-                    : command.department === "domestic_affairs"
-                      ? EN_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS
-                      : EN_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS;
-      const input =
-        command.locale === "it"
-          ? italianInput(command, attempt.previousValidationIssues)
-          : command.department === "chronology"
-            ? buildEnglishChronologyGenerationInput(
-                command,
-                attempt.previousValidationIssues,
-              )
-            : command.department === "digital_conduct"
-              ? buildEnglishDigitalConductGenerationInput(
-                  command,
-                  attempt.previousValidationIssues,
-                )
-              : command.department === "domestic_affairs"
-                ? buildEnglishDomesticAffairsGenerationInput(
-                    command,
-                    attempt.previousValidationIssues,
-                  )
-                : buildEnglishSocialPlanningGenerationInput(
-                    command,
-                    attempt.previousValidationIssues,
-                  );
-      const editorialPolicyVersion =
-        command.locale === "it"
-          ? IT_EDITORIAL_POLICY_VERSION
-          : command.department === "chronology"
-            ? EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION
-            : command.department === "digital_conduct"
-              ? EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION
-              : command.department === "domestic_affairs"
-                ? EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION
-                : EN_SOCIAL_PLANNING_EDITORIAL_POLICY_VERSION;
+      const { instructions, input, editorialPolicyVersion } = generationPolicy(
+        command,
+        attempt.previousValidationIssues,
+      );
       const response = await this.createResponse({
         model: this.model,
         store: false,
@@ -168,6 +127,197 @@ function italianInput(
   if (command.department === "domestic_affairs")
     return buildItalianDomesticAffairsGenerationInput(command, previousIssues);
   return buildItalianSocialPlanningGenerationInput(command, previousIssues);
+}
+
+type GenerationCommand = Parameters<
+  DeterminationLanguageProvider["generate"]
+>[0];
+type ValidationIssues = Parameters<
+  DeterminationLanguageProvider["generate"]
+>[1]["previousValidationIssues"];
+
+function generationPolicy(
+  command: GenerationCommand,
+  previousIssues: ValidationIssues,
+): { instructions: string; input: string; editorialPolicyVersion: 1 } {
+  if (command.locale === "it") {
+    return {
+      instructions:
+        command.department === "chronology"
+          ? IT_CHRONOLOGY_EDITORIAL_INSTRUCTIONS
+          : command.department === "digital_conduct"
+            ? IT_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
+            : command.department === "domestic_affairs"
+              ? IT_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS
+              : IT_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS,
+      input: italianInput(command, previousIssues),
+      editorialPolicyVersion: IT_EDITORIAL_POLICY_VERSION,
+    };
+  }
+  if (command.locale === "fr") return frenchPolicy(command, previousIssues);
+  if (command.locale === "de") return germanPolicy(command, previousIssues);
+  if (command.locale === "es") return spanishPolicy(command, previousIssues);
+  if (command.locale === "pt-BR")
+    return brazilianPortuguesePolicy(command, previousIssues);
+  return englishPolicy(command, previousIssues);
+}
+
+function englishPolicy(command: GenerationCommand, issues: ValidationIssues) {
+  if (command.department === "chronology")
+    return {
+      instructions: EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
+      input: buildEnglishChronologyGenerationInput(command, issues),
+      editorialPolicyVersion: EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "digital_conduct")
+    return {
+      instructions: EN_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS,
+      input: buildEnglishDigitalConductGenerationInput(command, issues),
+      editorialPolicyVersion: EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "domestic_affairs")
+    return {
+      instructions: EN_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS,
+      input: buildEnglishDomesticAffairsGenerationInput(command, issues),
+      editorialPolicyVersion: EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION,
+    };
+  return {
+    instructions: EN_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS,
+    input: buildEnglishSocialPlanningGenerationInput(command, issues),
+    editorialPolicyVersion: EN_SOCIAL_PLANNING_EDITORIAL_POLICY_VERSION,
+  };
+}
+
+function frenchPolicy(command: GenerationCommand, issues: ValidationIssues) {
+  if (command.department === "chronology")
+    return {
+      instructions: french.FR_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
+      input: french.buildFrenchChronologyGenerationInput(command, issues),
+      editorialPolicyVersion: french.FR_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "digital_conduct")
+    return {
+      instructions: french.FR_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS,
+      input: french.buildFrenchDigitalConductGenerationInput(command, issues),
+      editorialPolicyVersion: french.FR_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "domestic_affairs")
+    return {
+      instructions: french.FR_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS,
+      input: french.buildFrenchDomesticAffairsGenerationInput(command, issues),
+      editorialPolicyVersion: french.FR_EDITORIAL_POLICY_VERSION,
+    };
+  return {
+    instructions: french.FR_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS,
+    input: french.buildFrenchSocialPlanningGenerationInput(command, issues),
+    editorialPolicyVersion: french.FR_EDITORIAL_POLICY_VERSION,
+  };
+}
+
+function germanPolicy(command: GenerationCommand, issues: ValidationIssues) {
+  if (command.department === "chronology")
+    return {
+      instructions: german.DE_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
+      input: german.buildGermanChronologyGenerationInput(command, issues),
+      editorialPolicyVersion: german.DE_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "digital_conduct")
+    return {
+      instructions: german.DE_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS,
+      input: german.buildGermanDigitalConductGenerationInput(command, issues),
+      editorialPolicyVersion: german.DE_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "domestic_affairs")
+    return {
+      instructions: german.DE_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS,
+      input: german.buildGermanDomesticAffairsGenerationInput(command, issues),
+      editorialPolicyVersion: german.DE_EDITORIAL_POLICY_VERSION,
+    };
+  return {
+    instructions: german.DE_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS,
+    input: german.buildGermanSocialPlanningGenerationInput(command, issues),
+    editorialPolicyVersion: german.DE_EDITORIAL_POLICY_VERSION,
+  };
+}
+
+function spanishPolicy(command: GenerationCommand, issues: ValidationIssues) {
+  if (command.department === "chronology")
+    return {
+      instructions: spanish.ES_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
+      input: spanish.buildSpanishChronologyGenerationInput(command, issues),
+      editorialPolicyVersion: spanish.ES_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "digital_conduct")
+    return {
+      instructions: spanish.ES_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS,
+      input: spanish.buildSpanishDigitalConductGenerationInput(command, issues),
+      editorialPolicyVersion: spanish.ES_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "domestic_affairs")
+    return {
+      instructions: spanish.ES_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS,
+      input: spanish.buildSpanishDomesticAffairsGenerationInput(
+        command,
+        issues,
+      ),
+      editorialPolicyVersion: spanish.ES_EDITORIAL_POLICY_VERSION,
+    };
+  return {
+    instructions: spanish.ES_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS,
+    input: spanish.buildSpanishSocialPlanningGenerationInput(command, issues),
+    editorialPolicyVersion: spanish.ES_EDITORIAL_POLICY_VERSION,
+  };
+}
+
+function brazilianPortuguesePolicy(
+  command: GenerationCommand,
+  issues: ValidationIssues,
+) {
+  if (command.department === "chronology")
+    return {
+      instructions: brazilianPortuguese.PT_BR_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
+      input:
+        brazilianPortuguese.buildBrazilianPortugueseChronologyGenerationInput(
+          command,
+          issues,
+        ),
+      editorialPolicyVersion:
+        brazilianPortuguese.PT_BR_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "digital_conduct")
+    return {
+      instructions:
+        brazilianPortuguese.PT_BR_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS,
+      input:
+        brazilianPortuguese.buildBrazilianPortugueseDigitalConductGenerationInput(
+          command,
+          issues,
+        ),
+      editorialPolicyVersion:
+        brazilianPortuguese.PT_BR_EDITORIAL_POLICY_VERSION,
+    };
+  if (command.department === "domestic_affairs")
+    return {
+      instructions:
+        brazilianPortuguese.PT_BR_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS,
+      input:
+        brazilianPortuguese.buildBrazilianPortugueseDomesticAffairsGenerationInput(
+          command,
+          issues,
+        ),
+      editorialPolicyVersion:
+        brazilianPortuguese.PT_BR_EDITORIAL_POLICY_VERSION,
+    };
+  return {
+    instructions:
+      brazilianPortuguese.PT_BR_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS,
+    input:
+      brazilianPortuguese.buildBrazilianPortugueseSocialPlanningGenerationInput(
+        command,
+        issues,
+      ),
+    editorialPolicyVersion: brazilianPortuguese.PT_BR_EDITORIAL_POLICY_VERSION,
+  };
 }
 
 export function createOpenAIDeterminationLanguageProvider(
