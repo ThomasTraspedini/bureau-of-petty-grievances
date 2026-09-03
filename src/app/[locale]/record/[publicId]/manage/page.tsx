@@ -4,7 +4,7 @@ import { hasLocale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 
 import { PublicRecordManagement } from "@/features/public-record/public-record-management";
-import { getMessageCatalog } from "@/i18n/catalogs";
+import { getRequestMessageCatalog } from "@/i18n/request-catalog";
 import { routing } from "@/i18n/routing";
 
 export const dynamic = "force-dynamic";
@@ -30,11 +30,12 @@ export async function generateMetadata({
 export default async function ManagementPage({ params }: ManagementPageProps) {
   const { locale, publicId } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
+  const messages = await getRequestMessageCatalog(locale);
   return (
     <PublicRecordManagement
       publicId={publicId}
       locale={locale}
-      messages={getMessageCatalog(locale)}
+      messages={messages}
     />
   );
 }

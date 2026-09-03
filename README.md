@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.17.0` establishes a supported-browser verification baseline across Chromium, Firefox, and WebKit. A bounded automated contract now carries the essential provider-free journey from localized filing and refresh recovery through determination, publication, consultation, and sharing fallback in every engine, alongside the complete Chromium regression and visual suite.
+Version `0.18.0` adds a browser-rendered pseudo-localization and minimum-width contract. Expanded interface copy now crosses the filing, determination, publication, consultation, sharing, owner-control, and access surfaces at 320 pixels while automated checks protect accessible names, keyboard actions, and horizontal containment.
 
-The new matrix also caught and corrected an invalid semantic grouping in the filing review, so its facts and correction actions now pass the same automated accessibility check in all supported engines. Chromium retains the reviewed pixel references; engine-specific screenshots are deliberately avoided. Cross-journey resilience and refinement remains in progress.
+The stronger expansion exposed a mobile landing grid that could grow beyond the viewport. Its track now shrinks correctly and long localized words wrap safely. English remains the only enabled public locale; the pseudo catalog is available only to the test server, and two manually reviewed Chromium references preserve representative 320-pixel rendering. Cross-journey resilience and refinement remains in progress.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -93,7 +93,7 @@ After installing the supported Playwright browser engines with `npx playwright i
 ./scripts/validate-repository.sh
 ```
 
-The command verifies version metadata, repository hygiene, the public/private boundary, prototype behavior, formatting, linting, strict types, focused application tests, the production build, accessibility, reduced motion, localized routing, the bounded Chromium/Firefox/WebKit journey contract, and Chromium mobile and desktop visual references. CI invokes the same command.
+The command verifies version metadata, repository hygiene, the public/private boundary, prototype behavior, formatting, linting, strict types, focused application tests, the production build, accessibility, reduced motion, localized routing, the bounded Chromium/Firefox/WebKit journey contract, browser-rendered pseudo-localization at the 320-pixel minimum width, and Chromium visual references. CI invokes the same command.
 
 ## Versioning
 

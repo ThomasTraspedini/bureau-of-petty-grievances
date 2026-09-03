@@ -18,7 +18,7 @@ describe("interface locale boundary", () => {
     expect(Object.keys(pseudo)).toEqual(Object.keys(messages));
     expect(pseudo).toMatchObject({
       Home: {
-        title: "［Hàrmôny, àdmïnïstërëd. ···］",
+        title: "［Hààrmôôny, ààdmïïnïïstëërëëd. ···］",
       },
     });
     expect(JSON.stringify(pseudo).length).toBeGreaterThan(

@@ -52,6 +52,7 @@ export default defineConfig({
       BUREAU_E2E_EVALUATION_TOKEN: evaluationToken,
       BUREAU_E2E_STANDARD_TOKEN: standardToken,
       BUREAU_E2E_STANDARD_SESSION: standardSession,
+      BUREAU_E2E_PSEUDO_LOCALIZATION: "1",
     },
     url: "http://127.0.0.1:4173/en",
     reuseExistingServer: !process.env.CI,

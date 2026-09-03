@@ -2,6 +2,22 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.18.0]
+
+### Added
+
+- A browser-rendered pseudo-localization harness guarded behind the E2E server boundary, with proportional text expansion that preserves interpolation values and leaves English as the only public locale.
+- A 320-pixel Chromium journey contract covering filing, determination, publication, consultation, manual sharing fallback, owner controls, standard access, unavailable evaluation access, accessible names, axe-core checks, and essential-action bounds.
+- Two manually reviewed 320-pixel Chromium references for the expanded landing and public-record first viewports.
+
+### Fixed
+
+- Allowed the mobile landing grid to shrink below its content-derived minimum and made long localized words wrap safely, preventing expanded copy from widening the 320-pixel document to 372 pixels.
+
+### Changed
+
+- Cross-journey resilience and refinement remains in progress; failure injection, physical-device evidence, moderated usability, and any resulting recovery refinements remain separate work.
+
 ## [0.17.0]
 
 ### Added

@@ -6,6 +6,7 @@ import { createPublicRecordShareDescriptor } from "@/domain/public-record/public
 import { PublicRecordExperience } from "@/features/public-record/public-record-experience";
 import { localizePublicRecordShare } from "@/features/public-record/public-record-sharing-copy";
 import { getMessageCatalog } from "@/i18n/catalogs";
+import { getRequestMessageCatalog } from "@/i18n/request-catalog";
 import { openGraphLocales, routing } from "@/i18n/routing";
 import { getRuntimePublicRecordOrigin } from "@/server/public-record/public-record-origin";
 import {
@@ -118,6 +119,7 @@ export default async function PublicRecordPage({
     repository,
     now,
   );
+  const messages = await getRequestMessageCatalog(locale);
 
   return (
     <PublicRecordExperience
@@ -127,7 +129,7 @@ export default async function PublicRecordPage({
         `/${locale}/record/${publicId}`,
         origin.origin,
       ).toString()}
-      messages={getMessageCatalog(locale)}
+      messages={messages}
       consultationAggregate={
         consultation.status === "available" ? consultation.aggregate : null
       }

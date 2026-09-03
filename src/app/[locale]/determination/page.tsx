@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
 import { DeterminationExperience } from "@/features/determination/determination-experience";
-import { getMessageCatalog } from "@/i18n/catalogs";
+import { getRequestMessageCatalog } from "@/i18n/request-catalog";
 import { routing } from "@/i18n/routing";
 
 import {
@@ -36,7 +36,7 @@ export default async function DeterminationPage({
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
 
-  const messages = getMessageCatalog(locale);
+  const messages = await getRequestMessageCatalog(locale);
   const access = await getStandardAccessStatus();
   return (
     <DeterminationExperience

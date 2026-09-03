@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getRequestConfig } from "next-intl/server";
 
-import { getMessageCatalog } from "./catalogs";
+import { getRequestMessageCatalog } from "./request-catalog";
 import { routing } from "./routing";
 
 export default getRequestConfig(async ({ locale }) => {
@@ -19,6 +19,6 @@ export default getRequestConfig(async ({ locale }) => {
 
   return {
     locale,
-    messages: getMessageCatalog(locale),
+    messages: await getRequestMessageCatalog(locale),
   };
 });

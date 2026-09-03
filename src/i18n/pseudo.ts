@@ -5,16 +5,16 @@ export function pseudoLocalize(value: string): string {
     }
 
     const replacements: Record<string, string> = {
-      a: "à",
-      e: "ë",
-      i: "ï",
-      o: "ô",
-      u: "ü",
-      A: "À",
-      E: "Ë",
-      I: "Ï",
-      O: "Ö",
-      U: "Ü",
+      a: "àà",
+      e: "ëë",
+      i: "ïï",
+      o: "ôô",
+      u: "üü",
+      A: "ÀÀ",
+      E: "ËË",
+      I: "ÏÏ",
+      O: "ÖÖ",
+      U: "ÜÜ",
     };
 
     return replacements[token] ?? token;

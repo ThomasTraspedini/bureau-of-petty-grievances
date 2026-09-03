@@ -48,6 +48,7 @@ body {
   font-family: var(--sans);
   font-size: 16px;
   line-height: 1.55;
+  overflow-wrap: anywhere;
   text-rendering: optimizelegibility;
 }
 
@@ -2549,7 +2550,7 @@ footer p {
   }
 
   .hero {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     min-height: 0;
     padding: 62px 0 70px;
   }

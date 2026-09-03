@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { FilingJourney } from "@/features/filing/filing-journey";
 import { isFilingStep } from "@/features/filing/filing-steps";
-import { getMessageCatalog } from "@/i18n/catalogs";
+import { getRequestMessageCatalog } from "@/i18n/request-catalog";
 import { routing } from "@/i18n/routing";
 
 import { completeFilingReview } from "./actions";
@@ -27,7 +27,7 @@ export default async function FilingPage({
     notFound();
   }
 
-  const messages = getMessageCatalog(locale);
+  const messages = await getRequestMessageCatalog(locale);
   return (
     <FilingJourney
       locale={locale}

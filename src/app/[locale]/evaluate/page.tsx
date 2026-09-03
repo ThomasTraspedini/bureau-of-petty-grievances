@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { EvaluationAccess } from "@/features/access/evaluation-access";
 import { getMessageCatalog } from "@/i18n/catalogs";
+import { getRequestMessageCatalog } from "@/i18n/request-catalog";
 import { routing } from "@/i18n/routing";
 
 import { exchangeEvaluationToken } from "./actions";
@@ -28,7 +29,7 @@ export async function generateMetadata({
 export default async function EvaluationPage({ params }: EvaluationPageProps) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  const messages = getMessageCatalog(locale);
+  const messages = await getRequestMessageCatalog(locale);
   return (
     <EvaluationAccess
       locale={locale}

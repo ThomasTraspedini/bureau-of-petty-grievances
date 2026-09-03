@@ -6,7 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { connection } from "next/server";
 import type { ReactNode } from "react";
 
-import { getMessageCatalog } from "@/i18n/catalogs";
+import { getRequestMessageCatalog } from "@/i18n/request-catalog";
 import { openGraphLocales, routing } from "@/i18n/routing";
 import { isRuntimeProductAnalyticsEnabled } from "@/server/observability/runtime-product-analytics";
 
@@ -87,7 +87,7 @@ export default async function LocaleLayout({
 
   await connection();
   const analyticsEnabled = isRuntimeProductAnalyticsEnabled();
-  const messages = getMessageCatalog(locale);
+  const messages = await getRequestMessageCatalog(locale);
 
   return (
     <html

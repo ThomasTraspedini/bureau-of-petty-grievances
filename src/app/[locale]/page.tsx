@@ -5,7 +5,7 @@ import {
   ApplicationShell,
   type ApplicationShellCopy,
 } from "@/features/application-shell/application-shell";
-import { getMessageCatalog } from "@/i18n/catalogs";
+import { getRequestMessageCatalog } from "@/i18n/request-catalog";
 import { routing } from "@/i18n/routing";
 import { SurfaceObserver } from "@/features/observability/surface-observer";
 
@@ -20,7 +20,7 @@ export default async function HomePage({ params }: HomePageProps) {
     notFound();
   }
 
-  const messages = getMessageCatalog(locale);
+  const messages = await getRequestMessageCatalog(locale);
 
   const copy: ApplicationShellCopy = {
     navigation: messages.Navigation,
