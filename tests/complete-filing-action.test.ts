@@ -4,6 +4,10 @@ import {
   type ChronologyDraft,
   createEmptyChronologyDraft,
 } from "@/domain/filing/chronology";
+import {
+  createEmptyDigitalConductDraft,
+  type DigitalConductDraft,
+} from "@/domain/filing/digital-conduct";
 import { createUnavailableDeterminationLanguageProvider } from "@/providers/determination-language-provider";
 import { completeFilingReviewWith } from "@/server/determination/complete-filing-review";
 import { completeFilingReviewControlledWith } from "@/server/determination/complete-filing-review";
@@ -23,6 +27,26 @@ function completeDraft(): ChronologyDraft {
     impact: "table_held",
     mitigation: "brings_dessert",
     statement: "Shoes were still being located.",
+  };
+}
+
+function completeDigitalDraft(): DigitalConductDraft {
+  return {
+    ...createEmptyDigitalConductDraft(),
+    respondent: "Alex",
+    relationship: "friend",
+    offence: "fragmented_messages",
+    facts: {
+      ...createEmptyDigitalConductDraft().facts,
+      fragmentedMessages: {
+        messageCount: "8",
+        ideaCount: "2",
+        burstMinutes: "6",
+      },
+    },
+    impact: "notification_burden",
+    mitigation: "provides_summary",
+    statement: "The dinner plan arrived through eight separate notifications.",
   };
 }
 
@@ -71,6 +95,26 @@ describe("complete filing server boundary", () => {
         dependencies,
       ),
     ).resolves.toMatchObject({ status: "rejected" });
+  });
+
+  it("issues a complete Digital Conduct determination through deterministic fallback", async () => {
+    await expect(
+      completeFilingReviewWith("en", completeDigitalDraft(), dependencies),
+    ).resolves.toMatchObject({
+      status: "accepted",
+      determination: {
+        reference: "DIG · 2026 · A1B2C3",
+        assessment: {
+          department: "digital_conduct",
+          offence: "fragmented_messages",
+          evidence: { messageCount: 8, ideaCount: 2, burstMinutes: 6 },
+          remedyConstraints: { family: "message_batching_protocol" },
+        },
+        language: {
+          remedy: { title: "Message batching protocol" },
+        },
+      },
+    });
   });
 
   it("maps an unexpected orchestration failure to a typed terminal outcome", async () => {

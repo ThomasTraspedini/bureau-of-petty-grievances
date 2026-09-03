@@ -11,6 +11,19 @@ import {
   type ImpactCode,
   type MitigationCode,
 } from "@/domain/filing/chronology";
+import {
+  assessDigitalConductFiling,
+  type DigitalConductAssessment,
+  type DigitalConductProhibitedRemedyCode,
+  type DigitalConductRemedyFamilyCode,
+} from "@/domain/determination/digital-conduct-assessment";
+import type {
+  DigitalConductFiling,
+  DigitalConductImpactCode,
+  DigitalConductMitigationCode,
+} from "@/domain/filing/digital-conduct";
+import type { DeterminationAssessment } from "./assessment";
+import type { Filing } from "@/domain/filing/filing";
 
 export const DETERMINATION_LANGUAGE_SCHEMA_VERSION = 1 as const;
 
@@ -28,6 +41,7 @@ export const GROUNDING_REFERENCE_CODES = [
   "remedy_family",
   "remedy_limit",
   "relationship_context",
+  "evidence",
 ] as const;
 
 export const DETERMINATION_LANGUAGE_LIMITS = {
@@ -84,6 +98,31 @@ export interface ChronologyDeterminationLanguageCommand {
     prohibited: readonly ProhibitedRemedyCode[];
   };
 }
+
+export interface DigitalConductDeterminationLanguageCommand {
+  schemaVersion: typeof DETERMINATION_LANGUAGE_SCHEMA_VERSION;
+  assessmentVersion: DigitalConductAssessment["assessmentVersion"];
+  locale: DigitalConductFiling["locale"];
+  department: DigitalConductFiling["department"];
+  disposition: DeterminationDispositionCode;
+  offence: DigitalConductFiling["offence"];
+  evidence: DigitalConductAssessment["evidence"];
+  severity: SeverityCode;
+  impact: DigitalConductImpactCode;
+  mitigation: DigitalConductMitigationCode;
+  witnessStatement: string;
+  remedy: {
+    family: DigitalConductRemedyFamilyCode;
+    audience: RemedyAudienceCode;
+    maximumOccasions: 1 | 3;
+    binding: "non_binding";
+    prohibited: readonly DigitalConductProhibitedRemedyCode[];
+  };
+}
+
+export type DeterminationLanguageCommand =
+  | ChronologyDeterminationLanguageCommand
+  | DigitalConductDeterminationLanguageCommand;
 
 export type ChronologyLanguageCommandResult =
   | {
@@ -178,6 +217,65 @@ export function createChronologyDeterminationLanguageCommand(
       },
     },
   };
+}
+
+export function createDigitalConductDeterminationLanguageCommand(
+  filing: DigitalConductFiling,
+  assessment: DigitalConductAssessment,
+):
+  | { status: "valid"; command: DigitalConductDeterminationLanguageCommand }
+  | { status: "invalid"; reason: "assessment_mismatch" } {
+  const expectedAssessment = assessDigitalConductFiling(filing);
+  if (JSON.stringify(expectedAssessment) !== JSON.stringify(assessment)) {
+    return { status: "invalid", reason: "assessment_mismatch" };
+  }
+  return {
+    status: "valid",
+    command: {
+      schemaVersion: DETERMINATION_LANGUAGE_SCHEMA_VERSION,
+      assessmentVersion: assessment.assessmentVersion,
+      locale: assessment.locale,
+      department: assessment.department,
+      disposition: "upheld_with_circumstances_noted",
+      offence: assessment.offence,
+      evidence: assessment.evidence,
+      severity: assessment.severity.assessed,
+      impact: assessment.acceptedFactors.impact.code,
+      mitigation: assessment.acceptedFactors.mitigation.code,
+      witnessStatement: redactProviderWitnessStatement(
+        filing.statement,
+        filing.respondent,
+      ),
+      remedy: {
+        family: assessment.remedyConstraints.family,
+        audience: assessment.remedyConstraints.audience,
+        maximumOccasions: assessment.remedyConstraints.maximumOccasions,
+        binding: assessment.remedyConstraints.binding,
+        prohibited: assessment.remedyConstraints.prohibited,
+      },
+    },
+  };
+}
+
+export function createDeterminationLanguageCommand(
+  filing: Filing,
+  assessment: DeterminationAssessment,
+):
+  | { status: "valid"; command: DeterminationLanguageCommand }
+  | { status: "invalid"; reason: "assessment_mismatch" } {
+  if (
+    filing.department === "chronology" &&
+    assessment.department === "chronology"
+  ) {
+    return createChronologyDeterminationLanguageCommand(filing, assessment);
+  }
+  if (
+    filing.department === "digital_conduct" &&
+    assessment.department === "digital_conduct"
+  ) {
+    return createDigitalConductDeterminationLanguageCommand(filing, assessment);
+  }
+  return { status: "invalid", reason: "assessment_mismatch" };
 }
 
 function redactProviderWitnessStatement(

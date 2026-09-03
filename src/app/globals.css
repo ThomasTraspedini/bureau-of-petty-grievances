@@ -951,6 +951,97 @@ a {
   color: var(--ivory-light);
 }
 
+.digital-reconstruction {
+  padding: clamp(38px, 7vw, 72px);
+  background: var(--ink-strong);
+  color: var(--ivory-light);
+}
+
+.digital-reconstruction .eyebrow,
+.digital-reconstruction h2,
+.digital-reconstruction .determination-section-heading > p:last-child {
+  color: inherit;
+}
+
+.digital-reconstruction .determination-section-heading > p:last-child {
+  max-width: 640px;
+  opacity: 0.72;
+}
+
+.communications-docket {
+  margin: 46px 0 0;
+}
+
+.message-sequence {
+  display: grid;
+  align-items: start;
+  width: min(100%, 720px);
+  min-height: 170px;
+  gap: 7px;
+}
+
+.message-sequence i {
+  display: block;
+  height: 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--record-accent) 82%, white);
+}
+
+.message-sequence i:nth-child(even) {
+  margin-left: 11%;
+  opacity: 0.68;
+}
+
+.communications-interval {
+  position: relative;
+  height: 28px;
+  margin: 24px 8px 12px;
+  border-top: 1px solid rgb(255 255 255 / 42%);
+}
+
+.communications-interval span {
+  position: absolute;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  max-width: calc(100% - 2px);
+  border: 3px solid var(--ink-strong);
+  border-radius: 50%;
+  background: var(--record-accent);
+  transform: translateX(-50%);
+}
+
+.communications-docket figcaption {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+.communications-docket figcaption > div {
+  padding-top: 14px;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+
+.communications-docket figcaption span,
+.communications-docket figcaption strong {
+  display: block;
+}
+
+.communications-docket figcaption span {
+  margin-bottom: 7px;
+  opacity: 0.65;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.communications-docket figcaption strong {
+  font-family: var(--serif);
+  font-size: clamp(19px, 2.4vw, 25px);
+  font-weight: 620;
+}
+
 .determination-section-heading {
   max-width: 720px;
 }
@@ -2384,6 +2475,7 @@ footer p {
   }
 
   .chronology-reconstruction,
+  .digital-reconstruction,
   .determination-findings,
   .witness-record,
   .remedy-record,
@@ -2396,6 +2488,15 @@ footer p {
   }
 
   .chronology-figure figcaption {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .communications-docket {
+    margin-top: 34px;
+  }
+
+  .communications-docket figcaption {
     grid-template-columns: 1fr;
     gap: 14px;
   }

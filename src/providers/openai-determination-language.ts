@@ -17,6 +17,11 @@ import {
   EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
 } from "@/domain/determination/locales/en";
 import {
+  buildEnglishDigitalConductGenerationInput,
+  EN_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS,
+  EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION,
+} from "@/domain/determination/locales/en-digital-conduct";
+import {
   createUnavailableDeterminationLanguageProvider,
   type DeterminationLanguageProvider,
   type DeterminationLanguageProviderResult,
@@ -48,14 +53,22 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
     attempt: Parameters<DeterminationLanguageProvider["generate"]>[1],
   ): Promise<DeterminationLanguageProviderResult> {
     try {
+      const digitalConduct = command.department === "digital_conduct";
       const response = await this.createResponse({
         model: this.model,
         store: false,
-        instructions: EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
-        input: buildEnglishChronologyGenerationInput(
-          command,
-          attempt.previousValidationIssues,
-        ),
+        instructions: digitalConduct
+          ? EN_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
+          : EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
+        input: digitalConduct
+          ? buildEnglishDigitalConductGenerationInput(
+              command,
+              attempt.previousValidationIssues,
+            )
+          : buildEnglishChronologyGenerationInput(
+              command,
+              attempt.previousValidationIssues,
+            ),
         max_output_tokens: 1_200,
         reasoning: { effort: "low", context: "current_turn" },
         text: {
@@ -71,8 +84,11 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
         },
         metadata: {
           editorial_policy_version: String(
-            EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
+            digitalConduct
+              ? EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION
+              : EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
           ),
+          department: command.department,
           language_schema_version: String(command.schemaVersion),
         },
       });

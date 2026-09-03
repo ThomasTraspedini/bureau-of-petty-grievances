@@ -1,16 +1,25 @@
 import { describe, expect, it } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
+import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
 import {
   DETERMINATION_EXPERIENCE_VERSION,
   determinationPresentationVariant,
   type IssuedChronologyDetermination,
+  type IssuedDigitalConductDetermination,
 } from "@/domain/determination/determination-experience";
+import { createDigitalConductDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
 import {
   type ChronologyDraft,
   createEmptyChronologyDraft,
   validateChronologyDraft,
 } from "@/domain/filing/chronology";
+import {
+  createEmptyDigitalConductDraft,
+  type DigitalConductDraft,
+  validateDigitalConductDraft,
+} from "@/domain/filing/digital-conduct";
 import {
   DETERMINATION_SESSION_LIFETIME_MS,
   parseDeterminationSession,
@@ -47,6 +56,43 @@ function issuedDetermination(): IssuedChronologyDetermination {
     issuedAt: "2026-09-02T12:00:00.000Z",
     assessment: assessChronologyFiling(validated.filing),
     language: fixture.language,
+  };
+}
+
+function completeDigitalDraft(): DigitalConductDraft {
+  return {
+    ...createEmptyDigitalConductDraft(),
+    respondent: "Alex",
+    relationship: "friend",
+    offence: "unacknowledged_coordination",
+    facts: {
+      ...createEmptyDigitalConductDraft().facts,
+      unacknowledgedCoordination: { responseHours: "18", followUpCount: "2" },
+    },
+    impact: "coordination_delayed",
+    mitigation: "acknowledges_delay",
+    statement: "Two ordinary follow-ups preceded an acknowledgement.",
+  };
+}
+
+function issuedDigitalDetermination(): IssuedDigitalConductDetermination {
+  const validated = validateDigitalConductDraft(completeDigitalDraft(), "en");
+  if (validated.status === "invalid") {
+    throw new Error("Digital determination session fixture must remain valid.");
+  }
+  const assessment = assessDigitalConductFiling(validated.filing);
+  const command = createDigitalConductDeterminationLanguageCommand(
+    validated.filing,
+    assessment,
+  );
+  if (command.status === "invalid") throw new Error("Invalid Digital command.");
+  return {
+    experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+    locale: "en",
+    reference: "DIG · 2026 · D4E5F6",
+    issuedAt: "2026-09-02T12:00:00.000Z",
+    assessment,
+    language: createEnglishDigitalConductFallback(command.command),
   };
 }
 
@@ -92,6 +138,27 @@ describe("tab-scoped determination state", () => {
     ).toBe("expired");
   });
 
+  it("restores a validated Digital Conduct determination without changing its localized snapshot", () => {
+    const value = serializeDeterminationSession(
+      completeDigitalDraft(),
+      issuedDigitalDetermination(),
+      now,
+    );
+    const result = parseDeterminationSession(value, now + 1_000);
+    expect(result).toMatchObject({
+      status: "restored",
+      snapshot: {
+        reference: "DIG · 2026 · D4E5F6",
+        filing: {
+          department: "digital_conduct",
+          offence: "unacknowledged_coordination",
+          facts: { responseHours: 18, followUpCount: 2 },
+        },
+        assessment: { department: "digital_conduct" },
+      },
+    });
+  });
+
   it("rejects tampered facts, prose, identity, and envelope versions", () => {
     const value = serializeDeterminationSession(
       completeDraft(),
@@ -118,7 +185,7 @@ describe("tab-scoped determination state", () => {
     ).toBe("invalid");
     expect(
       parseDeterminationSession(
-        value.replace('"version":1', '"version":2'),
+        value.replace('"version":2', '"version":3'),
         now,
       ).status,
     ).toBe("invalid");

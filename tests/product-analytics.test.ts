@@ -23,7 +23,7 @@ const now = new Date("2026-09-03T12:00:00.000Z");
 
 function browserEvent(): BrowserProductAnalyticsEvent {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     eventId: `evt_${"e".repeat(22)}`,
     journeyId: `jrn_${"j".repeat(22)}`,
     occurredAt: now.toISOString(),

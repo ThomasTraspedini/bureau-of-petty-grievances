@@ -1,15 +1,21 @@
 import {
-  createChronologyDeterminationLanguageCommand,
+  createDeterminationLanguageCommand,
+  type DeterminationLanguageCommand,
   type DeterminationLanguage,
 } from "@/domain/determination/determination-language";
-import type { ChronologyAssessment } from "@/domain/determination/chronology-assessment";
+import type { DeterminationAssessment } from "@/domain/determination/assessment";
 import {
   createEnglishChronologyFallback,
   EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
   validateEnglishChronologyLanguage,
   type DeterminationLanguageValidationIssueCode,
 } from "@/domain/determination/locales/en";
-import type { ChronologyFiling } from "@/domain/filing/chronology";
+import type { Filing } from "@/domain/filing/filing";
+import {
+  createEnglishDigitalConductFallback,
+  EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION,
+  validateEnglishDigitalConductLanguage,
+} from "@/domain/determination/locales/en-digital-conduct";
 import type {
   DeterminationLanguageProvider,
   ProviderRetryableFailureReason,
@@ -28,7 +34,7 @@ export type GenerateDeterminationLanguageResult =
       status: "completed";
       source: "provider";
       language: DeterminationLanguage;
-      editorialPolicyVersion: typeof EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION;
+      editorialPolicyVersion: 1;
       attempts: 1 | 2;
       provider: { model: string; requestId: string };
       tokenUsage: ProviderTokenUsage;
@@ -37,7 +43,7 @@ export type GenerateDeterminationLanguageResult =
       status: "completed";
       source: "fallback";
       language: DeterminationLanguage;
-      editorialPolicyVersion: typeof EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION;
+      editorialPolicyVersion: 1;
       attempts: 1 | 2;
       reason: DeterminationLanguageFallbackReason;
       tokenUsage: ProviderTokenUsage;
@@ -49,15 +55,15 @@ export type GenerateDeterminationLanguageResult =
     };
 
 export interface GenerateDeterminationLanguageInput {
-  filing: ChronologyFiling;
-  assessment: ChronologyAssessment;
+  filing: Filing;
+  assessment: DeterminationAssessment;
   provider: DeterminationLanguageProvider;
 }
 
 export async function generateDeterminationLanguage(
   input: GenerateDeterminationLanguageInput,
 ): Promise<GenerateDeterminationLanguageResult> {
-  const commandResult = createChronologyDeterminationLanguageCommand(
+  const commandResult = createDeterminationLanguageCommand(
     input.filing,
     input.assessment,
   );
@@ -86,7 +92,7 @@ export async function generateDeterminationLanguage(
     }
 
     if (providerResult.status === "success") {
-      const validation = validateEnglishChronologyLanguage(
+      const validation = validateLanguage(
         providerResult.output,
         commandResult.command,
       );
@@ -95,7 +101,7 @@ export async function generateDeterminationLanguage(
           status: "completed",
           source: "provider",
           language: validation.language,
-          editorialPolicyVersion: EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
+          editorialPolicyVersion: editorialPolicyVersion(commandResult.command),
           attempts: attempt,
           provider: {
             model: providerResult.model,
@@ -156,7 +162,7 @@ export async function generateDeterminationLanguage(
 }
 
 function fallbackResult(
-  command: Parameters<typeof createEnglishChronologyFallback>[0],
+  command: DeterminationLanguageCommand,
   attempts: 1 | 2,
   reason: DeterminationLanguageFallbackReason,
   tokenUsage: ProviderTokenUsage,
@@ -165,13 +171,31 @@ function fallbackResult(
   return {
     status: "completed",
     source: "fallback",
-    language: createEnglishChronologyFallback(command),
-    editorialPolicyVersion: EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION,
+    language:
+      command.department === "chronology"
+        ? createEnglishChronologyFallback(command)
+        : createEnglishDigitalConductFallback(command),
+    editorialPolicyVersion: editorialPolicyVersion(command),
     attempts,
     reason,
     tokenUsage,
     ...(model ? { model } : {}),
   };
+}
+
+function validateLanguage(
+  value: unknown,
+  command: DeterminationLanguageCommand,
+) {
+  return command.department === "chronology"
+    ? validateEnglishChronologyLanguage(value, command)
+    : validateEnglishDigitalConductLanguage(value, command);
+}
+
+function editorialPolicyVersion(command: DeterminationLanguageCommand): 1 {
+  return command.department === "chronology"
+    ? EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION
+    : EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION;
 }
 
 function addUsage(

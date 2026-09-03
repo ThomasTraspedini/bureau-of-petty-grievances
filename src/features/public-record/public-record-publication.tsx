@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { publishPublicRecord } from "@/app/[locale]/record/actions";
-import type { ChronologyDeterminationSnapshot } from "@/domain/determination/determination-experience";
+import type { DeterminationSnapshot } from "@/domain/determination/determination-experience";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
 import { currentAnalyticsJourneyId } from "../observability/browser-product-analytics";
@@ -15,7 +15,7 @@ export function PublicRecordPublication({
   locale,
   copy,
 }: {
-  snapshot: ChronologyDeterminationSnapshot;
+  snapshot: DeterminationSnapshot;
   locale: InterfaceLocale;
   copy: PublicRecordCopy;
 }) {

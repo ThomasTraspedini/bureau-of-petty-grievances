@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import type { ChronologyDeterminationSnapshot } from "@/domain/determination/determination-experience";
+import type { DeterminationSnapshot } from "@/domain/determination/determination-experience";
 import type { StandardAccessSummary } from "@/domain/access/standard-access";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
@@ -14,6 +14,7 @@ import { SurfaceObserver } from "../observability/surface-observer";
 import { DeterminationRecord } from "./determination-record";
 import {
   DETERMINATION_SESSION_KEY,
+  LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
   parseDeterminationSession,
 } from "./determination-session";
 
@@ -44,22 +45,30 @@ export function DeterminationExperience({
   issueInvitation,
   cancelInvitation,
 }: DeterminationExperienceProps) {
-  const [snapshot, setSnapshot] =
-    useState<ChronologyDeterminationSnapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<DeterminationSnapshot | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const stored = parseDeterminationSession(
-        window.sessionStorage.getItem(DETERMINATION_SESSION_KEY),
+        window.sessionStorage.getItem(DETERMINATION_SESSION_KEY) ??
+          window.sessionStorage.getItem(
+            LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
+          ),
         Date.now(),
       );
       if (stored.status !== "restored") {
         window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+        window.sessionStorage.removeItem(
+          LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
+        );
         window.location.replace(
           `/${locale}/file/review?notice=determination-unavailable`,
         );
         return;
       }
+      window.sessionStorage.removeItem(
+        LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
+      );
       setSnapshot(stored.snapshot);
     }, 0);
     return () => {
@@ -78,7 +87,13 @@ export function DeterminationExperience({
 
   return (
     <>
-      <SurfaceObserver locale={locale} surface={{ name: "determination" }} />
+      <SurfaceObserver
+        locale={locale}
+        surface={{
+          name: "determination",
+          department: snapshot.filing.department,
+        }}
+      />
       <DeterminationRecord
         snapshot={snapshot}
         locale={locale}

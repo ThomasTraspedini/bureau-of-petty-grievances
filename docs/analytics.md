@@ -16,7 +16,7 @@ Production events have a 180-day provider retention limit. The application store
 
 ## Event catalog
 
-Every event carries schema version, event ID, occurrence time, locale, department, optional journey ID, application version, and deployment environment. Only the following event-specific fields are accepted:
+Every event carries schema version, event ID, occurrence time, locale, department, optional journey ID, application version, and deployment environment. Schema version `2` adds department-aware filing steps and paths while retaining the original content-free envelope. Only the following event-specific fields are accepted:
 
 | Event | Meaning | Allowed analysis fields |
 | --- | --- | --- |
@@ -39,7 +39,7 @@ Every event carries schema version, event ID, occurrence time, locale, departmen
 | `owner_record_changed` | Owner unpublish, restore, or delete resolved | action, outcome, record pseudonym |
 | `operational_failure` | A content-free operational category occurred | operation, category |
 
-Path codes name product logic, not submitted values: `chronology_premature_departure`, `chronology_chronic_lateness`, and `chronology_optimistic_estimate`. Entry surfaces are coarse categories only: direct, internal, external, share, evaluation, standard, or successor.
+Path codes name product logic, not submitted values: `chronology_premature_departure`, `chronology_chronic_lateness`, `chronology_optimistic_estimate`, `digital_conduct_fragmented_messages`, `digital_conduct_excessive_voice_note`, and `digital_conduct_unacknowledged_coordination`. Steps may identify `department` or the department-specific `chronology` and `communications` phases. No event carries the selected counts, durations, intervals, witness text, or any communication content. Entry surfaces are coarse categories only: direct, internal, external, share, evaluation, standard, or successor.
 
 ## Required analyses
 
@@ -53,7 +53,7 @@ Use this funnel to locate a weak stage, then inspect the narrower report for tha
 
 ### Filing path and drop-off
 
-Use `filing_step_viewed`, `filing_step_completed`, and `filing_validation_failed`. Break down by step, path code, direction, and reason. Compare step-to-step conversion, completion duration, corrections from review, and validation pressure. This reveals which of the three Chronology paths is selected and where each path loses momentum without exposing any answer value.
+Use `filing_step_viewed`, `filing_step_completed`, and `filing_validation_failed`. Break down by department, step, path code, direction, and reason. Compare step-to-step conversion, completion duration, corrections from review, and validation pressure. This reveals which Chronology or Digital Conduct path is selected and where each path loses momentum without exposing any answer value.
 
 ### Generation health and cost
 

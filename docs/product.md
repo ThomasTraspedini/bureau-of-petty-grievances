@@ -32,13 +32,19 @@ Each implemented increment must leave a coherent experience. Later capabilities 
 
 ## Current production filing contract
 
-Chronology is the first enabled filing department. Its localized production journey supports three classifications with distinct submitted-fact grammars:
+Chronology and Digital Conduct are enabled filing departments. Chronology supports three classifications with distinct submitted-fact grammars:
 
 - a premature declaration records the declaration time and minutes until actual readiness;
 - chronic lateness records the agreed time and submitted delay;
 - an optimistic estimate compares the stated duration with the longer duration actually required.
 
-The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review.
+Digital Conduct supports three deliberately narrow communication classifications:
+
+- fragmented messages record separate-message count, principal-idea count, and the sequence interval;
+- an excessive voice memorandum records its duration and principal-idea count;
+- unacknowledged coordination records the ordinary response interval and number of filer follow-ups.
+
+The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, change department without carrying incompatible facts, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review. Existing version-1 Chronology drafts migrate into the version-2 department-aware envelope.
 
 Completion means that the server accepts the structured filing boundary, produces its deterministic assessment, and prepares a localized determination through an authorized provider call or the complete fallback path. The issued result is available in the current browser tab for 30 minutes. Completion alone does not publish a record or create an access entitlement; publication is a separate explicit choice.
 
@@ -62,23 +68,25 @@ Every successor must independently consume one provider credit before transferri
 
 ## Current deterministic assessment contract
 
-Every accepted Chronology filing produces a versioned, language-neutral assessment before any generative wording. Premature departure and chronic lateness use the submitted delay; an optimistic estimate uses the difference between actual and estimated duration.
+Every accepted filing produces a versioned, language-neutral department assessment before any generative wording. Chronology premature departure and chronic lateness use the submitted delay; an optimistic estimate uses the difference between actual and estimated duration.
 
 Severity begins with explicit 15- and 30-minute boundaries. A concrete consequence raises severity by one level, while irritation alone is recorded without escalation. Required mitigation remains visible without cancelling the facts and limits the remedy to a private, non-binding protocol covering no more than three future occasions.
 
-The assessment selects an offence-specific remedy family and prohibits coercion, exclusion, material deprivation, monitoring, public humiliation, and health or safety restrictions. It also provides bounded timeline parameters and stable visual variation derived without the respondent alias, witness language, relationship, or exact clock time. These rules are inspectable domain policy, not localized determination prose.
+Digital Conduct policy separately evaluates submitted message-to-idea density, voice-note minutes, or response hours at explicit boundaries. Consequence may raise severity once, mitigation remains visible, and remedies are limited to batching complete ideas, adding a brief voice-note summary, or acknowledging non-urgent coordination. Its prohibited outcomes additionally exclude compelled availability, response surveillance, read-receipt or presence monitoring, and assumptions that ordinary messages are urgent.
+
+Each assessment selects an offence-specific remedy family and prohibits coercion, exclusion, material deprivation, monitoring, public humiliation, and health or safety restrictions. It also provides bounded presentation parameters and stable visual variation derived without the respondent alias, witness language, relationship, exact clock time, or communication content. These rules are inspectable domain policy, not localized determination prose.
 
 ## Current determination-language contract
 
 A server-owned pipeline can transform a matching validated filing and assessment into determination-language schema version `1`. The shared shape carries explicit English locale and the deterministic `upheld_with_circumstances_noted` disposition, followed by a bounded allegation, finding, consequence, mitigation, remedy, and closing. Factual sections declare the language-neutral inputs that ground them.
 
-English editorial policy version `1` owns vocabulary, examples, Bureau tone, safety limits, and deterministic fallback language. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. The fallback covers every valid Chronology combination with the same schema.
+Each enabled department owns English editorial guidance, vocabulary, factual anchors, safety checks, and a complete deterministic fallback behind the shared language schema. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. Digital Conduct validation also rejects surveillance, compelled responsiveness, fabricated message access, and invented urgency.
 
-The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic realization after deterministic judgment. It receives no respondent alias or exact clock time and treats the witness statement only as submitted data. Refusal, unavailable configuration, invalid output, timeout, and terminal failure resolve to fallback rather than raw errors.
+The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic realization after deterministic judgment. It receives no respondent alias or exact clock time and treats the witness statement only as submitted data. For Digital Conduct it receives structured filer-submitted counts and intervals, not messages, account data, read receipts, or device access. Refusal, unavailable configuration, invalid output, timeout, and terminal failure resolve to fallback rather than raw errors.
 
 ## Current determination experience
 
-The localized determination presents provider and fallback output through the same official hierarchy. Its first viewport establishes a transient Chronology reference, issue date, respondent context, disposition, and allegation. The complete record reconstructs the accepted timing facts, separates finding, consequence, and mitigation, preserves the submitted witness statement as the filer’s account, and gives the non-binding remedy visual priority.
+The localized determination presents provider and fallback output through the same official hierarchy. Its first viewport establishes a transient department reference, issue date, respondent context, disposition, and allegation. Chronology reconstructs accepted timing facts on a measured scale; Digital Conduct uses a communications docket that visualizes only submitted counts or intervals and states that the Bureau did not access messages, devices, or accounts. Both separate finding, consequence, and mitigation, preserve the witness statement as the filer’s account, and give the non-binding remedy visual priority.
 
 The transient reference and curated presentation signature exclude aliases, witness prose, relationship context, and exact clock time. The result is validated again before restoration from tab-scoped session state. Missing, expired, or inconsistent state returns to the preserved review; a terminal internal failure offers retry without discarding the safe draft. Loading reflects actual pending work, adds no artificial delay, and the single determination reveal becomes immediate under reduced motion.
 
@@ -98,7 +106,7 @@ Visitors may report an available record using one localized categorical reason a
 
 Every available public determination is a deliberate share object. Its public page offers the device share sheet where supported, a dedicated copy action, and a selectable address when browser clipboard access is unavailable. All paths use the same durable read-only public address. They never include the separate owner recovery credential or create an invitation.
 
-Localized canonical, Open Graph, and social-card metadata describe the department, fixed disposition, procedural reference, offence, discrepancy, and submitted mitigation category. A deterministic 1200 by 630 procedural image uses the record's curated visual variant. Metadata and imagery exclude the respondent alias, witness statement, exact clock times, full generated prose, relationship and impact context, visible public identity, and owner authority.
+Localized canonical, Open Graph, and social-card metadata describe the department, fixed disposition, procedural reference, offence, approved bounded evidence, and submitted mitigation category. Chronology may expose only the discrepancy duration; Digital Conduct may expose only message and idea counts, voice-note duration, or response interval and follow-up count. A deterministic 1200 by 630 procedural image uses the record's curated visual variant. Metadata and imagery exclude the respondent alias, witness statement, exact clock times, message content, full generated prose, relationship and impact context, visible public identity, and owner authority.
 
 Record HTML and preview images remain dynamic, `noindex`, and `no-store`. Image addresses carry the current lifecycle revision and are rejected after a status or revision change. External social crawlers can nevertheless retain a previously fetched preview outside Bureau control; the intentionally minimal preview limits that residual exposure.
 
@@ -152,7 +160,7 @@ The model may improve wording. It may not invent facts, diagnose a person, infer
 
 Production learning uses explicit, versioned product events rather than automatic interaction capture. One random identifier connects the steps performed in a single browser tab. It is neither a cookie nor a person, account, device, or cross-session identifier. Purpose-separated keyed pseudonyms permit aggregate public-record and successor-invitation analysis without exposing the underlying identifier or credential.
 
-The measurements cover entry, the complete filing funnel, rendered Chronology path, step completion and correction, categorical validation, determination outcome, provider attempts, tokens and estimated cost, publication, sharing, public views, consultation, reports, access redemption, and successor handoff. Application version, deployment environment, locale, and department make before-and-after release comparison explicit.
+The measurements cover entry, the complete filing funnel, rendered Chronology and Digital Conduct paths, step completion and correction, categorical validation, determination outcome, provider attempts, tokens and estimated cost, publication, sharing, public views, consultation, reports, access redemption, and successor handoff. Analytics schema version `2` adds department selection, communications steps, and the three Digital Conduct path codes without admitting any submitted counts, durations, text, or other filing values. Application version, deployment environment, locale, and department make before-and-after release comparison explicit.
 
 This evidence can reveal what people do, which paths they choose, where the journey weakens, and which outcomes move between releases. It cannot reveal user motivation, prove that a release caused a change, or make low-volume segments statistically meaningful. Product decisions should combine these signals with qualitative evidence and preserve the same report definitions across comparisons.
 

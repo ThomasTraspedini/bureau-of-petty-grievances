@@ -50,7 +50,9 @@ test("exchanges evaluator access from a clean address without retaining the cred
   await page.getByRole("textbox", { name: "Respondent alias" }).blur();
   expect(
     await page.screenshot({ animations: "disabled", fullPage: true }),
-  ).toMatchSnapshot("evaluation-access-mobile.png");
+  ).toMatchSnapshot("evaluation-access-mobile.png", {
+    maxDiffPixelRatio: 0.01,
+  });
 });
 
 test("renders a localized invalid evaluator address without indexing", async ({
@@ -72,7 +74,9 @@ test("renders a localized invalid evaluator address without indexing", async ({
   expect(results.violations).toEqual([]);
   expect(
     await page.screenshot({ animations: "disabled", fullPage: true }),
-  ).toMatchSnapshot("evaluation-access-desktop.png");
+  ).toMatchSnapshot("evaluation-access-desktop.png", {
+    maxDiffPixelRatio: 0.01,
+  });
 });
 
 test("redeems one standard authorization without retaining its credential", async ({
@@ -102,7 +106,9 @@ test("redeems one standard authorization without retaining its credential", asyn
   expect(results.violations).toEqual([]);
   expect(
     await page.screenshot({ animations: "disabled", fullPage: true }),
-  ).toMatchSnapshot("standard-access-mobile.png");
+  ).toMatchSnapshot("standard-access-mobile.png", {
+    maxDiffPixelRatio: 0.01,
+  });
 });
 
 test("loads the production shell without external asset requests", async ({

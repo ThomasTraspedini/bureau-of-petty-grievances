@@ -38,6 +38,7 @@ export async function publishPublicRecord(
   input: unknown,
   journeyId?: unknown,
 ): Promise<PublishPublicRecordResult> {
+  const department = departmentFromPublishInput(input);
   const repository = await getRuntimePublicRecordRepository();
   const result =
     repository === null
@@ -55,7 +56,7 @@ export async function publishPublicRecord(
     recordServerProductEvent({
       journeyId,
       locale: "en",
-      department: "chronology",
+      department,
       name: "public_record_published",
       properties: {
         outcome: result.status,
@@ -87,6 +88,7 @@ export async function applyOwnerRecordAction(
   journeyId?: unknown,
 ): Promise<OwnerRecordActionResult> {
   const repository = await getRuntimePublicRecordRepository();
+  const department = await departmentForPublicId(repository, publicId);
   const result =
     repository === null
       ? ({ status: "unavailable" } as const)
@@ -105,7 +107,7 @@ export async function applyOwnerRecordAction(
       recordServerProductEvent({
         journeyId,
         locale: "en",
-        department: "chronology",
+        department,
         name: "owner_record_changed",
         properties: {
           action,
@@ -123,6 +125,10 @@ export async function reportPublicRecord(
   journeyId?: unknown,
 ): Promise<"reported" | "invalid" | "unavailable" | "failed"> {
   const repository = await getRuntimePublicRecordRepository();
+  const department =
+    isRecord(input) && typeof input.publicId === "string"
+      ? await departmentForPublicId(repository, input.publicId)
+      : "chronology";
   const result =
     repository === null
       ? "failed"
@@ -134,7 +140,7 @@ export async function reportPublicRecord(
         recordServerProductEvent({
           journeyId,
           locale: "en",
-          department: "chronology",
+          department,
           name: "report_submitted",
           properties: {
             recordSubject: subject,
@@ -156,6 +162,10 @@ export async function submitPublicConsultation(
   journeyId?: unknown,
 ): Promise<SubmitPublicConsultationResult> {
   const repository = await getRuntimePublicRecordRepository();
+  const department =
+    isRecord(input) && typeof input.publicId === "string"
+      ? await departmentForPublicId(repository, input.publicId)
+      : "chronology";
   const result =
     repository === null
       ? ({ status: "failed" } as const)
@@ -172,7 +182,7 @@ export async function submitPublicConsultation(
         recordServerProductEvent({
           journeyId,
           locale: "en",
-          department: "chronology",
+          department,
           name: "consultation_submitted",
           properties: {
             recordSubject: subject,
@@ -190,4 +200,33 @@ export async function submitPublicConsultation(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function departmentFromPublishInput(input: unknown) {
+  if (
+    !isRecord(input) ||
+    !isRecord(input.snapshot) ||
+    !isRecord(input.snapshot.filing)
+  ) {
+    return "chronology" as const;
+  }
+  return input.snapshot.filing.department === "digital_conduct"
+    ? ("digital_conduct" as const)
+    : ("chronology" as const);
+}
+
+async function departmentForPublicId(
+  repository: Awaited<ReturnType<typeof getRuntimePublicRecordRepository>>,
+  publicId: string,
+) {
+  if (repository === null || !isPublicRecordId(publicId))
+    return "chronology" as const;
+  try {
+    const stored = await repository.find(publicId);
+    return stored?.snapshot.filing.department === "digital_conduct"
+      ? ("digital_conduct" as const)
+      : ("chronology" as const);
+  } catch {
+    return "chronology" as const;
+  }
 }

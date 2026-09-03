@@ -1,42 +1,40 @@
-import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import {
   determinationPresentationVariant,
   DETERMINATION_EXPERIENCE_VERSION,
   DETERMINATION_TRANSIENT_LIFETIME_MS,
   isDeterminationReference,
-  type ChronologyDeterminationSnapshot,
-  type IssuedChronologyDetermination,
+  type DeterminationSnapshot,
+  type IssuedDetermination,
+  validateDeterminationSnapshot,
 } from "@/domain/determination/determination-experience";
-import { createChronologyDeterminationLanguageCommand } from "@/domain/determination/determination-language";
-import { validateEnglishChronologyLanguage } from "@/domain/determination/locales/en";
-import {
-  type ChronologyDraft,
-  validateChronologyDraft,
-} from "@/domain/filing/chronology";
+import { type FilingDraft, validateFilingDraft } from "@/domain/filing/filing";
+import { assessFiling } from "@/domain/determination/assessment";
 
-export const DETERMINATION_SESSION_KEY = "bpg:determination:chronology:en:v1";
+export const DETERMINATION_SESSION_KEY = "bpg:determination:en:v2";
+export const LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY =
+  "bpg:determination:chronology:en:v1";
 export const DETERMINATION_SESSION_LIFETIME_MS =
   DETERMINATION_TRANSIENT_LIFETIME_MS;
 
 interface DeterminationSessionEnvelope {
-  version: 1;
+  version: 1 | 2;
   locale: "en";
   createdAt: number;
-  draft: ChronologyDraft;
-  determination: IssuedChronologyDetermination;
+  draft: FilingDraft;
+  determination: IssuedDetermination;
 }
 
 export type StoredDeterminationResult =
-  | { status: "restored"; snapshot: ChronologyDeterminationSnapshot }
+  | { status: "restored"; snapshot: DeterminationSnapshot }
   | { status: "empty" | "expired" | "invalid" };
 
 export function serializeDeterminationSession(
-  draft: ChronologyDraft,
-  determination: IssuedChronologyDetermination,
+  draft: FilingDraft,
+  determination: IssuedDetermination,
   now: number,
 ): string {
   const envelope: DeterminationSessionEnvelope = {
-    version: 1,
+    version: 2,
     locale: "en",
     createdAt: now,
     draft,
@@ -61,26 +59,15 @@ export function parseDeterminationSession(
       return { status: "expired" };
     }
 
-    const filingResult = validateChronologyDraft(parsed.draft, parsed.locale);
+    const filingResult = validateFilingDraft(parsed.draft, parsed.locale);
     if (filingResult.status === "invalid") return { status: "invalid" };
-    const assessment = assessChronologyFiling(filingResult.filing);
+    const assessment = assessFiling(filingResult.filing);
     if (
       JSON.stringify(parsed.determination.assessment) !==
       JSON.stringify(assessment)
     ) {
       return { status: "invalid" };
     }
-
-    const command = createChronologyDeterminationLanguageCommand(
-      filingResult.filing,
-      assessment,
-    );
-    if (command.status === "invalid") return { status: "invalid" };
-    const language = validateEnglishChronologyLanguage(
-      parsed.determination.language,
-      command.command,
-    );
-    if (language.status === "invalid") return { status: "invalid" };
 
     const issuedAt = new Date(parsed.determination.issuedAt);
     if (
@@ -93,22 +80,25 @@ export function parseDeterminationSession(
       return { status: "invalid" };
     }
 
-    return {
-      status: "restored",
-      snapshot: {
+    const validated = validateDeterminationSnapshot(
+      {
         experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
         locale: "en",
         reference: parsed.determination.reference,
         issuedAt: parsed.determination.issuedAt,
         assessment,
-        language: language.language,
+        language: parsed.determination.language,
         filing: filingResult.filing,
         presentationVariant: determinationPresentationVariant(
           parsed.determination.reference,
           assessment.presentation.visualSeed,
         ),
       },
-    };
+      new Date(now),
+    );
+    return validated.status === "valid"
+      ? { status: "restored", snapshot: validated.snapshot }
+      : { status: "invalid" };
   } catch {
     return { status: "invalid" };
   }
@@ -125,7 +115,7 @@ function isSessionEnvelope(
       "draft",
       "determination",
     ]) ||
-    value.version !== 1 ||
+    (value.version !== 1 && value.version !== 2) ||
     value.locale !== "en" ||
     typeof value.createdAt !== "number" ||
     !Number.isFinite(value.createdAt) ||

@@ -2,17 +2,27 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
+import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
 import {
   DETERMINATION_EXPERIENCE_VERSION,
   determinationPresentationVariant,
   type ChronologyDeterminationSnapshot,
+  type DigitalConductDeterminationSnapshot,
 } from "@/domain/determination/determination-experience";
-import { createChronologyDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import {
+  createChronologyDeterminationLanguageCommand,
+  createDigitalConductDeterminationLanguageCommand,
+} from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
+import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
 import {
   createEmptyChronologyDraft,
   validateChronologyDraft,
 } from "@/domain/filing/chronology";
+import {
+  createEmptyDigitalConductDraft,
+  validateDigitalConductDraft,
+} from "@/domain/filing/digital-conduct";
 import type { PublicRecord } from "@/domain/public-record/public-record";
 import { createPublicRecordShareDescriptor } from "@/domain/public-record/public-record-sharing";
 import { PublicRecordSharing } from "@/features/public-record/public-record-sharing";
@@ -32,7 +42,7 @@ describe("public-record sharing boundary", () => {
   it("derives only the approved non-identifying preview facts", () => {
     const descriptor = createPublicRecordShareDescriptor(recordFixture());
     expect(descriptor).toEqual({
-      descriptorVersion: 1,
+      descriptorVersion: 2,
       department: "chronology",
       disposition: "upheld_with_circumstances_noted",
       reference: "CHR · 2026 · A1B2C3",
@@ -47,6 +57,28 @@ describe("public-record sharing boundary", () => {
     expect(serialized).not.toContain("19:30");
     expect(serialized).not.toContain("rec_");
     expect(serialized).not.toContain("owner");
+  });
+
+  it("shares only bounded Digital Conduct counts and excludes submitted communications", () => {
+    const descriptor = createPublicRecordShareDescriptor({
+      ...recordFixture(),
+      snapshot: digitalDeterminationSnapshot(),
+    });
+    expect(descriptor).toEqual({
+      descriptorVersion: 2,
+      department: "digital_conduct",
+      disposition: "upheld_with_circumstances_noted",
+      reference: "DIG · 2026 · D4E5F6",
+      offence: "fragmented_messages",
+      evidence: { kind: "message_density", messageCount: 8, ideaCount: 2 },
+      mitigation: "provides_summary",
+      presentationVariant: descriptor.presentationVariant,
+    });
+    const serialized = JSON.stringify(descriptor);
+    expect(serialized).not.toContain("Alex");
+    expect(serialized).not.toContain("dinner plan");
+    expect(serialized).not.toContain("notifications");
+    expect(serialized).not.toContain("burstMinutes");
   });
 
   it("localizes a bounded metadata and share payload", () => {
@@ -254,6 +286,48 @@ function determinationSnapshot(): ChronologyDeterminationSnapshot {
     filing: validation.filing,
     assessment,
     language: createEnglishChronologyFallback(command.command),
+    presentationVariant: determinationPresentationVariant(
+      reference,
+      assessment.presentation.visualSeed,
+    ),
+  };
+}
+
+function digitalDeterminationSnapshot(): DigitalConductDeterminationSnapshot {
+  const draft = {
+    ...createEmptyDigitalConductDraft(),
+    respondent: "Alex",
+    relationship: "friend" as const,
+    offence: "fragmented_messages" as const,
+    facts: {
+      ...createEmptyDigitalConductDraft().facts,
+      fragmentedMessages: {
+        messageCount: "8",
+        ideaCount: "2",
+        burstMinutes: "6",
+      },
+    },
+    impact: "notification_burden" as const,
+    mitigation: "provides_summary" as const,
+    statement: "The dinner plan arrived through eight separate notifications.",
+  };
+  const validation = validateDigitalConductDraft(draft, "en");
+  if (validation.status === "invalid") throw new Error("Invalid fixture.");
+  const assessment = assessDigitalConductFiling(validation.filing);
+  const command = createDigitalConductDeterminationLanguageCommand(
+    validation.filing,
+    assessment,
+  );
+  if (command.status === "invalid") throw new Error("Invalid command.");
+  const reference = "DIG · 2026 · D4E5F6";
+  return {
+    experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+    locale: "en",
+    reference,
+    issuedAt: "2026-09-02T12:00:00.000Z",
+    filing: validation.filing,
+    assessment,
+    language: createEnglishDigitalConductFallback(command.command),
     presentationVariant: determinationPresentationVariant(
       reference,
       assessment.presentation.visualSeed,

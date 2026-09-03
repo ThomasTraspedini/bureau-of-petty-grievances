@@ -11,7 +11,7 @@ import {
   type PublicConsultationAggregate,
   type PublicConsultationPosition,
 } from "@/domain/public-record/public-consultation";
-import { validateChronologyDeterminationSnapshot } from "@/domain/determination/determination-experience";
+import { validateDeterminationSnapshot } from "@/domain/determination/determination-experience";
 
 import type {
   CreatePublicRecordInput,
@@ -301,7 +301,7 @@ function parseStoredRecord(value: unknown): StoredPublicRecord | null {
   }
   const publishedAt = toIsoString(row.publishedAt);
   const snapshot = parseJsonValue(row.snapshot);
-  const validated = validateChronologyDeterminationSnapshot(
+  const validated = validateDeterminationSnapshot(
     snapshot,
     new Date(publishedAt),
   );

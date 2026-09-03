@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.13.0` adds privacy-preserving product analytics for production learning. A typed event contract now measures the primary funnel, Chronology path selection, step loss and correction, generation reliability, latency and estimated cost, publication, sharing, consultation, reports, access, and successor propagation without collecting filing content or creating a persistent visitor profile.
+Version `0.14.0` opens the Department of Digital Conduct as the second complete filing path. Filers can establish fragmented-message density, an excessive voice memorandum, or an unacknowledged coordination interval through bounded counts and durations, then receive a distinct communications-docket determination and publish its privacy-bounded public record.
 
-Collection is off by default. When explicitly configured, browser events use one tab-scoped journey identifier and a same-origin endpoint; server-side Mixpanel delivery strips IP enrichment, applies exact categorical allowlists, attaches release and pricing versions, and remains failure-isolated from product behavior. Autocapture, session replay, heatmaps, analytics cookies, raw URLs, public identifiers, credentials, prompts, and generated prose are excluded. Department expansion is next.
+Digital Conduct uses only facts the filer deliberately enters. It never accesses messages, devices, accounts, presence, read receipts, or response monitoring, and it cannot impose continuous availability or infer urgency. Chronology remains fully supported, including migration of existing local drafts and transient determinations. Department expansion continues with Domestic Affairs and Social Planning.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 

@@ -3,6 +3,7 @@
 import {
   PRODUCT_ANALYTICS_SCHEMA_VERSION,
   type AnalyticsJourneyId,
+  type AnalyticsDepartmentCode,
   type BrowserProductAnalyticsEvent,
 } from "@/domain/observability/product-analytics";
 
@@ -18,7 +19,10 @@ type BrowserEventInput = BrowserProductAnalyticsEvent extends infer Event
     : never
   : never;
 
-export function trackBrowserProductEvent(input: BrowserEventInput): void {
+export function trackBrowserProductEvent(
+  input: BrowserEventInput,
+  department: AnalyticsDepartmentCode = "chronology",
+): void {
   if (!browserAnalyticsEnabled()) return;
   try {
     const journeyId = getOrCreateAnalyticsJourneyId(window.sessionStorage);
@@ -28,7 +32,7 @@ export function trackBrowserProductEvent(input: BrowserEventInput): void {
       eventId: randomIdentifier("evt"),
       journeyId,
       occurredAt: new Date().toISOString(),
-      department: "chronology" as const,
+      department,
     } as BrowserProductAnalyticsEvent;
     void fetch(COLLECTOR_PATH, {
       method: "POST",

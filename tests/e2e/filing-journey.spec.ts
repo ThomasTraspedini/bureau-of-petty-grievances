@@ -8,17 +8,28 @@ import {
 } from "@playwright/test";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
+import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
 import { DETERMINATION_EXPERIENCE_VERSION } from "@/domain/determination/determination-experience";
-import { createChronologyDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import {
+  createChronologyDeterminationLanguageCommand,
+  createDigitalConductDeterminationLanguageCommand,
+} from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
+import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
 import {
   type ChronologyDraft,
   validateChronologyDraft,
 } from "@/domain/filing/chronology";
 import {
+  createEmptyDigitalConductDraft,
+  type DigitalConductDraft,
+  validateDigitalConductDraft,
+} from "@/domain/filing/digital-conduct";
+import {
   DETERMINATION_SESSION_KEY,
   serializeDeterminationSession,
 } from "@/features/determination/determination-session";
+import { FILING_DRAFT_STORAGE_KEY } from "@/features/filing/draft-storage";
 
 declare global {
   interface Window {
@@ -26,12 +37,13 @@ declare global {
   }
 }
 
-const storageKey = "bpg:filing:chronology:en:v1";
+const storageKey = FILING_DRAFT_STORAGE_KEY;
 const standardSession = `sts_${"T".repeat(43)}`;
 
 test.describe.configure({ mode: "serial" });
 
 const completeDraft = {
+  department: "chronology",
   respondent: "Marco",
   relationship: "friend",
   offence: "premature_departure",
@@ -44,6 +56,24 @@ const completeDraft = {
   mitigation: "brings_dessert",
   statement: "He said he was leaving while still looking for his shoes.",
 } satisfies ChronologyDraft;
+
+const completeDigitalDraft = {
+  ...createEmptyDigitalConductDraft(),
+  respondent: "Alex",
+  relationship: "friend",
+  offence: "fragmented_messages",
+  facts: {
+    ...createEmptyDigitalConductDraft().facts,
+    fragmentedMessages: {
+      messageCount: "8",
+      ideaCount: "2",
+      burstMinutes: "6",
+    },
+  },
+  impact: "notification_burden",
+  mitigation: "provides_summary",
+  statement: "The dinner plan arrived through eight separate notifications.",
+} satisfies DigitalConductDraft;
 
 async function choose(page: Page, name: string) {
   await page.getByRole("radio", { name }).check();
@@ -79,6 +109,37 @@ function fixedDeterminationSession(): string {
   );
 }
 
+function fixedDigitalDeterminationSession(): string {
+  const validation = validateDigitalConductDraft(completeDigitalDraft, "en");
+  if (validation.status === "invalid") {
+    throw new Error(
+      "The Digital Conduct end-to-end fixture must remain valid.",
+    );
+  }
+  const assessment = assessDigitalConductFiling(validation.filing);
+  const command = createDigitalConductDeterminationLanguageCommand(
+    validation.filing,
+    assessment,
+  );
+  if (command.status === "invalid") {
+    throw new Error("The Digital Conduct assessment must match its filing.");
+  }
+  const issuedAt = new Date();
+  issuedAt.setMilliseconds(0);
+  return serializeDeterminationSession(
+    completeDigitalDraft,
+    {
+      experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+      locale: "en",
+      reference: "DIG · 2026 · D4E5F6",
+      issuedAt: issuedAt.toISOString(),
+      assessment,
+      language: createEnglishDigitalConductFallback(command.command),
+    },
+    Date.now(),
+  );
+}
+
 async function openFixedDetermination(page: Page) {
   await page.addInitScript(
     ({ key, value }) => {
@@ -89,6 +150,22 @@ async function openFixedDetermination(page: Page) {
   await page.goto("/en/determination");
   await expect(
     page.getByRole("heading", { name: "Review concerning Marco" }),
+  ).toBeVisible();
+}
+
+async function openFixedDigitalDetermination(page: Page) {
+  await page.addInitScript(
+    ({ key, value }) => {
+      window.sessionStorage.setItem(key, value);
+    },
+    {
+      key: DETERMINATION_SESSION_KEY,
+      value: fixedDigitalDeterminationSession(),
+    },
+  );
+  await page.goto("/en/determination");
+  await expect(
+    page.getByRole("heading", { name: "Review concerning Alex" }),
   ).toBeVisible();
 }
 
@@ -121,6 +198,10 @@ test("completes, corrects, and receives a Chronology determination", async ({
   await page.getByRole("button", { name: "Continue" }).click();
 
   await choose(page, "Friend");
+  await choose(
+    page,
+    "Chronology Promises, estimates, arrivals, and measurable delays.",
+  );
   await choose(
     page,
     "Declared “leaving now” before being ready Measure the time between the declaration and actual readiness.",
@@ -173,6 +254,75 @@ test("completes, corrects, and receives a Chronology determination", async ({
   await expect(
     page.getByRole("heading", { name: "Review concerning Marco" }),
   ).toBeVisible();
+});
+
+test("completes and publishes a Digital Conduct communications docket", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/en/file/respondent");
+  await page.getByRole("textbox", { name: "Respondent alias" }).fill("Alex");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await choose(page, "Friend");
+  await choose(
+    page,
+    "Digital Conduct Message density, voice memoranda, and ordinary coordination intervals.",
+  );
+  await choose(
+    page,
+    "Divided one thought across many messages Compare the number of notifications with the ideas communicated.",
+  );
+  await page.getByLabel("Separate messages").fill("8");
+  await page.getByLabel("Principal ideas").fill("2");
+  await page.getByLabel("Sequence interval").fill("6");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await choose(page, "A concentrated notification burden was created");
+  await choose(page, "Usually provides a useful summary");
+  await page
+    .getByRole("textbox", { name: "Submitted statement" })
+    .fill("The dinner plan arrived through eight separate notifications.");
+  await page.getByRole("button", { name: "Review the record" }).click();
+
+  await expect(
+    page.getByText("Digital Conduct", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("8 messages conveyed 2 ideas across 6 minutes"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Submit for determination" }).click();
+
+  await expect(page).toHaveURL(/\/en\/determination$/u);
+  await expect(
+    page.getByText("Department of Digital Conduct").first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "The communications docket is established.",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("Message batching protocol")).toBeVisible();
+  await expect(page.getByText("Filer-submitted counts")).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create the public record" }).click();
+  const publicAddress = await page
+    .getByRole("link", { name: "Open the public record" })
+    .getAttribute("href");
+  if (!publicAddress)
+    throw new Error(
+      "Digital Conduct publication must return a public address.",
+    );
+  await page.goto(publicAddress);
+  await expect(
+    page.getByText("Department of Digital Conduct").first(),
+  ).toBeVisible();
+  await expect(page.locator(".share-object")).toContainText(
+    "8 messages for 2 principal ideas",
+  );
+  const head = await page.locator("head").innerHTML();
+  expect(head).toContain("Fragmented message sequence");
+  expect(head).not.toContain("Alex");
 });
 
 test("preserves a safe draft across refresh and excludes rejected text", async ({
@@ -231,7 +381,7 @@ test("expires old drafts and lets the filer explicitly reset current work", asyn
       window.localStorage.setItem(
         key,
         JSON.stringify({
-          version: 1,
+          version: 2,
           locale: "en",
           updatedAt: Date.now() - 31 * 24 * 60 * 60 * 1000,
           draft,
@@ -597,6 +747,19 @@ test.describe("filing visual contract", () => {
       animations: "disabled",
       maxDiffPixelRatio: 0.01,
     });
+  });
+
+  test("desktop Digital Conduct determination", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await openFixedDigitalDetermination(page);
+    await expect(page).toHaveScreenshot(
+      "digital-conduct-determination-desktop.png",
+      {
+        fullPage: true,
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
   });
 
   test("mobile public record", async ({ page }) => {

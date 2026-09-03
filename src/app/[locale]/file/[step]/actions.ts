@@ -25,6 +25,10 @@ export async function completeFilingReview(
   idempotencyKey: unknown,
   journeyId?: unknown,
 ): Promise<CompleteFilingResult> {
+  const department =
+    isRecord(draft) && draft.department === "digital_conduct"
+      ? "digital_conduct"
+      : "chronology";
   const requestTime = new Date();
   const requestCookies = await cookies();
   const requestHeaders = await headers();
@@ -45,11 +49,15 @@ export async function completeFilingReview(
         recordServerProductEvent({
           journeyId,
           locale: "en",
-          department: "chronology",
+          department,
           name: "determination_completed",
           properties: observation,
         }),
       );
     },
   });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

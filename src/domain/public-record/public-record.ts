@@ -1,4 +1,4 @@
-import type { ChronologyDeterminationSnapshot } from "@/domain/determination/determination-experience";
+import type { DeterminationSnapshot } from "@/domain/determination/determination-experience";
 
 export const PUBLIC_RECORD_SNAPSHOT_VERSION = 1 as const;
 export const PUBLIC_RECORD_LIFETIME_DAYS = 180 as const;
@@ -26,7 +26,7 @@ export interface PublicRecord {
   publishedAt: string;
   expiresAt: string;
   updatedAt: string;
-  snapshot: ChronologyDeterminationSnapshot;
+  snapshot: DeterminationSnapshot;
 }
 
 export type PublicRecordAvailability =

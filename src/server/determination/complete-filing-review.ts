@@ -1,16 +1,13 @@
 import type { Buffer } from "node:buffer";
 
-import {
-  assessChronologyFiling,
-  type ChronologyAssessment,
-} from "@/domain/determination/chronology-assessment";
+import { assessFiling } from "@/domain/determination/assessment";
 import {
   createDeterminationReference,
-  DETERMINATION_EXPERIENCE_VERSION,
-  type IssuedChronologyDetermination,
+  createIssuedDetermination,
+  type IssuedDetermination,
 } from "@/domain/determination/determination-experience";
 import type { FilingError } from "@/domain/filing/chronology";
-import { validateChronologyDraft } from "@/domain/filing/chronology";
+import { validateFilingDraft } from "@/domain/filing/filing";
 import type {
   AnalyticsAccessKind,
   AnalyticsFallbackReason,
@@ -26,7 +23,7 @@ import {
 import { generateDeterminationLanguage } from "./generate-determination-language";
 
 export type CompleteFilingResult =
-  | { status: "accepted"; determination: IssuedChronologyDetermination }
+  | { status: "accepted"; determination: IssuedDetermination }
   | { status: "rejected"; errors: FilingError[] }
   | { status: "limited"; retryAfterSeconds: number }
   | { status: "failed" };
@@ -69,15 +66,13 @@ export async function completeFilingReviewWith(
   draft: unknown,
   dependencies: CompleteFilingDependencies,
 ): Promise<CompleteFilingResult> {
-  const validation = validateChronologyDraft(draft, locale);
+  const validation = validateFilingDraft(draft, locale);
   if (validation.status === "invalid") {
     return { status: "rejected", errors: validation.errors };
   }
 
   try {
-    const assessment: ChronologyAssessment = assessChronologyFiling(
-      validation.filing,
-    );
+    const assessment = assessFiling(validation.filing);
     const generated = await generateDeterminationLanguage({
       filing: validation.filing,
       assessment,
@@ -88,17 +83,16 @@ export async function completeFilingReviewWith(
     const issuedAt = dependencies.now();
     return {
       status: "accepted",
-      determination: {
-        experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
-        locale: validation.filing.locale,
-        reference: createDeterminationReference(
+      determination: createIssuedDetermination(
+        createDeterminationReference(
           issuedAt,
           dependencies.randomReferencePart(),
+          validation.filing.department,
         ),
-        issuedAt: issuedAt.toISOString(),
+        issuedAt.toISOString(),
         assessment,
-        language: generated.language,
-      },
+        generated.language,
+      ),
     };
   } catch {
     return { status: "failed" };
@@ -113,7 +107,7 @@ export async function completeFilingReviewControlledWith(
 ): Promise<CompleteFilingResult> {
   const startedAt = dependencies.monotonicNow?.() ?? Date.now();
   const accessKind = analyticsAccessKind(dependencies.sessionCredential);
-  const validation = validateChronologyDraft(draft, locale);
+  const validation = validateFilingDraft(draft, locale);
   if (validation.status === "invalid") {
     observeSafely(dependencies, {
       outcome: "rejected",
@@ -123,16 +117,17 @@ export async function completeFilingReviewControlledWith(
     return { status: "rejected", errors: validation.errors };
   }
 
-  const pathCode = analyticsPathCode(validation.filing.offence);
+  const pathCode = analyticsPathCode(validation.filing);
 
   let reservedRequestId: string | null = null;
   let reservationFinalized = false;
   try {
-    const assessment = assessChronologyFiling(validation.filing);
+    const assessment = assessFiling(validation.filing);
     const initialIssuedAt = dependencies.now();
     const initialReference = createDeterminationReference(
       initialIssuedAt,
       dependencies.randomReferencePart(),
+      validation.filing.department,
     );
 
     const access =
@@ -262,14 +257,12 @@ export async function completeFilingReviewControlledWith(
 
     return {
       status: "accepted",
-      determination: {
-        experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
-        locale: validation.filing.locale,
+      determination: createIssuedDetermination(
         reference,
-        issuedAt: issuedAt.toISOString(),
+        issuedAt.toISOString(),
         assessment,
-        language: generated.language,
-      },
+        generated.language,
+      ),
     };
   } catch {
     if (
@@ -306,9 +299,12 @@ function analyticsAccessKind(
 }
 
 function analyticsPathCode(
-  offence: "premature_departure" | "chronic_lateness" | "optimistic_estimate",
+  filing:
+    | import("@/domain/filing/chronology").ChronologyFiling
+    | import("@/domain/filing/digital-conduct").DigitalConductFiling,
 ): AnalyticsPathCode {
-  return `chronology_${offence}`;
+  if (filing.department === "chronology") return `chronology_${filing.offence}`;
+  return `digital_conduct_${filing.offence}`;
 }
 
 function elapsed(

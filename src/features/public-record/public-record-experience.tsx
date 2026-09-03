@@ -46,6 +46,7 @@ export function PublicRecordExperience({
           locale={locale}
           surface={{
             name: "public_record",
+            department: record.snapshot.filing.department,
             recordSubject: analyticsSubject,
             entrySurface,
           }}

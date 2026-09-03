@@ -1,9 +1,9 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 
 import {
-  validateChronologyDeterminationSnapshot,
+  validateDeterminationSnapshot,
   DETERMINATION_TRANSIENT_LIFETIME_MS,
-  type ChronologyDeterminationSnapshot,
+  type DeterminationSnapshot,
 } from "@/domain/determination/determination-experience";
 import {
   isOwnerCredential,
@@ -52,10 +52,7 @@ export async function publishPublicRecordWith(
 ): Promise<PublishPublicRecordResult> {
   if (!isPublishInput(input) || locale !== "en") return { status: "invalid" };
   const now = dependencies.now();
-  const validated = validateChronologyDeterminationSnapshot(
-    input.snapshot,
-    now,
-  );
+  const validated = validateDeterminationSnapshot(input.snapshot, now);
   if (validated.status === "invalid") {
     return { status: "invalid" };
   }
@@ -303,7 +300,7 @@ export async function bureauUnpublishWith(
 }
 
 function isPublishInput(value: unknown): value is {
-  snapshot: ChronologyDeterminationSnapshot;
+  snapshot: DeterminationSnapshot;
   publicationKey: string;
   ownerCredential: string;
 } {

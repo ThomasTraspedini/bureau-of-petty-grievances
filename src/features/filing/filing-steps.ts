@@ -1,8 +1,10 @@
 export const FILING_STEP_CODES = [
   "respondent",
   "relationship",
+  "department",
   "classification",
   "chronology",
+  "communications",
   "impact",
   "mitigation",
   "statement",
@@ -11,7 +13,10 @@ export const FILING_STEP_CODES = [
 
 export type FilingStepCode = (typeof FILING_STEP_CODES)[number];
 
-export const QUESTION_STEP_CODES = FILING_STEP_CODES.slice(0, 7);
+export const QUESTION_STEP_CODES = FILING_STEP_CODES.filter(
+  (step) => step !== "review",
+);
+export const FILING_QUESTION_COUNT = 8;
 
 export function isFilingStep(value: string): value is FilingStepCode {
   return FILING_STEP_CODES.some((step) => step === value);
@@ -19,14 +24,43 @@ export function isFilingStep(value: string): value is FilingStepCode {
 
 export function previousFilingStep(
   step: FilingStepCode,
+  department: "chronology" | "digital_conduct" = "chronology",
 ): FilingStepCode | null {
-  const index = FILING_STEP_CODES.indexOf(step);
-  return index > 0 ? (FILING_STEP_CODES[index - 1] ?? null) : null;
+  const sequence = sequenceFor(department);
+  const index = sequence.indexOf(step);
+  return index > 0 ? (sequence[index - 1] ?? null) : null;
 }
 
-export function nextFilingStep(step: FilingStepCode): FilingStepCode | null {
-  const index = FILING_STEP_CODES.indexOf(step);
-  return index >= 0 && index < FILING_STEP_CODES.length - 1
-    ? (FILING_STEP_CODES[index + 1] ?? null)
+export function nextFilingStep(
+  step: FilingStepCode,
+  department: "chronology" | "digital_conduct" = "chronology",
+): FilingStepCode | null {
+  const sequence = sequenceFor(department);
+  const index = sequence.indexOf(step);
+  return index >= 0 && index < sequence.length - 1
+    ? (sequence[index + 1] ?? null)
     : null;
+}
+
+export function filingStepIndex(
+  step: FilingStepCode,
+  department: "chronology" | "digital_conduct",
+): number {
+  return sequenceFor(department).indexOf(step) + 1;
+}
+
+function sequenceFor(
+  department: "chronology" | "digital_conduct",
+): readonly FilingStepCode[] {
+  return [
+    "respondent",
+    "relationship",
+    "department",
+    "classification",
+    department === "chronology" ? "chronology" : "communications",
+    "impact",
+    "mitigation",
+    "statement",
+    "review",
+  ];
 }

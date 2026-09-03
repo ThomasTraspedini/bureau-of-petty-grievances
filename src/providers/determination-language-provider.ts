@@ -1,4 +1,4 @@
-import type { ChronologyDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import type { DeterminationLanguageCommand } from "@/domain/determination/determination-language";
 import type { DeterminationLanguageValidationIssueCode } from "@/domain/determination/locales/en";
 
 export type ProviderRetryableFailureReason =
@@ -45,7 +45,7 @@ export interface DeterminationLanguageProviderAttempt {
 export interface DeterminationLanguageProvider {
   readonly isConfigured?: boolean;
   generate(
-    command: ChronologyDeterminationLanguageCommand,
+    command: DeterminationLanguageCommand,
     attempt: DeterminationLanguageProviderAttempt,
   ): Promise<DeterminationLanguageProviderResult>;
 }

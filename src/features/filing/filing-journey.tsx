@@ -8,17 +8,26 @@ import {
   useTransition,
 } from "react";
 
-import type { IssuedChronologyDetermination } from "@/domain/determination/determination-experience";
+import type { IssuedDetermination } from "@/domain/determination/determination-experience";
 import {
   type ChronologyDraft,
   type FilingError,
   type FilingErrorCode,
   type FilingField,
   countCharacters,
-  createEmptyChronologyDraft,
-  validateChronologyDraft,
-  validateDraftField,
+  validateDraftField as validateChronologyDraftField,
 } from "@/domain/filing/chronology";
+import {
+  type DigitalConductDraft,
+  validateDigitalConductDraftField,
+} from "@/domain/filing/digital-conduct";
+import {
+  createEmptyFilingDraft,
+  type Filing,
+  type FilingDraft,
+  switchDraftDepartment,
+  validateFilingDraft,
+} from "@/domain/filing/filing";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
 import type { AnalyticsPathCode } from "@/domain/observability/product-analytics";
@@ -30,18 +39,21 @@ import {
 } from "../access/generation-idempotency";
 import {
   DETERMINATION_SESSION_KEY,
+  LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
   serializeDeterminationSession,
 } from "../determination/determination-session";
 import {
   FILING_DRAFT_STORAGE_KEY,
+  LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY,
   parseStoredDraft,
   serializeDraft,
 } from "./draft-storage";
 import {
-  FILING_STEP_CODES,
+  FILING_QUESTION_COUNT,
   type FilingStepCode,
   nextFilingStep,
   previousFilingStep,
+  filingStepIndex,
 } from "./filing-steps";
 import { SurfaceObserver } from "../observability/surface-observer";
 import {
@@ -58,7 +70,7 @@ type CompleteFiling = (
   idempotencyKey: unknown,
   journeyId?: unknown,
 ) => Promise<
-  | { status: "accepted"; determination: IssuedChronologyDetermination }
+  | { status: "accepted"; determination: IssuedDetermination }
   | { status: "rejected"; errors: FilingError[] }
   | { status: "limited"; retryAfterSeconds: number }
   | { status: "failed" }
@@ -78,10 +90,12 @@ interface FilingJourneyProps {
 type RecoveryNotice = "restored" | "expired" | "invalid" | null;
 
 const FIELD_STEPS: Record<FilingField, FilingStepCode> = {
+  department: "department",
   respondent: "respondent",
   relationship: "relationship",
   offence: "classification",
   chronology: "chronology",
+  communications: "communications",
   impact: "impact",
   mitigation: "mitigation",
   statement: "statement",
@@ -90,8 +104,10 @@ const FIELD_STEPS: Record<FilingField, FilingStepCode> = {
 const STEP_FIELDS: Partial<Record<FilingStepCode, FilingField>> = {
   respondent: "respondent",
   relationship: "relationship",
+  department: "department",
   classification: "offence",
   chronology: "chronology",
+  communications: "communications",
   impact: "impact",
   mitigation: "mitigation",
   statement: "statement",
@@ -107,9 +123,7 @@ export function FilingJourney({
   navigation,
   completeFiling,
 }: FilingJourneyProps) {
-  const [draft, setDraft] = useState<ChronologyDraft>(
-    createEmptyChronologyDraft,
-  );
+  const [draft, setDraft] = useState<FilingDraft>(createEmptyFilingDraft);
   const [hydrated, setHydrated] = useState(false);
   const [notice, setNotice] = useState<RecoveryNotice>(null);
   const [error, setError] = useState<FilingErrorCode | null>(null);
@@ -126,13 +140,17 @@ export function FilingJourney({
     stepStartedAt.current = Date.now();
     const timer = window.setTimeout(() => {
       const stored = parseStoredDraft(
-        window.localStorage.getItem(FILING_DRAFT_STORAGE_KEY),
+        window.localStorage.getItem(FILING_DRAFT_STORAGE_KEY) ??
+          window.localStorage.getItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY),
         Date.now(),
       );
       setDraft(stored.draft);
       setNotice(stored.status === "empty" ? null : stored.status);
       if (stored.status === "expired" || stored.status === "invalid") {
         window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
+        window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
+      } else if (stored.status === "restored") {
+        window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
       }
       setHydrated(true);
     }, 0);
@@ -150,12 +168,16 @@ export function FilingJourney({
   }, [draft, hydrated]);
 
   const pathFor = (target: FilingStepCode) => `/${locale}/file/${target}`;
-  const questionIndex = FILING_STEP_CODES.indexOf(step) + 1;
-  const showProgress = questionIndex >= 1 && questionIndex <= 7;
-  const observedPathCode = analyticsPathCode(draft.offence);
+  const questionIndex = filingStepIndex(step, draft.department);
+  const showProgress =
+    questionIndex >= 1 && questionIndex <= FILING_QUESTION_COUNT;
+  const observedPathCode = analyticsPathCode(draft);
 
-  function updateDraft(update: (current: ChronologyDraft) => ChronologyDraft) {
+  function updateDraft(update: (current: FilingDraft) => FilingDraft) {
     window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(
+      LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
+    );
     window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
     setDraft(update);
     setError(null);
@@ -172,21 +194,24 @@ export function FilingJourney({
     event.preventDefault();
     const field = STEP_FIELDS[step];
     if (field) {
-      const issue = validateDraftField(field, draft);
+      const issue = validateActiveDraftField(field, draft);
       if (issue) {
         setError(issue);
-        trackBrowserProductEvent({
-          locale,
-          name: "filing_validation_failed",
-          properties: {
-            step,
-            reason: analyticsValidationReason(issue),
+        trackBrowserProductEvent(
+          {
+            locale,
+            name: "filing_validation_failed",
+            properties: {
+              step,
+              reason: analyticsValidationReason(issue),
+            },
           },
-        });
+          draft.department,
+        );
         return;
       }
     }
-    const completedPathCode = analyticsPathCode(draft.offence);
+    const completedPathCode = analyticsPathCode(draft);
     const completionProperties = {
       step,
       direction: returnToReview
@@ -197,14 +222,17 @@ export function FilingJourney({
         Math.max(0, Date.now() - (stepStartedAt.current ?? Date.now())),
       ),
     };
-    trackBrowserProductEvent({
-      locale,
-      name: "filing_step_completed",
-      properties: completedPathCode
-        ? { ...completionProperties, pathCode: completedPathCode }
-        : completionProperties,
-    });
-    const next = nextFilingStep(step);
+    trackBrowserProductEvent(
+      {
+        locale,
+        name: "filing_step_completed",
+        properties: completedPathCode
+          ? { ...completionProperties, pathCode: completedPathCode }
+          : completionProperties,
+      },
+      draft.department,
+    );
+    const next = nextFilingStep(step, draft.department);
     if (returnToReview) {
       navigate("review");
     } else if (next) {
@@ -213,7 +241,7 @@ export function FilingJourney({
   }
 
   function handleComplete() {
-    const localResult = validateChronologyDraft(draft, locale);
+    const localResult = validateFilingDraft(draft, locale);
     if (localResult.status === "invalid") {
       const first = localResult.errors[0];
       if (first) {
@@ -226,13 +254,16 @@ export function FilingJourney({
     setGenerationFailed(false);
     setGenerationLimited(null);
     setServerError(false);
-    const pathCode = analyticsPathCode(localResult.filing.offence);
+    const pathCode = analyticsPathCode(localResult.filing);
     if (!pathCode) return;
-    trackBrowserProductEvent({
-      locale,
-      name: "filing_completion_requested",
-      properties: { pathCode },
-    });
+    trackBrowserProductEvent(
+      {
+        locale,
+        name: "filing_completion_requested",
+        properties: { pathCode },
+      },
+      localResult.filing.department,
+    );
     startTransition(async () => {
       try {
         const idempotencyKey = getOrCreateGenerationIdempotencyKey(
@@ -272,9 +303,13 @@ export function FilingJourney({
 
   function resetDraft() {
     window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
     window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(
+      LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
+    );
     window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
-    setDraft(createEmptyChronologyDraft());
+    setDraft(createEmptyFilingDraft());
     setNotice(null);
     setError(null);
     setServerError(false);
@@ -282,7 +317,7 @@ export function FilingJourney({
     navigate("respondent");
   }
 
-  const previous = previousFilingStep(step);
+  const previous = previousFilingStep(step, draft.department);
 
   return (
     <div className="filing-shell" data-locale={locale}>
@@ -291,8 +326,13 @@ export function FilingJourney({
           locale={locale}
           surface={
             observedPathCode
-              ? { name: "filing", step, pathCode: observedPathCode }
-              : { name: "filing", step }
+              ? {
+                  name: "filing",
+                  department: draft.department,
+                  step,
+                  pathCode: observedPathCode,
+                }
+              : { name: "filing", department: draft.department, step }
           }
         />
       ) : null}
@@ -311,16 +351,34 @@ export function FilingJourney({
             <small>{navigation.brandDescriptor}</small>
           </span>
         </a>
-        <span className="filing-service-name">{copy.serviceName}</span>
+        <span className="filing-service-name">
+          {draft.department === "chronology"
+            ? copy.serviceName
+            : copy.digitalServiceName}
+        </span>
       </header>
 
       <main className="filing-main" id="filing-question">
-        <aside className="filing-rail" aria-label={copy.serviceName}>
-          <p>{copy.department}</p>
+        <aside
+          className="filing-rail"
+          aria-label={
+            draft.department === "chronology"
+              ? copy.serviceName
+              : copy.digitalServiceName
+          }
+        >
+          <p>
+            {draft.department === "chronology"
+              ? copy.department
+              : copy.digitalDepartment}
+          </p>
           {showProgress ? (
             <>
               <span>
-                {format(copy.progress, { current: questionIndex, total: 7 })}
+                {format(copy.progress, {
+                  current: questionIndex,
+                  total: FILING_QUESTION_COUNT,
+                })}
               </span>
               <div className="progress-track" aria-hidden="true">
                 <i style={{ width: `${String((questionIndex / 7) * 100)}%` }} />
@@ -453,18 +511,33 @@ export function FilingJourney({
 }
 
 function analyticsPathCode(
-  offence: ChronologyDraft["offence"],
+  draft: FilingDraft | Filing,
 ): AnalyticsPathCode | undefined {
-  switch (offence) {
+  switch (draft.offence) {
     case "premature_departure":
       return "chronology_premature_departure";
     case "chronic_lateness":
       return "chronology_chronic_lateness";
     case "optimistic_estimate":
       return "chronology_optimistic_estimate";
+    case "fragmented_messages":
+      return "digital_conduct_fragmented_messages";
+    case "excessive_voice_note":
+      return "digital_conduct_excessive_voice_note";
+    case "unacknowledged_coordination":
+      return "digital_conduct_unacknowledged_coordination";
     default:
       return undefined;
   }
+}
+
+function validateActiveDraftField(
+  field: FilingField,
+  draft: FilingDraft,
+): FilingErrorCode | null {
+  return draft.department === "chronology"
+    ? validateChronologyDraftField(field, draft)
+    : validateDigitalConductDraftField(field, draft);
 }
 
 function analyticsValidationReason(
@@ -524,10 +597,10 @@ function DeterminationLimited({
 
 interface QuestionStepProps {
   step: FilingStepCode;
-  draft: ChronologyDraft;
+  draft: FilingDraft;
   copy: FilingCopy;
   error: FilingErrorCode | null;
-  updateDraft: (update: (current: ChronologyDraft) => ChronologyDraft) => void;
+  updateDraft: (update: (current: FilingDraft) => FilingDraft) => void;
   goToClassification: () => void;
 }
 
@@ -622,19 +695,46 @@ function QuestionStep({
     );
   }
 
-  if (step === "classification") {
+  if (step === "department") {
     return (
       <QuestionFrame
-        kicker={copy.classificationKicker}
-        title={copy.classificationTitle}
-        body={copy.classificationBody}
-        why={copy.classificationWhy}
+        kicker={copy.departmentKicker}
+        title={copy.departmentTitle}
+        body={copy.departmentBody}
+        why={copy.departmentWhy}
         copy={copy}
       >
         <ChoiceGroup
-          name="offence"
-          selected={draft.offence}
+          name="department"
+          selected={draft.department}
           options={[
+            [
+              "chronology",
+              copy.departmentChronology,
+              copy.departmentChronologyDescription,
+            ],
+            [
+              "digital_conduct",
+              copy.departmentDigitalConduct,
+              copy.departmentDigitalConductDescription,
+            ],
+          ]}
+          onSelect={(value) => {
+            if (value !== "chronology" && value !== "digital_conduct") return;
+            updateDraft((current) => switchDraftDepartment(current, value));
+          }}
+        />
+        {errorMessage ? (
+          <FieldError id={errorId}>{errorMessage}</FieldError>
+        ) : null}
+      </QuestionFrame>
+    );
+  }
+
+  if (step === "classification") {
+    const options =
+      draft.department === "chronology"
+        ? ([
             [
               "premature_departure",
               copy.offencePremature,
@@ -646,17 +746,67 @@ function QuestionStep({
               copy.offenceEstimate,
               copy.offenceEstimateDescription,
             ],
-          ]}
+          ] as const)
+        : ([
+            [
+              "fragmented_messages",
+              copy.offenceFragmentedMessages,
+              copy.offenceFragmentedMessagesDescription,
+            ],
+            [
+              "excessive_voice_note",
+              copy.offenceExcessiveVoiceNote,
+              copy.offenceExcessiveVoiceNoteDescription,
+            ],
+            [
+              "unacknowledged_coordination",
+              copy.offenceUnacknowledgedCoordination,
+              copy.offenceUnacknowledgedCoordinationDescription,
+            ],
+          ] as const);
+    return (
+      <QuestionFrame
+        kicker={copy.classificationKicker}
+        title={
+          draft.department === "chronology"
+            ? copy.classificationTitle
+            : copy.digitalClassificationTitle
+        }
+        body={
+          draft.department === "chronology"
+            ? copy.classificationBody
+            : copy.digitalClassificationBody
+        }
+        why={copy.classificationWhy}
+        copy={copy}
+      >
+        <ChoiceGroup
+          name="offence"
+          selected={draft.offence}
+          options={options}
           onSelect={(value) => {
-            updateDraft((current) => ({
-              ...current,
-              offence:
-                value === "premature_departure" ||
-                value === "chronic_lateness" ||
-                value === "optimistic_estimate"
-                  ? value
-                  : "",
-            }));
+            updateDraft((current) => {
+              if (current.department === "chronology") {
+                return {
+                  ...current,
+                  offence:
+                    value === "premature_departure" ||
+                    value === "chronic_lateness" ||
+                    value === "optimistic_estimate"
+                      ? value
+                      : "",
+                };
+              }
+              return {
+                ...current,
+                offence:
+                  value === "fragmented_messages" ||
+                  value === "excessive_voice_note" ||
+                  value === "unacknowledged_coordination"
+                    ? value
+                    : "",
+              };
+            });
           }}
         />
         {errorMessage ? (
@@ -667,6 +817,14 @@ function QuestionStep({
   }
 
   if (step === "chronology") {
+    if (draft.department !== "chronology") {
+      return (
+        <DepartmentEvidenceMismatch
+          copy={copy}
+          goToClassification={goToClassification}
+        />
+      );
+    }
     return (
       <ChronologyQuestion
         draft={draft}
@@ -679,7 +837,42 @@ function QuestionStep({
     );
   }
 
+  if (step === "communications") {
+    if (draft.department !== "digital_conduct") {
+      return (
+        <DepartmentEvidenceMismatch
+          copy={copy}
+          goToClassification={goToClassification}
+        />
+      );
+    }
+    return (
+      <DigitalConductQuestion
+        draft={draft}
+        copy={copy}
+        errorMessage={errorMessage}
+        errorId={errorId}
+        updateDraft={updateDraft}
+        goToClassification={goToClassification}
+      />
+    );
+  }
+
   if (step === "impact") {
+    const options =
+      draft.department === "chronology"
+        ? ([
+            ["table_held", copy.impactTable],
+            ["repeated_updates", copy.impactUpdates],
+            ["plans_compressed", copy.impactCompressed],
+            ["irritation_only", copy.impactIrritation],
+          ] as const)
+        : ([
+            ["notification_burden", copy.impactNotificationBurden],
+            ["coordination_delayed", copy.impactCoordinationDelayed],
+            ["attention_fragmented", copy.impactAttentionFragmented],
+            ["irritation_only", copy.impactIrritation],
+          ] as const);
     return (
       <QuestionFrame
         kicker={copy.impactKicker}
@@ -691,23 +884,32 @@ function QuestionStep({
         <ChoiceGroup
           name="impact"
           selected={draft.impact}
-          options={[
-            ["table_held", copy.impactTable],
-            ["repeated_updates", copy.impactUpdates],
-            ["plans_compressed", copy.impactCompressed],
-            ["irritation_only", copy.impactIrritation],
-          ]}
+          options={options}
           onSelect={(value) => {
-            updateDraft((current) => ({
-              ...current,
-              impact:
-                value === "table_held" ||
-                value === "repeated_updates" ||
-                value === "plans_compressed" ||
-                value === "irritation_only"
-                  ? value
-                  : "",
-            }));
+            updateDraft((current) => {
+              if (current.department === "chronology") {
+                return {
+                  ...current,
+                  impact:
+                    value === "table_held" ||
+                    value === "repeated_updates" ||
+                    value === "plans_compressed" ||
+                    value === "irritation_only"
+                      ? value
+                      : "",
+                };
+              }
+              return {
+                ...current,
+                impact:
+                  value === "notification_burden" ||
+                  value === "coordination_delayed" ||
+                  value === "attention_fragmented" ||
+                  value === "irritation_only"
+                    ? value
+                    : "",
+              };
+            });
           }}
         />
         {errorMessage ? (
@@ -718,6 +920,20 @@ function QuestionStep({
   }
 
   if (step === "mitigation") {
+    const options =
+      draft.department === "chronology"
+        ? ([
+            ["brings_dessert", copy.mitigationDessert],
+            ["apologizes", copy.mitigationApology],
+            ["helps_others", copy.mitigationHelp],
+            ["useful_warning", copy.mitigationWarning],
+          ] as const)
+        : ([
+            ["provides_summary", copy.mitigationProvidesSummary],
+            ["acknowledges_delay", copy.mitigationAcknowledgesDelay],
+            ["usually_clear", copy.mitigationUsuallyClear],
+            ["helps_coordinate", copy.mitigationHelpsCoordinate],
+          ] as const);
     return (
       <QuestionFrame
         kicker={copy.mitigationKicker}
@@ -732,23 +948,32 @@ function QuestionStep({
         <ChoiceGroup
           name="mitigation"
           selected={draft.mitigation}
-          options={[
-            ["brings_dessert", copy.mitigationDessert],
-            ["apologizes", copy.mitigationApology],
-            ["helps_others", copy.mitigationHelp],
-            ["useful_warning", copy.mitigationWarning],
-          ]}
+          options={options}
           onSelect={(value) => {
-            updateDraft((current) => ({
-              ...current,
-              mitigation:
-                value === "brings_dessert" ||
-                value === "apologizes" ||
-                value === "helps_others" ||
-                value === "useful_warning"
-                  ? value
-                  : "",
-            }));
+            updateDraft((current) => {
+              if (current.department === "chronology") {
+                return {
+                  ...current,
+                  mitigation:
+                    value === "brings_dessert" ||
+                    value === "apologizes" ||
+                    value === "helps_others" ||
+                    value === "useful_warning"
+                      ? value
+                      : "",
+                };
+              }
+              return {
+                ...current,
+                mitigation:
+                  value === "provides_summary" ||
+                  value === "acknowledges_delay" ||
+                  value === "usually_clear" ||
+                  value === "helps_coordinate"
+                    ? value
+                    : "",
+              };
+            });
           }}
         />
         {errorMessage ? (
@@ -804,7 +1029,7 @@ interface ChronologyQuestionProps {
   copy: FilingCopy;
   errorMessage: string | null;
   errorId: string | undefined;
-  updateDraft: (update: (current: ChronologyDraft) => ChronologyDraft) => void;
+  updateDraft: (update: (current: FilingDraft) => FilingDraft) => void;
   goToClassification: () => void;
 }
 
@@ -816,6 +1041,13 @@ function ChronologyQuestion({
   updateDraft,
   goToClassification,
 }: ChronologyQuestionProps) {
+  const updateChronology = (
+    update: (current: ChronologyDraft) => ChronologyDraft,
+  ) => {
+    updateDraft((current) =>
+      current.department === "chronology" ? update(current) : current,
+    );
+  };
   if (!draft.offence) {
     return (
       <QuestionFrame
@@ -859,7 +1091,7 @@ function ChronologyQuestion({
           suffix={copy.minutesSuffix}
           errorId={errorId}
           onFirst={(value) => {
-            updateDraft((current) => ({
+            updateChronology((current) => ({
               ...current,
               facts: {
                 ...current.facts,
@@ -871,7 +1103,7 @@ function ChronologyQuestion({
             }));
           }}
           onSecond={(value) => {
-            updateDraft((current) => ({
+            updateChronology((current) => ({
               ...current,
               facts: {
                 ...current.facts,
@@ -907,7 +1139,7 @@ function ChronologyQuestion({
           suffix={copy.minutesSuffix}
           errorId={errorId}
           onFirst={(value) => {
-            updateDraft((current) => ({
+            updateChronology((current) => ({
               ...current,
               facts: {
                 ...current.facts,
@@ -919,7 +1151,7 @@ function ChronologyQuestion({
             }));
           }}
           onSecond={(value) => {
-            updateDraft((current) => ({
+            updateChronology((current) => ({
               ...current,
               facts: {
                 ...current.facts,
@@ -954,7 +1186,7 @@ function ChronologyQuestion({
         suffix={copy.minutesSuffix}
         errorId={errorId}
         onFirst={(value) => {
-          updateDraft((current) => ({
+          updateChronology((current) => ({
             ...current,
             facts: {
               ...current.facts,
@@ -966,7 +1198,7 @@ function ChronologyQuestion({
           }));
         }}
         onSecond={(value) => {
-          updateDraft((current) => ({
+          updateChronology((current) => ({
             ...current,
             facts: {
               ...current.facts,
@@ -982,6 +1214,303 @@ function ChronologyQuestion({
         <FieldError id={errorId}>{errorMessage}</FieldError>
       ) : null}
     </QuestionFrame>
+  );
+}
+
+function DepartmentEvidenceMismatch({
+  copy,
+  goToClassification,
+}: {
+  copy: FilingCopy;
+  goToClassification: () => void;
+}) {
+  return (
+    <QuestionFrame
+      kicker={copy.classificationKicker}
+      title={copy.classificationTitle}
+      body={copy.classificationBody}
+      why={copy.classificationWhy}
+      copy={copy}
+    >
+      <button
+        className="button button-secondary"
+        type="button"
+        onClick={goToClassification}
+      >
+        {copy.back}
+      </button>
+    </QuestionFrame>
+  );
+}
+
+function DigitalConductQuestion({
+  draft,
+  copy,
+  errorMessage,
+  errorId,
+  updateDraft,
+  goToClassification,
+}: {
+  draft: DigitalConductDraft;
+  copy: FilingCopy;
+  errorMessage: string | null;
+  errorId: string | undefined;
+  updateDraft: (update: (current: FilingDraft) => FilingDraft) => void;
+  goToClassification: () => void;
+}) {
+  if (!draft.offence) {
+    return (
+      <DepartmentEvidenceMismatch
+        copy={copy}
+        goToClassification={goToClassification}
+      />
+    );
+  }
+  const updateDigital = (
+    update: (current: DigitalConductDraft) => DigitalConductDraft,
+  ) => {
+    updateDraft((current) =>
+      current.department === "digital_conduct" ? update(current) : current,
+    );
+  };
+  const shared = {
+    kicker: copy.communicationsKicker,
+    why: copy.communicationsWhy,
+    copy,
+  };
+  if (draft.offence === "fragmented_messages") {
+    const facts = draft.facts.fragmentedMessages;
+    return (
+      <QuestionFrame
+        {...shared}
+        title={copy.fragmentedMessagesTitle}
+        body={copy.fragmentedMessagesBody}
+      >
+        <EvidenceNumberGrid
+          fields={[
+            [
+              copy.messageCountLabel,
+              facts.messageCount,
+              2,
+              40,
+              copy.messagesSuffix,
+              (value) => {
+                updateDigital((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    fragmentedMessages: {
+                      ...current.facts.fragmentedMessages,
+                      messageCount: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.ideaCountLabel,
+              facts.ideaCount,
+              1,
+              10,
+              copy.ideasSuffix,
+              (value) => {
+                updateDigital((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    fragmentedMessages: {
+                      ...current.facts.fragmentedMessages,
+                      ideaCount: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.burstMinutesLabel,
+              facts.burstMinutes,
+              1,
+              60,
+              copy.minutesSuffix,
+              (value) => {
+                updateDigital((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    fragmentedMessages: {
+                      ...current.facts.fragmentedMessages,
+                      burstMinutes: value,
+                    },
+                  },
+                }));
+              },
+            ],
+          ]}
+          errorId={errorId}
+        />
+        {errorMessage ? (
+          <FieldError id={errorId}>{errorMessage}</FieldError>
+        ) : null}
+      </QuestionFrame>
+    );
+  }
+  if (draft.offence === "excessive_voice_note") {
+    const facts = draft.facts.excessiveVoiceNote;
+    return (
+      <QuestionFrame
+        {...shared}
+        title={copy.excessiveVoiceNoteTitle}
+        body={copy.excessiveVoiceNoteBody}
+      >
+        <EvidenceNumberGrid
+          fields={[
+            [
+              copy.voiceDurationLabel,
+              facts.durationMinutes,
+              2,
+              60,
+              copy.minutesSuffix,
+              (value) => {
+                updateDigital((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    excessiveVoiceNote: {
+                      ...current.facts.excessiveVoiceNote,
+                      durationMinutes: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.ideaCountLabel,
+              facts.ideaCount,
+              1,
+              10,
+              copy.ideasSuffix,
+              (value) => {
+                updateDigital((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    excessiveVoiceNote: {
+                      ...current.facts.excessiveVoiceNote,
+                      ideaCount: value,
+                    },
+                  },
+                }));
+              },
+            ],
+          ]}
+          errorId={errorId}
+        />
+        {errorMessage ? (
+          <FieldError id={errorId}>{errorMessage}</FieldError>
+        ) : null}
+      </QuestionFrame>
+    );
+  }
+  const facts = draft.facts.unacknowledgedCoordination;
+  return (
+    <QuestionFrame
+      {...shared}
+      title={copy.unacknowledgedCoordinationTitle}
+      body={copy.unacknowledgedCoordinationBody}
+    >
+      <EvidenceNumberGrid
+        fields={[
+          [
+            copy.responseHoursLabel,
+            facts.responseHours,
+            1,
+            168,
+            copy.hoursSuffix,
+            (value) => {
+              updateDigital((current) => ({
+                ...current,
+                facts: {
+                  ...current.facts,
+                  unacknowledgedCoordination: {
+                    ...current.facts.unacknowledgedCoordination,
+                    responseHours: value,
+                  },
+                },
+              }));
+            },
+          ],
+          [
+            copy.followUpCountLabel,
+            facts.followUpCount,
+            1,
+            10,
+            copy.messagesSuffix,
+            (value) => {
+              updateDigital((current) => ({
+                ...current,
+                facts: {
+                  ...current.facts,
+                  unacknowledgedCoordination: {
+                    ...current.facts.unacknowledgedCoordination,
+                    followUpCount: value,
+                  },
+                },
+              }));
+            },
+          ],
+        ]}
+        errorId={errorId}
+      />
+      <p className="field-hint">{copy.coordinationBoundary}</p>
+      {errorMessage ? (
+        <FieldError id={errorId}>{errorMessage}</FieldError>
+      ) : null}
+    </QuestionFrame>
+  );
+}
+
+type EvidenceNumberField = readonly [
+  label: string,
+  value: string,
+  minimum: number,
+  maximum: number,
+  suffix: string,
+  onChange: (value: string) => void,
+];
+
+function EvidenceNumberGrid({
+  fields,
+  errorId,
+}: {
+  fields: readonly EvidenceNumberField[];
+  errorId: string | undefined;
+}) {
+  return (
+    <div className="timing-grid evidence-number-grid">
+      {fields.map(
+        ([label, value, minimum, maximum, suffix, onChange], index) => (
+          <label key={label}>
+            <span className="field-label">{label}</span>
+            <span className="number-control">
+              <input
+                autoFocus={index === 0}
+                className="text-input"
+                type="number"
+                inputMode="numeric"
+                min={minimum}
+                max={maximum}
+                value={value}
+                aria-describedby={errorId}
+                onChange={(event) => {
+                  onChange(event.target.value);
+                }}
+              />
+              <span>{suffix}</span>
+            </span>
+          </label>
+        ),
+      )}
+    </div>
   );
 }
 
@@ -1105,7 +1634,7 @@ function ChoiceGroup({ name, selected, options, onSelect }: ChoiceGroupProps) {
 }
 
 interface ReviewStepProps {
-  draft: ChronologyDraft;
+  draft: FilingDraft;
   copy: FilingCopy;
   locale: InterfaceLocale;
   isPending: boolean;
@@ -1127,11 +1656,24 @@ function ReviewStep({
       "relationship",
     ],
     [
+      copy.reviewDepartment,
+      draft.department === "chronology"
+        ? copy.departmentChronology
+        : copy.departmentDigitalConduct,
+      "department",
+    ],
+    [
       copy.reviewClassification,
       offenceLabel(draft.offence, copy),
       "classification",
     ],
-    [copy.reviewChronology, chronologySummary(draft, copy), "chronology"],
+    [
+      draft.department === "chronology"
+        ? copy.reviewChronology
+        : copy.reviewCommunications,
+      evidenceSummary(draft, copy),
+      draft.department === "chronology" ? "chronology" : "communications",
+    ],
     [copy.reviewImpact, impactLabel(draft.impact, copy), "impact"],
     [
       copy.reviewMitigation,
@@ -1297,6 +1839,8 @@ function errorCopy(error: FilingErrorCode, copy: FilingCopy): string {
     invalid_time: copy.errorInvalidTime,
     invalid_duration: copy.errorInvalidDuration,
     estimate_not_exceeded: copy.errorEstimateNotExceeded,
+    ratio_not_exceeded: copy.errorRatioNotExceeded,
+    follow_up_required: copy.errorFollowUpRequired,
     statement_too_long: copy.errorStatementTooLong,
     restricted_content: copy.errorRestricted,
     invalid_selection: copy.errorInvalidSelection,
@@ -1305,7 +1849,7 @@ function errorCopy(error: FilingErrorCode, copy: FilingCopy): string {
 }
 
 function relationshipLabel(
-  value: ChronologyDraft["relationship"],
+  value: FilingDraft["relationship"],
   copy: FilingCopy,
 ): string {
   return {
@@ -1318,33 +1862,33 @@ function relationshipLabel(
   }[value];
 }
 
-function offenceLabel(
-  value: ChronologyDraft["offence"],
-  copy: FilingCopy,
-): string {
+function offenceLabel(value: FilingDraft["offence"], copy: FilingCopy): string {
   return {
     premature_departure: copy.offencePremature,
     chronic_lateness: copy.offenceLate,
     optimistic_estimate: copy.offenceEstimate,
+    fragmented_messages: copy.offenceFragmentedMessages,
+    excessive_voice_note: copy.offenceExcessiveVoiceNote,
+    unacknowledged_coordination: copy.offenceUnacknowledgedCoordination,
     "": "—",
   }[value];
 }
 
-function impactLabel(
-  value: ChronologyDraft["impact"],
-  copy: FilingCopy,
-): string {
+function impactLabel(value: FilingDraft["impact"], copy: FilingCopy): string {
   return {
     table_held: copy.impactTable,
     repeated_updates: copy.impactUpdates,
     plans_compressed: copy.impactCompressed,
+    notification_burden: copy.impactNotificationBurden,
+    coordination_delayed: copy.impactCoordinationDelayed,
+    attention_fragmented: copy.impactAttentionFragmented,
     irritation_only: copy.impactIrritation,
     "": "—",
   }[value];
 }
 
 function mitigationLabel(
-  value: ChronologyDraft["mitigation"],
+  value: FilingDraft["mitigation"],
   copy: FilingCopy,
 ): string {
   return {
@@ -1352,11 +1896,37 @@ function mitigationLabel(
     apologizes: copy.mitigationApology,
     helps_others: copy.mitigationHelp,
     useful_warning: copy.mitigationWarning,
+    provides_summary: copy.mitigationProvidesSummary,
+    acknowledges_delay: copy.mitigationAcknowledgesDelay,
+    usually_clear: copy.mitigationUsuallyClear,
+    helps_coordinate: copy.mitigationHelpsCoordinate,
     "": "—",
   }[value];
 }
 
-function chronologySummary(draft: ChronologyDraft, copy: FilingCopy): string {
+function evidenceSummary(draft: FilingDraft, copy: FilingCopy): string {
+  if (draft.department === "digital_conduct") {
+    if (draft.offence === "fragmented_messages") {
+      return format(copy.summaryFragmentedMessages, {
+        messages: draft.facts.fragmentedMessages.messageCount || "—",
+        ideas: draft.facts.fragmentedMessages.ideaCount || "—",
+        minutes: draft.facts.fragmentedMessages.burstMinutes || "—",
+      });
+    }
+    if (draft.offence === "excessive_voice_note") {
+      return format(copy.summaryExcessiveVoiceNote, {
+        minutes: draft.facts.excessiveVoiceNote.durationMinutes || "—",
+        ideas: draft.facts.excessiveVoiceNote.ideaCount || "—",
+      });
+    }
+    if (draft.offence === "unacknowledged_coordination") {
+      return format(copy.summaryUnacknowledgedCoordination, {
+        hours: draft.facts.unacknowledgedCoordination.responseHours || "—",
+        followUps: draft.facts.unacknowledgedCoordination.followUpCount || "—",
+      });
+    }
+    return "—";
+  }
   if (draft.offence === "premature_departure") {
     return format(copy.summaryPremature, {
       time: draft.facts.prematureDeparture.declaredTime || "—",

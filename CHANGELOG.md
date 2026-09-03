@@ -2,6 +2,23 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.14.0]
+
+### Added
+
+- A complete Department of Digital Conduct filing path for fragmented messages, excessive voice memoranda, and unacknowledged ordinary coordination using bounded filer-entered counts and intervals.
+- Deterministic Digital Conduct assessment policy, department-owned English editorial validation and fallback, grounded provider commands, and proportionate batching, summary, or acknowledgement remedies.
+- A distinct communications-docket determination visualization that discloses its filer-submitted evidence source and explicitly excludes message, device, account, presence, and read-receipt access.
+- End-to-end Digital filing, determination, publication, accessibility, privacy, and reviewed visual coverage plus focused domain, language, migration, session, and share-descriptor tests.
+- An accepted decision record defining Digital Conduct scope, anti-surveillance and anti-coercion limits, migration, persistence, sharing, and analytics boundaries.
+
+### Changed
+
+- Filing, assessment, transient determination, public-record, sharing, provider, and observability boundaries are now department-discriminated while preserving the complete Chronology path.
+- Device draft and tab determination envelopes advance to version 2 with validated migration of legacy Chronology state; share descriptors advance to version 2 with Digital-specific preview allowlists.
+- Product analytics advances to schema version 2 with department selection, communications steps, and three Digital Conduct path codes while excluding every submitted fact value.
+- Department expansion remains in progress; Domestic Affairs and Social Planning are still required for the published capability outcome.
+
 ## [0.13.0]
 
 ### Added

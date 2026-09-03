@@ -82,11 +82,14 @@ export function PublicRecordSharing({
     outcome: "completed" | "cancelled" | "failed",
   ) {
     if (!analyticsSubject) return;
-    trackBrowserProductEvent({
-      locale,
-      name: "share_completed",
-      properties: { recordSubject: analyticsSubject, method, outcome },
-    });
+    trackBrowserProductEvent(
+      {
+        locale,
+        name: "share_completed",
+        properties: { recordSubject: analyticsSubject, method, outcome },
+      },
+      descriptor.department,
+    );
   }
 
   return (

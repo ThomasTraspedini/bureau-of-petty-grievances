@@ -153,6 +153,7 @@ Logs and analytics must use categorical metadata or approved purpose-specific ps
 - Deletion must remove or irreversibly detach public access and associated private content.
 - Lifecycle and retention remain configurable.
 - Social previews use revisioned, lifecycle-checked, `no-store` image URLs so application-controlled caches cannot preserve an available preview after unpublishing.
+- Digital Conduct accepts only filer-entered aggregate counts and intervals. It has no provider or application permission to access message bodies, messaging accounts, devices, read receipts, presence, contact graphs, or background response timing; a deployment must not add such access without a new accepted privacy and safety decision.
 - Backups, exports, and provider retention must be understood before public evaluation.
 - Provider data controls and retention must be reviewed before configuring a provider in a public deployment; `store: false` is necessary but not the whole deployment privacy review. A deployment can remain fully usable through deterministic fallback while that review is pending.
 

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import type {
   AnalyticsEntrySurface,
+  AnalyticsDepartmentCode,
   AnalyticsFilingStep,
   AnalyticsPathCode,
   AnalyticsSubject,
@@ -17,10 +18,16 @@ import {
 
 type Surface =
   | { name: "landing" }
-  | { name: "filing"; step: AnalyticsFilingStep; pathCode?: AnalyticsPathCode }
-  | { name: "determination" }
+  | {
+      name: "filing";
+      department?: AnalyticsDepartmentCode;
+      step: AnalyticsFilingStep;
+      pathCode?: AnalyticsPathCode;
+    }
+  | { name: "determination"; department?: AnalyticsDepartmentCode }
   | {
       name: "public_record";
+      department?: AnalyticsDepartmentCode;
       recordSubject: AnalyticsSubject;
       entrySurface: AnalyticsEntrySurface;
     };
@@ -33,6 +40,10 @@ export function SurfaceObserver({
   surface: Surface;
 }) {
   const surfaceName = surface.name;
+  const department =
+    surface.name === "landing"
+      ? "chronology"
+      : (surface.department ?? "chronology");
   const step = surface.name === "filing" ? surface.step : undefined;
   const pathCode = surface.name === "filing" ? surface.pathCode : undefined;
   const recordSubject =
@@ -45,46 +56,61 @@ export function SurfaceObserver({
     if (lastSent.current !== signature) {
       lastSent.current = signature;
       if (surfaceName === "landing") {
-        trackBrowserProductEvent({
-          locale,
-          name: "landing_viewed",
-          properties: { entrySurface: analyticsEntrySurface() },
-        });
-      } else if (surfaceName === "filing" && step) {
-        trackBrowserProductEvent({
-          locale,
-          name: "filing_step_viewed",
-          properties: {
-            step,
-            ...(pathCode ? { pathCode } : {}),
-          },
-        });
-        if (step === "respondent") {
-          trackBrowserProductEvent({
+        trackBrowserProductEvent(
+          {
             locale,
-            name: "filing_started",
+            name: "landing_viewed",
             properties: { entrySurface: analyticsEntrySurface() },
-          });
+          },
+          department,
+        );
+      } else if (surfaceName === "filing" && step) {
+        trackBrowserProductEvent(
+          {
+            locale,
+            name: "filing_step_viewed",
+            properties: {
+              step,
+              ...(pathCode ? { pathCode } : {}),
+            },
+          },
+          department,
+        );
+        if (step === "respondent") {
+          trackBrowserProductEvent(
+            {
+              locale,
+              name: "filing_started",
+              properties: { entrySurface: analyticsEntrySurface() },
+            },
+            department,
+          );
         }
       } else if (surfaceName === "determination") {
-        trackBrowserProductEvent({
-          locale,
-          name: "determination_viewed",
-          properties: { restored: true },
-        });
+        trackBrowserProductEvent(
+          {
+            locale,
+            name: "determination_viewed",
+            properties: { restored: true },
+          },
+          department,
+        );
       } else if (
         surfaceName === "public_record" &&
         recordSubject &&
         entrySurface
       ) {
-        trackBrowserProductEvent({
-          locale,
-          name: "public_record_viewed",
-          properties: {
-            recordSubject,
-            entrySurface,
+        trackBrowserProductEvent(
+          {
+            locale,
+            name: "public_record_viewed",
+            properties: {
+              recordSubject,
+              entrySurface,
+            },
           },
-        });
+          department,
+        );
       }
     }
     if (surfaceName === "landing") {
@@ -92,11 +118,14 @@ export function SurfaceObserver({
         '[data-analytics-example="true"]',
       );
       const opened = () => {
-        trackBrowserProductEvent({
-          locale,
-          name: "example_opened",
-          properties: {},
-        });
+        trackBrowserProductEvent(
+          {
+            locale,
+            name: "example_opened",
+            properties: {},
+          },
+          department,
+        );
       };
       example?.addEventListener("click", opened);
       return () => {
@@ -106,6 +135,7 @@ export function SurfaceObserver({
     return undefined;
   }, [
     entrySurface,
+    department,
     locale,
     pathCode,
     recordSubject,
@@ -122,8 +152,8 @@ function surfaceSignature(surface: Surface): string {
     case "determination":
       return surface.name;
     case "filing":
-      return `${surface.name}:${surface.step}:${surface.pathCode ?? "none"}`;
+      return `${surface.name}:${surface.department ?? "chronology"}:${surface.step}:${surface.pathCode ?? "none"}`;
     case "public_record":
-      return `${surface.name}:${surface.recordSubject}:${surface.entrySurface}`;
+      return `${surface.name}:${surface.department ?? "chronology"}:${surface.recordSubject}:${surface.entrySurface}`;
   }
 }

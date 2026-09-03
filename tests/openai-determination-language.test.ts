@@ -2,9 +2,15 @@ import { APIConnectionTimeoutError } from "openai";
 import { describe, expect, it } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
-import { createChronologyDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
+import {
+  createChronologyDeterminationLanguageCommand,
+  createDigitalConductDeterminationLanguageCommand,
+} from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
+import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
 import type { ChronologyFiling } from "@/domain/filing/chronology";
+import type { DigitalConductFiling } from "@/domain/filing/digital-conduct";
 import {
   createConfiguredOpenAIDeterminationLanguageProvider,
   DEFAULT_OPENAI_DETERMINATION_MODEL,
@@ -23,10 +29,31 @@ const filing: ChronologyFiling = {
   statement: "Shoes were still being located.",
 };
 
+const digitalFiling: DigitalConductFiling = {
+  locale: "en",
+  department: "digital_conduct",
+  respondent: "Alex",
+  relationship: "friend",
+  offence: "fragmented_messages",
+  facts: { messageCount: 8, ideaCount: 2, burstMinutes: 6 },
+  impact: "notification_burden",
+  mitigation: "provides_summary",
+  statement: "The dinner plan arrived through eight separate notifications.",
+};
+
 function command() {
   const result = createChronologyDeterminationLanguageCommand(
     filing,
     assessChronologyFiling(filing),
+  );
+  if (result.status === "invalid") throw new Error(result.reason);
+  return result.command;
+}
+
+function digitalCommand() {
+  const result = createDigitalConductDeterminationLanguageCommand(
+    digitalFiling,
+    assessDigitalConductFiling(digitalFiling),
   );
   if (result.status === "invalid") throw new Error(result.reason);
   return result.command;
@@ -113,6 +140,35 @@ describe("OpenAI determination-language adapter", () => {
       requestId: "resp_refusal",
     });
     expect(JSON.stringify(result)).not.toContain("raw refusal");
+  });
+
+  it("uses the Digital Conduct editorial boundary and excludes respondent identity", async () => {
+    const requests: unknown[] = [];
+    const language = createEnglishDigitalConductFallback(digitalCommand());
+    const provider = new OpenAIDeterminationLanguageProvider((request) => {
+      requests.push(request);
+      return Promise.resolve({
+        id: "resp_digital",
+        model: "gpt-5.6-luna",
+        status: "completed",
+        output_text: JSON.stringify(language),
+        output: [],
+      });
+    });
+
+    await expect(
+      provider.generate(digitalCommand(), {
+        attempt: 1,
+        previousValidationIssues: [],
+      }),
+    ).resolves.toMatchObject({ status: "success", output: language });
+    expect(requests[0]).toMatchObject({
+      metadata: { department: "digital_conduct" },
+    });
+    const serialized = JSON.stringify(requests[0]);
+    expect(serialized).toContain("Never require immediate replies");
+    expect(serialized).toContain('\\"messageCount\\":8');
+    expect(serialized).not.toContain("Alex");
   });
 
   it("normalizes timeouts and incomplete responses as retryable failures", async () => {

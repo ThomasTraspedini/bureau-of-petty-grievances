@@ -1,6 +1,10 @@
 import type { ReactNode } from "react";
 
-import type { ChronologyDeterminationSnapshot } from "@/domain/determination/determination-experience";
+import type {
+  ChronologyDeterminationSnapshot,
+  DeterminationSnapshot,
+  DigitalConductDeterminationSnapshot,
+} from "@/domain/determination/determination-experience";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
 
@@ -10,7 +14,7 @@ type DeterminationCopy = MessageCatalog["Determination"];
 type NavigationCopy = MessageCatalog["Navigation"];
 
 interface DeterminationRecordProps {
-  snapshot: ChronologyDeterminationSnapshot;
+  snapshot: DeterminationSnapshot;
   locale: InterfaceLocale;
   copy: DeterminationCopy;
   navigation: NavigationCopy;
@@ -39,6 +43,7 @@ export function DeterminationRecord({
   afterRecord,
   publicMetadata,
 }: DeterminationRecordProps) {
+  const digitalConduct = isDigitalConductSnapshot(snapshot);
   const issuedDate = new Intl.DateTimeFormat(locale, {
     dateStyle: "long",
   }).format(new Date(snapshot.issuedAt));
@@ -106,7 +111,9 @@ export function DeterminationRecord({
               </div>
             </div>
 
-            <p className="eyebrow">{copy.department}</p>
+            <p className="eyebrow">
+              {digitalConduct ? copy.digitalDepartment : copy.department}
+            </p>
             <h1>
               {format(copy.title, { respondent: snapshot.filing.respondent })}
             </h1>
@@ -118,11 +125,19 @@ export function DeterminationRecord({
             </p>
           </header>
 
-          <ChronologyReconstruction
-            snapshot={snapshot}
-            copy={copy}
-            locale={locale}
-          />
+          {digitalConduct ? (
+            <DigitalConductReconstruction
+              snapshot={snapshot}
+              copy={copy}
+              locale={locale}
+            />
+          ) : (
+            <ChronologyReconstruction
+              snapshot={snapshot}
+              copy={copy}
+              locale={locale}
+            />
+          )}
 
           <section
             className="determination-findings"
@@ -183,6 +198,12 @@ export function DeterminationRecord({
       </main>
     </div>
   );
+}
+
+function isDigitalConductSnapshot(
+  snapshot: DeterminationSnapshot,
+): snapshot is DigitalConductDeterminationSnapshot {
+  return snapshot.filing.department === "digital_conduct";
 }
 
 function ChronologyReconstruction({
@@ -258,6 +279,89 @@ function ChronologyReconstruction({
             <strong>
               {format(copy.minutesValue, { minutes: number.format(minutes) })}
             </strong>
+          </div>
+        </figcaption>
+      </figure>
+    </section>
+  );
+}
+
+function DigitalConductReconstruction({
+  snapshot,
+  copy,
+  locale,
+}: {
+  snapshot: DigitalConductDeterminationSnapshot;
+  copy: DeterminationCopy;
+  locale: InterfaceLocale;
+}) {
+  const number = new Intl.NumberFormat(locale);
+  const evidence = snapshot.assessment.evidence;
+  const displayedItems = Math.min(
+    12,
+    snapshot.assessment.presentation.itemCount,
+  );
+  const marker = `${String(snapshot.assessment.presentation.markerPositionBasisPoints / 100)}%`;
+  let primaryLabel: string;
+  let primaryValue: string;
+  let secondaryLabel: string;
+  let secondaryValue: string;
+  if (evidence.kind === "message_density") {
+    primaryLabel = copy.digitalMessagesLabel;
+    primaryValue = number.format(evidence.messageCount);
+    secondaryLabel = copy.digitalIdeasLabel;
+    secondaryValue = number.format(evidence.ideaCount);
+  } else if (evidence.kind === "voice_note_duration") {
+    primaryLabel = copy.digitalDurationLabel;
+    primaryValue = format(copy.minutesValue, {
+      minutes: number.format(evidence.durationMinutes),
+    });
+    secondaryLabel = copy.digitalIdeasLabel;
+    secondaryValue = number.format(evidence.ideaCount);
+  } else {
+    primaryLabel = copy.digitalResponseLabel;
+    primaryValue = format(copy.hoursValue, {
+      hours: number.format(evidence.responseHours),
+    });
+    secondaryLabel = copy.digitalFollowUpsLabel;
+    secondaryValue = number.format(evidence.followUpCount);
+  }
+  return (
+    <section
+      className="digital-reconstruction"
+      aria-labelledby="digital-conduct-title"
+    >
+      <div className="determination-section-heading">
+        <p className="eyebrow">{copy.chronologyKicker}</p>
+        <h2 id="digital-conduct-title">{copy.digitalReconstructionTitle}</h2>
+        <p>{copy.digitalReconstructionBody}</p>
+      </div>
+      <figure className="communications-docket">
+        <div className="message-sequence" aria-hidden="true">
+          {Array.from({ length: displayedItems }, (_, index) => (
+            <i
+              key={index}
+              style={{
+                width: `${String(34 + ((index * 17 + snapshot.presentationVariant * 9) % 58))}%`,
+              }}
+            />
+          ))}
+        </div>
+        <div className="communications-interval" aria-hidden="true">
+          <span style={{ left: marker }} />
+        </div>
+        <figcaption>
+          <div>
+            <span>{primaryLabel}</span>
+            <strong>{primaryValue}</strong>
+          </div>
+          <div>
+            <span>{secondaryLabel}</span>
+            <strong>{secondaryValue}</strong>
+          </div>
+          <div>
+            <span>{copy.digitalDocketLabel}</span>
+            <strong>{copy.digitalDocketValue}</strong>
           </div>
         </figcaption>
       </figure>

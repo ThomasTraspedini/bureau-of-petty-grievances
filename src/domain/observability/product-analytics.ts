@@ -1,4 +1,4 @@
-export const PRODUCT_ANALYTICS_SCHEMA_VERSION = 1 as const;
+export const PRODUCT_ANALYTICS_SCHEMA_VERSION = 2 as const;
 
 export const ANALYTICS_RETENTION_DAYS = 180 as const;
 export const ANALYTICS_EVENT_ID_PATTERN = /^evt_[A-Za-z0-9_-]{22}$/u;
@@ -8,8 +8,10 @@ export const ANALYTICS_SUBJECT_PATTERN = /^sub_[A-Za-z0-9_-]{22}$/u;
 export const ANALYTICS_FILING_STEPS = [
   "respondent",
   "relationship",
+  "department",
   "classification",
   "chronology",
+  "communications",
   "impact",
   "mitigation",
   "statement",
@@ -30,7 +32,11 @@ export type AnalyticsEntrySurface =
 export type AnalyticsPathCode =
   | "chronology_premature_departure"
   | "chronology_chronic_lateness"
-  | "chronology_optimistic_estimate";
+  | "chronology_optimistic_estimate"
+  | "digital_conduct_fragmented_messages"
+  | "digital_conduct_excessive_voice_note"
+  | "digital_conduct_unacknowledged_coordination";
+export type AnalyticsDepartmentCode = "chronology" | "digital_conduct";
 export type AnalyticsAccessKind = "anonymous" | "evaluation" | "standard";
 
 interface EventEnvelope<Name extends string, Properties> {
@@ -39,7 +45,7 @@ interface EventEnvelope<Name extends string, Properties> {
   journeyId: AnalyticsJourneyId | null;
   occurredAt: string;
   locale: "en";
-  department: "chronology";
+  department: AnalyticsDepartmentCode;
   name: Name;
   properties: Properties;
 }
@@ -267,6 +273,9 @@ const PATH_CODES = new Set<AnalyticsPathCode>([
   "chronology_premature_departure",
   "chronology_chronic_lateness",
   "chronology_optimistic_estimate",
+  "digital_conduct_fragmented_messages",
+  "digital_conduct_excessive_voice_note",
+  "digital_conduct_unacknowledged_coordination",
 ]);
 const FILING_STEPS = new Set<string>(ANALYTICS_FILING_STEPS);
 const FALLBACK_REASONS = new Set<AnalyticsFallbackReason>([
@@ -353,7 +362,8 @@ function isEnvelope(
     !ANALYTICS_EVENT_ID_PATTERN.test(value.eventId) ||
     (value.journeyId !== null && !isAnalyticsJourneyId(value.journeyId)) ||
     value.locale !== "en" ||
-    value.department !== "chronology" ||
+    (value.department !== "chronology" &&
+      value.department !== "digital_conduct") ||
     typeof value.name !== "string" ||
     !isRecord(value.properties)
   )

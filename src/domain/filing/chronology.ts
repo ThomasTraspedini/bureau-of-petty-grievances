@@ -32,6 +32,7 @@ export type ImpactCode = (typeof IMPACT_CODES)[number];
 export type MitigationCode = (typeof MITIGATION_CODES)[number];
 
 export interface ChronologyDraft {
+  department: "chronology";
   respondent: string;
   relationship: RelationshipCode | "";
   offence: ChronologyOffenceCode | "";
@@ -81,10 +82,12 @@ export type ChronologyFiling = FilingCommon &
   );
 
 export type FilingField =
+  | "department"
   | "respondent"
   | "relationship"
   | "offence"
   | "chronology"
+  | "communications"
   | "impact"
   | "mitigation"
   | "statement";
@@ -96,6 +99,8 @@ export type FilingErrorCode =
   | "invalid_time"
   | "invalid_duration"
   | "estimate_not_exceeded"
+  | "ratio_not_exceeded"
+  | "follow_up_required"
   | "statement_too_long"
   | "restricted_content"
   | "invalid_selection";
@@ -111,6 +116,7 @@ export type FilingValidationResult =
 
 export function createEmptyChronologyDraft(): ChronologyDraft {
   return {
+    department: "chronology",
     respondent: "",
     relationship: "",
     offence: "",
@@ -418,6 +424,7 @@ function parseChronologyDraft(value: unknown): ChronologyDraft | null {
     return null;
 
   if (
+    (value.department !== undefined && value.department !== "chronology") ||
     typeof value.respondent !== "string" ||
     !isRelationship(value.relationship) ||
     !isOffence(value.offence) ||
@@ -435,6 +442,7 @@ function parseChronologyDraft(value: unknown): ChronologyDraft | null {
   }
 
   return {
+    department: "chronology",
     respondent: value.respondent,
     relationship: value.relationship,
     offence: value.offence,
