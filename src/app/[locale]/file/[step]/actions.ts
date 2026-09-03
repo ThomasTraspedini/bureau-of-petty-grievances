@@ -16,6 +16,7 @@ import {
   type CompleteFilingResult,
 } from "@/server/determination/complete-filing-review";
 import { recordServerProductEvent } from "@/server/observability/runtime-product-analytics";
+import { consumeE2eFailureInstruction } from "@/server/testing/e2e-failure-injection";
 
 export type { CompleteFilingResult };
 
@@ -32,6 +33,9 @@ export async function completeFilingReview(
   const requestTime = new Date();
   const requestCookies = await cookies();
   const requestHeaders = await headers();
+  if (consumeE2eFailureInstruction(requestHeaders, "complete_filing")) {
+    return { status: "failed" };
+  }
   return completeFilingReviewControlledWith(locale, draft, idempotencyKey, {
     provider: createConfiguredOpenAIDeterminationLanguageProvider(),
     accessRepository: await getRuntimeAccessControlRepository(),

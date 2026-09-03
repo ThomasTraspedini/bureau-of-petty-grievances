@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.18.0` adds a browser-rendered pseudo-localization and minimum-width contract. Expanded interface copy now crosses the filing, determination, publication, consultation, sharing, owner-control, and access surfaces at 320 pixels while automated checks protect accessible names, keyboard actions, and horizontal containment.
+Version `0.19.0` adds a production-rendered recovery contract for the primary journey. Controlled one-shot failures now prove that determination completion preserves the filing and retry identity, publication leaves the transient determination intact without exposing a partial record, and consultation keeps the selected position and records exactly one response after retry.
 
-The stronger expansion exposed a mobile landing grid that could grow beyond the viewport. Its track now shrinks correctly and long localized words wrap safely. English remains the only enabled public locale; the pseudo catalog is available only to the test server, and two manually reviewed Chromium references preserve representative 320-pixel rendering. Cross-journey resilience and refinement remains in progress.
+Failure instructions require both a dedicated E2E server setting and a validated nonce-bearing request header, remain inert in ordinary runtime, and use the existing localized recovery states. The browser contract also checks accessibility at each injected failure. Cross-journey resilience and refinement remains in progress; physical-device and moderated-usability evidence still remain.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -93,7 +93,7 @@ After installing the supported Playwright browser engines with `npx playwright i
 ./scripts/validate-repository.sh
 ```
 
-The command verifies version metadata, repository hygiene, the public/private boundary, prototype behavior, formatting, linting, strict types, focused application tests, the production build, accessibility, reduced motion, localized routing, the bounded Chromium/Firefox/WebKit journey contract, browser-rendered pseudo-localization at the 320-pixel minimum width, and Chromium visual references. CI invokes the same command.
+The command verifies version metadata, repository hygiene, the public/private boundary, prototype behavior, formatting, linting, strict types, focused application tests, the production build, accessibility, reduced motion, localized routing, one-shot primary-journey recovery, the bounded Chromium/Firefox/WebKit journey contract, browser-rendered pseudo-localization at the 320-pixel minimum width, and Chromium visual references. CI invokes the same command.
 
 ## Versioning
 

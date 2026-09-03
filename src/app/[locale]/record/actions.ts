@@ -1,6 +1,7 @@
 "use server";
 
 import { randomBytes } from "node:crypto";
+import { headers } from "next/headers";
 import { after } from "next/server";
 
 import { isPublicConsultationPosition } from "@/domain/public-record/public-consultation";
@@ -25,6 +26,7 @@ import {
   analyticsSubject,
   recordServerProductEvent,
 } from "@/server/observability/runtime-product-analytics";
+import { consumeE2eFailureInstruction } from "@/server/testing/e2e-failure-injection";
 
 export type {
   OwnedPublicRecordResult,
@@ -40,8 +42,12 @@ export async function publishPublicRecord(
 ): Promise<PublishPublicRecordResult> {
   const department = departmentFromPublishInput(input);
   const repository = await getRuntimePublicRecordRepository();
+  const injectedFailure = consumeE2eFailureInstruction(
+    await headers(),
+    "publish_public_record",
+  );
   const result =
-    repository === null
+    injectedFailure || repository === null
       ? ({ status: "failed" } as const)
       : await publishPublicRecordWith(locale, input, {
           repository,
@@ -162,12 +168,16 @@ export async function submitPublicConsultation(
   journeyId?: unknown,
 ): Promise<SubmitPublicConsultationResult> {
   const repository = await getRuntimePublicRecordRepository();
+  const injectedFailure = consumeE2eFailureInstruction(
+    await headers(),
+    "submit_public_consultation",
+  );
   const department =
     isRecord(input) && typeof input.publicId === "string"
       ? await departmentForPublicId(repository, input.publicId)
       : "chronology";
   const result =
-    repository === null
+    injectedFailure || repository === null
       ? ({ status: "failed" } as const)
       : await submitPublicConsultationWith(
           locale,

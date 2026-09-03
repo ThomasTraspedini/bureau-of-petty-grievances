@@ -2,6 +2,20 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.19.0]
+
+### Added
+
+- A production-rendered Chromium recovery contract covering one-shot internal failure and exact retry during determination completion, explicit publication, and public consultation.
+- A guarded nonce-scoped failure-injection seam that requires both the dedicated E2E server setting and a validated request instruction, remains inert in ordinary runtime, and never enters domain policy or public controls.
+- Browser evidence that determination failure preserves the safe draft and generation idempotency key, publication failure exposes no partial public record, and consultation failure retains the selected position and anonymous participation key before recording exactly one response.
+- Axe-core checks for each injected localized failure state.
+
+### Changed
+
+- Canonical verification now exercises primary-journey recovery through production server actions without a live provider or external database.
+- Cross-journey resilience and refinement remains in progress; physical-device evidence, moderated usability, and any resulting refinements remain separate work.
+
 ## [0.18.0]
 
 ### Added
