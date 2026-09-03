@@ -92,8 +92,15 @@ export function EvaluationAccess({
           aria-live="polite"
           aria-busy={state === "exchanging"}
         >
-          <span className="access-mark" aria-hidden="true">
-            {state === "exchanging" ? "B" : "!"}
+          <span
+            className={`access-mark${state === "exchanging" ? " access-mark-seal" : ""}`}
+            aria-hidden="true"
+          >
+            {state === "exchanging" ? (
+              <CivicSeal initial={navigation.brandInitial} />
+            ) : (
+              "!"
+            )}
           </span>
           <p className="eyebrow">{content.kicker}</p>
           <h1>{content.title}</h1>

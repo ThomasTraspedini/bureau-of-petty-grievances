@@ -32,6 +32,17 @@ import {
   EN_SOCIAL_PLANNING_EDITORIAL_POLICY_VERSION,
 } from "@/domain/determination/locales/en-social-planning";
 import {
+  buildItalianChronologyGenerationInput,
+  buildItalianDigitalConductGenerationInput,
+  buildItalianDomesticAffairsGenerationInput,
+  buildItalianSocialPlanningGenerationInput,
+  IT_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
+  IT_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS,
+  IT_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS,
+  IT_EDITORIAL_POLICY_VERSION,
+  IT_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS,
+} from "@/domain/determination/locales/it";
+import {
   createUnavailableDeterminationLanguageProvider,
   type DeterminationLanguageProvider,
   type DeterminationLanguageProviderResult,
@@ -64,41 +75,54 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
   ): Promise<DeterminationLanguageProviderResult> {
     try {
       const instructions =
-        command.department === "chronology"
-          ? EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS
-          : command.department === "digital_conduct"
-            ? EN_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
-            : command.department === "domestic_affairs"
-              ? EN_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS
-              : EN_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS;
+        command.locale === "it" && command.department === "chronology"
+          ? IT_CHRONOLOGY_EDITORIAL_INSTRUCTIONS
+          : command.locale === "it" && command.department === "digital_conduct"
+            ? IT_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
+            : command.locale === "it" &&
+                command.department === "domestic_affairs"
+              ? IT_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS
+              : command.locale === "it"
+                ? IT_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS
+                : command.department === "chronology"
+                  ? EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS
+                  : command.department === "digital_conduct"
+                    ? EN_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
+                    : command.department === "domestic_affairs"
+                      ? EN_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS
+                      : EN_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS;
       const input =
-        command.department === "chronology"
-          ? buildEnglishChronologyGenerationInput(
-              command,
-              attempt.previousValidationIssues,
-            )
-          : command.department === "digital_conduct"
-            ? buildEnglishDigitalConductGenerationInput(
+        command.locale === "it"
+          ? italianInput(command, attempt.previousValidationIssues)
+          : command.department === "chronology"
+            ? buildEnglishChronologyGenerationInput(
                 command,
                 attempt.previousValidationIssues,
               )
-            : command.department === "domestic_affairs"
-              ? buildEnglishDomesticAffairsGenerationInput(
+            : command.department === "digital_conduct"
+              ? buildEnglishDigitalConductGenerationInput(
                   command,
                   attempt.previousValidationIssues,
                 )
-              : buildEnglishSocialPlanningGenerationInput(
-                  command,
-                  attempt.previousValidationIssues,
-                );
+              : command.department === "domestic_affairs"
+                ? buildEnglishDomesticAffairsGenerationInput(
+                    command,
+                    attempt.previousValidationIssues,
+                  )
+                : buildEnglishSocialPlanningGenerationInput(
+                    command,
+                    attempt.previousValidationIssues,
+                  );
       const editorialPolicyVersion =
-        command.department === "chronology"
-          ? EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION
-          : command.department === "digital_conduct"
-            ? EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION
-            : command.department === "domestic_affairs"
-              ? EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION
-              : EN_SOCIAL_PLANNING_EDITORIAL_POLICY_VERSION;
+        command.locale === "it"
+          ? IT_EDITORIAL_POLICY_VERSION
+          : command.department === "chronology"
+            ? EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION
+            : command.department === "digital_conduct"
+              ? EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION
+              : command.department === "domestic_affairs"
+                ? EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION
+                : EN_SOCIAL_PLANNING_EDITORIAL_POLICY_VERSION;
       const response = await this.createResponse({
         model: this.model,
         store: false,
@@ -129,6 +153,21 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
       return normalizeOpenAIError(error);
     }
   }
+}
+
+function italianInput(
+  command: Parameters<DeterminationLanguageProvider["generate"]>[0],
+  previousIssues: Parameters<
+    DeterminationLanguageProvider["generate"]
+  >[1]["previousValidationIssues"],
+): string {
+  if (command.department === "chronology")
+    return buildItalianChronologyGenerationInput(command, previousIssues);
+  if (command.department === "digital_conduct")
+    return buildItalianDigitalConductGenerationInput(command, previousIssues);
+  if (command.department === "domestic_affairs")
+    return buildItalianDomesticAffairsGenerationInput(command, previousIssues);
+  return buildItalianSocialPlanningGenerationInput(command, previousIssues);
 }
 
 export function createOpenAIDeterminationLanguageProvider(

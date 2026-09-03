@@ -7,7 +7,7 @@ export const messages = {
   skipToContent: "Skip to the main content",
   brandName: "Bureau of Petty Grievances",
   brandShort: "BPG",
-  brandInitial: "B",
+  brandInitial: "BPG",
   brandDescriptor: "Office for Interpersonal Continuity",
   navExample: "Example record",
   navAccess: "Civic access",

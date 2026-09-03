@@ -1,5 +1,6 @@
 import type { PublicRecordShareDescriptor } from "@/domain/public-record/public-record-sharing";
 
+import { civicSealDataUri } from "../brand/civic-seal";
 import type { LocalizedPublicRecordShare } from "./public-record-sharing-copy";
 
 const ACCENTS = ["#ef9c72", "#79a9c8", "#d8ae55", "#7fb4a4"] as const;
@@ -65,14 +66,18 @@ export function renderPublicRecordSocialImage(
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                border: "3px solid #132d56",
-                borderRadius: "999px",
-                boxShadow: `inset 0 0 0 7px #fffaf0, inset 0 0 0 10px ${accent}`,
-                fontSize: "30px",
-                fontWeight: 800,
               }}
             >
-              {localized.brandInitial}
+              {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse renders this shared SVG data URI directly. */}
+              <img
+                alt=""
+                src={civicSealDataUri({
+                  initial: localized.brandInitial,
+                  accent,
+                })}
+                width={66}
+                height={66}
+              />
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontSize: "22px", fontWeight: 760 }}>

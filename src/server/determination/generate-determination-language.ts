@@ -26,6 +26,17 @@ import {
   EN_SOCIAL_PLANNING_EDITORIAL_POLICY_VERSION,
   validateEnglishSocialPlanningLanguage,
 } from "@/domain/determination/locales/en-social-planning";
+import {
+  createItalianChronologyFallback,
+  createItalianDigitalConductFallback,
+  createItalianDomesticAffairsFallback,
+  createItalianSocialPlanningFallback,
+  IT_EDITORIAL_POLICY_VERSION,
+  validateItalianChronologyLanguage,
+  validateItalianDigitalConductLanguage,
+  validateItalianDomesticAffairsLanguage,
+  validateItalianSocialPlanningLanguage,
+} from "@/domain/determination/locales/it";
 import type {
   DeterminationLanguageProvider,
   ProviderRetryableFailureReason,
@@ -182,13 +193,15 @@ function fallbackResult(
     status: "completed",
     source: "fallback",
     language:
-      command.department === "chronology"
-        ? createEnglishChronologyFallback(command)
-        : command.department === "digital_conduct"
-          ? createEnglishDigitalConductFallback(command)
-          : command.department === "domestic_affairs"
-            ? createEnglishDomesticAffairsFallback(command)
-            : createEnglishSocialPlanningFallback(command),
+      command.locale === "it"
+        ? italianFallback(command)
+        : command.department === "chronology"
+          ? createEnglishChronologyFallback(command)
+          : command.department === "digital_conduct"
+            ? createEnglishDigitalConductFallback(command)
+            : command.department === "domestic_affairs"
+              ? createEnglishDomesticAffairsFallback(command)
+              : createEnglishSocialPlanningFallback(command),
     editorialPolicyVersion: editorialPolicyVersion(command),
     attempts,
     reason,
@@ -197,10 +210,31 @@ function fallbackResult(
   };
 }
 
+function italianFallback(
+  command: DeterminationLanguageCommand,
+): DeterminationLanguage {
+  if (command.department === "chronology")
+    return createItalianChronologyFallback(command);
+  if (command.department === "digital_conduct")
+    return createItalianDigitalConductFallback(command);
+  if (command.department === "domestic_affairs")
+    return createItalianDomesticAffairsFallback(command);
+  return createItalianSocialPlanningFallback(command);
+}
+
 function validateLanguage(
   value: unknown,
   command: DeterminationLanguageCommand,
 ) {
+  if (command.locale === "it") {
+    if (command.department === "chronology")
+      return validateItalianChronologyLanguage(value, command);
+    if (command.department === "digital_conduct")
+      return validateItalianDigitalConductLanguage(value, command);
+    return command.department === "domestic_affairs"
+      ? validateItalianDomesticAffairsLanguage(value, command)
+      : validateItalianSocialPlanningLanguage(value, command);
+  }
   if (command.department === "chronology")
     return validateEnglishChronologyLanguage(value, command);
   if (command.department === "digital_conduct")
@@ -211,6 +245,7 @@ function validateLanguage(
 }
 
 function editorialPolicyVersion(command: DeterminationLanguageCommand): 1 {
+  if (command.locale === "it") return IT_EDITORIAL_POLICY_VERSION;
   if (command.department === "chronology")
     return EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION;
   if (command.department === "digital_conduct")

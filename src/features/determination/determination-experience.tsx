@@ -13,7 +13,7 @@ import { SuccessorTransfer } from "../access/successor-transfer";
 import { SurfaceObserver } from "../observability/surface-observer";
 import { DeterminationRecord } from "./determination-record";
 import {
-  DETERMINATION_SESSION_KEY,
+  determinationSessionKey,
   LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
   LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
   LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
@@ -48,24 +48,28 @@ export function DeterminationExperience({
   cancelInvitation,
 }: DeterminationExperienceProps) {
   const [snapshot, setSnapshot] = useState<DeterminationSnapshot | null>(null);
+  const currentSessionKey = determinationSessionKey(locale);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const stored = parseDeterminationSession(
-        window.sessionStorage.getItem(DETERMINATION_SESSION_KEY) ??
-          window.sessionStorage.getItem(
-            LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
-          ) ??
-          window.sessionStorage.getItem(
-            LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
-          ) ??
-          window.sessionStorage.getItem(
-            LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
-          ),
+        window.sessionStorage.getItem(currentSessionKey) ??
+          (locale === "en"
+            ? (window.sessionStorage.getItem(
+                LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
+              ) ??
+              window.sessionStorage.getItem(
+                LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
+              ) ??
+              window.sessionStorage.getItem(
+                LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
+              ))
+            : null),
         Date.now(),
+        locale,
       );
       if (stored.status !== "restored") {
-        window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+        window.sessionStorage.removeItem(currentSessionKey);
         window.sessionStorage.removeItem(
           LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
         );
@@ -94,7 +98,7 @@ export function DeterminationExperience({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [locale]);
+  }, [currentSessionKey, locale]);
 
   if (!snapshot) {
     return (

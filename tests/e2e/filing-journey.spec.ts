@@ -131,6 +131,24 @@ const completeSocialDraft = {
     "Five practical dinner options were declined before one alternative appeared.",
 } satisfies SocialPlanningDraft;
 
+const confirmedPlanRevisionDraft = {
+  ...createEmptySocialPlanningDraft(),
+  respondent: "Thomas",
+  relationship: "friend",
+  offence: "confirmed_plan_revision",
+  facts: {
+    ...createEmptySocialPlanningDraft().facts,
+    confirmedPlanRevision: {
+      revisionCount: "2",
+      participantCount: "10",
+      noticeHours: "1",
+    },
+  },
+  impact: "arrangements_disrupted",
+  mitigation: "gave_some_notice",
+  statement: "The confirmed plan changed after the arrangements were made.",
+} satisfies SocialPlanningDraft;
+
 async function choose(page: Page, name: string) {
   await page.getByRole("radio", { name }).check();
   await page.getByRole("button", { name: "Continue" }).click();
@@ -227,8 +245,10 @@ function fixedDomesticDeterminationSession(): string {
   );
 }
 
-function fixedSocialDeterminationSession(): string {
-  const validation = validateSocialPlanningDraft(completeSocialDraft, "en");
+function fixedSocialDeterminationSession(
+  draft: SocialPlanningDraft = completeSocialDraft,
+): string {
+  const validation = validateSocialPlanningDraft(draft, "en");
   if (validation.status === "invalid") {
     throw new Error(
       "The Social Planning end-to-end fixture must remain valid.",
@@ -245,7 +265,7 @@ function fixedSocialDeterminationSession(): string {
   const issuedAt = new Date();
   issuedAt.setMilliseconds(0);
   return serializeDeterminationSession(
-    completeSocialDraft,
+    draft,
     {
       experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
       locale: "en",
@@ -303,19 +323,24 @@ async function openFixedDomesticDetermination(page: Page) {
   ).toBeVisible();
 }
 
-async function openFixedSocialDetermination(page: Page) {
+async function openFixedSocialDetermination(
+  page: Page,
+  draft: SocialPlanningDraft = completeSocialDraft,
+) {
   await page.addInitScript(
     ({ key, value }) => {
       window.sessionStorage.setItem(key, value);
     },
     {
       key: DETERMINATION_SESSION_KEY,
-      value: fixedSocialDeterminationSession(),
+      value: fixedSocialDeterminationSession(draft),
     },
   );
   await page.goto("/en/determination");
   await expect(
-    page.getByRole("heading", { name: "Review concerning Morgan" }),
+    page.getByRole("heading", {
+      name: `Review concerning ${draft.respondent}`,
+    }),
   ).toBeVisible();
 }
 
@@ -649,6 +674,44 @@ test("completes and publishes a Social Planning decision register", async ({
   expect(head).toContain("Option-veto cycle");
   expect(head).not.toContain("Morgan");
   expect(head).not.toContain("one alternative appeared");
+});
+
+test("keeps Social Planning units intact and explains numeric bounds", async ({
+  page,
+}) => {
+  const draft = {
+    ...createEmptySocialPlanningDraft(),
+    respondent: "Morgan",
+    relationship: "friend",
+    offence: "confirmed_plan_revision",
+  } satisfies SocialPlanningDraft;
+  await page.addInitScript(
+    ({ key, value }) => {
+      window.localStorage.setItem(key, value);
+    },
+    { key: storageKey, value: serializeDraft(draft, Date.now()) },
+  );
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/en/file/social_evidence");
+
+  await expect(page.getByText("Whole numbers from 0 to 168")).toBeVisible();
+  const wrappedUnits = await page.locator(".field-unit").evaluateAll(
+    (units) =>
+      units.filter((unit) => {
+        const style = getComputedStyle(unit);
+        return (
+          unit.getBoundingClientRect().height >
+          Number.parseFloat(style.lineHeight) * 1.5
+        );
+      }).length,
+  );
+  expect(wrappedUnits).toBe(0);
+
+  await page.getByRole("spinbutton", { name: /Advance notice/u }).fill("0.5");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.locator("#social_evidence-error")).toContainText(
+    "Enter a whole number within the range shown.",
+  );
 });
 
 test("preserves a safe draft across refresh and excludes rejected text", async ({
@@ -1163,6 +1226,25 @@ test.describe("filing visual contract", () => {
     await openFixedSocialDetermination(page);
     await expect(page).toHaveScreenshot(
       "social-planning-determination-desktop.png",
+      {
+        fullPage: true,
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
+  });
+
+  test("mid-width confirmed-plan Social Planning determination", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1045, height: 900 });
+    await openFixedSocialDetermination(page, confirmedPlanRevisionDraft);
+    await expect(page.getByText("2 confirmed plan revisions")).toBeVisible();
+    await expect(
+      page.getByText("1 hour’s notice · 10 participants"),
+    ).toBeVisible();
+    await expect(page).toHaveScreenshot(
+      "social-planning-confirmed-revision-mid-width.png",
       {
         fullPage: true,
         animations: "disabled",

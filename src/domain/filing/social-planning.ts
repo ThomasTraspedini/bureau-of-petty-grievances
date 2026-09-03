@@ -62,7 +62,7 @@ export interface SocialPlanningDraft {
 }
 
 interface SocialPlanningFilingCommon {
-  locale: "en";
+  locale: ProductLocale;
   department: "social_planning";
   respondent: string;
   relationship: RelationshipCode;
@@ -137,7 +137,7 @@ export function validateSocialPlanningDraft(
   locale: unknown,
 ): SocialPlanningValidationResult {
   const draft = parseSocialPlanningDraft(value);
-  if (!draft || locale !== "en") return invalidFiling();
+  if (!draft || !isProductLocale(locale)) return invalidFiling();
 
   const errors: FilingError[] = [];
   const respondent = draft.respondent.trim();
@@ -171,7 +171,7 @@ export function validateSocialPlanningDraft(
     return { status: "invalid", errors };
 
   const common: SocialPlanningFilingCommon = {
-    locale: "en",
+    locale,
     department: "social_planning",
     respondent,
     relationship: draft.relationship,
@@ -243,7 +243,12 @@ export function validateSocialPlanningFiling(
   value: unknown,
   locale: unknown,
 ): SocialPlanningValidationResult {
-  if (!isRecord(value) || value.department !== "social_planning")
+  if (
+    !isRecord(value) ||
+    value.department !== "social_planning" ||
+    !isProductLocale(value.locale) ||
+    value.locale !== locale
+  )
     return invalidFiling();
   if (
     typeof value.respondent !== "string" ||
@@ -528,3 +533,4 @@ function isMitigationOrEmpty(
 ): value is SocialPlanningMitigationCode | "" {
   return value === "" || isMitigation(value);
 }
+import { isProductLocale, type ProductLocale } from "@/domain/locale";

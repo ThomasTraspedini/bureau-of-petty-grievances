@@ -30,8 +30,12 @@ import {
   createEmptyFilingDraft,
   type FilingDraft,
 } from "@/domain/filing/filing";
+import { type ProductLocale } from "@/domain/locale";
 
 export const FILING_DRAFT_STORAGE_KEY = "bpg:filing:en:v4";
+export function filingDraftStorageKey(locale: ProductLocale): string {
+  return `bpg:filing:${locale}:v4`;
+}
 export const LEGACY_DOMESTIC_DRAFT_STORAGE_KEY = "bpg:filing:en:v3";
 export const LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY = "bpg:filing:en:v2";
 export const LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY =
@@ -40,7 +44,7 @@ export const FILING_DRAFT_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface DraftEnvelope {
   version: 4;
-  locale: "en";
+  locale: ProductLocale;
   updatedAt: number;
   draft: FilingDraft;
 }
@@ -51,10 +55,14 @@ export type StoredDraftResult =
   | { status: "expired"; draft: FilingDraft }
   | { status: "invalid"; draft: FilingDraft };
 
-export function serializeDraft(draft: FilingDraft, now: number): string {
+export function serializeDraft(
+  draft: FilingDraft,
+  now: number,
+  locale: ProductLocale = "en",
+): string {
   const envelope: DraftEnvelope = {
     version: 4,
-    locale: "en",
+    locale,
     updatedAt: now,
     draft: safeDraft(draft),
   };
@@ -64,6 +72,7 @@ export function serializeDraft(draft: FilingDraft, now: number): string {
 export function parseStoredDraft(
   value: string | null,
   now: number,
+  locale: ProductLocale = "en",
 ): StoredDraftResult {
   if (value === null)
     return { status: "empty", draft: createEmptyFilingDraft() };
@@ -76,7 +85,7 @@ export function parseStoredDraft(
         parsed.version !== 2 &&
         parsed.version !== 3 &&
         parsed.version !== 4) ||
-      parsed.locale !== "en" ||
+      parsed.locale !== locale ||
       typeof parsed.updatedAt !== "number" ||
       !Number.isFinite(parsed.updatedAt)
     )

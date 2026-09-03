@@ -1,5 +1,7 @@
+import Image from "next/image";
 import type { ReactNode } from "react";
 
+import remedyStamp from "@/app/stamp.png";
 import type {
   ChronologyDeterminationSnapshot,
   DeterminationSnapshot,
@@ -197,7 +199,14 @@ export function DeterminationRecord({
 
           <section className="remedy-record" aria-labelledby="remedy-title">
             <div className="remedy-seal" aria-hidden="true">
-              <span>{copy.remedyMark}</span>
+              <Image
+                className="remedy-stamp"
+                src={remedyStamp}
+                alt=""
+                width={96}
+                height={96}
+                sizes="96px"
+              />
             </div>
             <div>
               <p className="eyebrow">{copy.remedyKicker}</p>

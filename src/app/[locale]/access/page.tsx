@@ -42,10 +42,10 @@ export default async function StandardAccessPage({
       locale={locale}
       copy={messages.StandardAccess}
       navigation={messages.Navigation}
-      exchangeToken={exchangeStandardToken}
+      exchangeToken={exchangeStandardToken.bind(null, locale)}
       getStatus={getStandardAccessStatus}
       issueInvitation={issueSuccessorInvitation}
-      cancelInvitation={cancelSuccessorInvitation}
+      cancelInvitation={cancelSuccessorInvitation.bind(null, locale)}
     />
   );
 }

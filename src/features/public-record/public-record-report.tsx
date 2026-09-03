@@ -5,15 +5,18 @@ import { useRef, useState } from "react";
 import { reportPublicRecord } from "@/app/[locale]/record/actions";
 import type { PublicRecordReportReason } from "@/domain/public-record/public-record";
 import type { MessageCatalog } from "@/i18n/catalogs";
+import type { InterfaceLocale } from "@/i18n/routing";
 import { currentAnalyticsJourneyId } from "../observability/browser-product-analytics";
 
 import { createReportKey } from "./public-record-publication";
 
 export function PublicRecordReport({
   publicId,
+  locale,
   copy,
 }: {
   publicId: string;
+  locale: InterfaceLocale;
   copy: MessageCatalog["PublicRecord"];
 }) {
   const [reason, setReason] = useState<PublicRecordReportReason | null>(null);
@@ -34,8 +37,8 @@ export function PublicRecordReport({
       };
       const journeyId = currentAnalyticsJourneyId();
       const result = journeyId
-        ? await reportPublicRecord(input, journeyId)
-        : await reportPublicRecord(input);
+        ? await reportPublicRecord(locale, input, journeyId)
+        : await reportPublicRecord(locale, input);
       setState(result === "reported" ? "reported" : "failed");
     } catch {
       setState("failed");

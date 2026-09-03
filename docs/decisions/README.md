@@ -26,3 +26,4 @@ Accepted records:
 - [0018 — Domestic Affairs department](0018-domestic-affairs-department.md)
 - [0019 — Social Planning department](0019-social-planning-department.md)
 - [0020 — Supported-browser verification baseline](0020-supported-browser-verification-baseline.md)
+- [0021 — Italian product locale](0021-italian-product-locale.md)

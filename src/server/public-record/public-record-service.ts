@@ -1,4 +1,5 @@
 import { createHash, timingSafeEqual } from "node:crypto";
+import { isProductLocale } from "@/domain/locale";
 
 import {
   validateDeterminationSnapshot,
@@ -50,10 +51,11 @@ export async function publishPublicRecordWith(
   input: unknown,
   dependencies: PublicRecordServiceDependencies,
 ): Promise<PublishPublicRecordResult> {
-  if (!isPublishInput(input) || locale !== "en") return { status: "invalid" };
+  if (!isPublishInput(input) || !isProductLocale(locale))
+    return { status: "invalid" };
   const now = dependencies.now();
   const validated = validateDeterminationSnapshot(input.snapshot, now);
-  if (validated.status === "invalid") {
+  if (validated.status === "invalid" || validated.snapshot.locale !== locale) {
     return { status: "invalid" };
   }
   const issuedAt = new Date(validated.snapshot.issuedAt).getTime();
@@ -225,7 +227,7 @@ export async function getPublicConsultationWith(
   repository: PublicRecordRepository,
   now: Date,
 ): Promise<GetPublicConsultationResult> {
-  if (locale !== "en" || !isPublicRecordId(publicId)) {
+  if (!isProductLocale(locale) || !isPublicRecordId(publicId)) {
     return { status: "unavailable" };
   }
   try {
@@ -256,7 +258,7 @@ export async function submitPublicConsultationWith(
   repository: PublicRecordRepository,
   now: Date,
 ): Promise<SubmitPublicConsultationResult> {
-  if (locale !== "en" || !isConsultationInput(input)) {
+  if (!isProductLocale(locale) || !isConsultationInput(input)) {
     return { status: "invalid" };
   }
   try {

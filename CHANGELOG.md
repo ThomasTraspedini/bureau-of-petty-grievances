@@ -2,6 +2,20 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.20.0]
+
+### Added
+
+- A complete Italian product locale at `/it`, covering interface copy, metadata, accessibility, recovery, access, filing, determinations, public records, sharing, and consultation in a formal Bureau register.
+- Italian editorial instructions, grounded deterministic fallbacks, runtime validators, provider dispatch, and safety evaluations for all four Bureau departments.
+- Recursive catalog and placeholder verification, localized snapshot and provider tests, and a production-rendered Italian route accessibility journey.
+- A complete fixed representative determination, updated civic seal and remedy stamp, explicit numeric-field bounds, and refined responsive determination registers.
+- Optional validated development origins for testing the Bureau on trusted LAN devices without weakening production origin handling.
+
+### Changed
+
+- Locale is now preserved through filing validation, isolated browser storage, transient determinations, analytics, and persistent public records; existing English behavior remains the default.
+
 ## [0.19.0]
 
 ### Added

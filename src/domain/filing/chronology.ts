@@ -56,7 +56,7 @@ export interface ChronologyDraft {
 }
 
 interface FilingCommon {
-  locale: "en";
+  locale: ProductLocale;
   department: "chronology";
   respondent: string;
   relationship: RelationshipCode;
@@ -140,7 +140,7 @@ export function validateChronologyDraft(
   locale: unknown,
 ): FilingValidationResult {
   const draft = parseChronologyDraft(value);
-  if (!draft || locale !== "en") {
+  if (!draft || !isProductLocale(locale)) {
     return {
       status: "invalid",
       errors: [{ field: "respondent", code: "required" }],
@@ -192,7 +192,7 @@ export function validateChronologyDraft(
   }
 
   const common: FilingCommon = {
-    locale: "en",
+    locale,
     department: "chronology",
     respondent,
     relationship: draft.relationship,
@@ -243,7 +243,7 @@ export function validateChronologyFiling(
       "mitigation",
       "statement",
     ]) ||
-    value.locale !== "en" ||
+    !isProductLocale(value.locale) ||
     value.department !== "chronology" ||
     locale !== value.locale ||
     typeof value.respondent !== "string" ||
@@ -529,3 +529,4 @@ function parseBoundedInteger(
     ? number
     : null;
 }
+import { isProductLocale, type ProductLocale } from "@/domain/locale";

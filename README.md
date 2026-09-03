@@ -16,18 +16,50 @@ Failure instructions require both a dedicated E2E server setting and a validated
 
 ## Run locally
 
-Use Node.js 24, then install dependencies and start the application:
+Use Node.js 24, then install dependencies and create the ignored local
+configuration before starting the application:
 
 ```sh
 npm ci
+cp .env.example .env
 npm run dev
 ```
 
-Open `http://localhost:3000/en`. The root route redirects to the explicit English locale; the production filing begins at `/en/file/respondent`.
+Open `http://localhost:3000/en` or `http://localhost:3000/it`. The root route redirects to English; each explicit locale provides the complete production filing journey (`/{locale}/file/respondent`).
 
-The example environment enables an ignored embedded PostgreSQL-compatible store for local development. A deployed full Node.js server should instead set `DATABASE_URL` to a PostgreSQL connection string; the initial managed target is Supabase. It must also set `BUREAU_PUBLIC_ORIGIN` to the bare public HTTPS origin used by canonical metadata and sharing, a strong `BUREAU_NETWORK_HMAC_SECRET`, and the trusted proxy-hop count. The application applies its idempotent schema migration when the shared database runtime starts.
+For the ordinary local journey, keep `DATABASE_URL` empty and retain
+`BUREAU_EMBEDDED_DATABASE_PATH=.data/public-records`; publication and public
+consultation require that local store. `OPENAI_API_KEY` is optional: leaving it
+empty selects the complete deterministic determination, while setting it
+enables the bounded provider adapter. Keep `BUREAU_ANALYTICS_ENABLED=false`
+unless the complete documented analytics configuration has deliberately been
+provided. The remaining empty secret and webhook settings are not required for
+ordinary local use.
 
-Provider configuration is optional because the complete deterministic fallback supports the production journey. Copy `.env.example` to an ignored local environment file and set `OPENAI_API_KEY` to use the adapter; `BUREAU_OPENAI_MODEL` defaults to `gpt-5.6-luna`. The one-fixture paid smoke test is deliberate and separate from ordinary verification:
+To review the application from trusted devices on the same local network, add
+each device-facing Mac hostname or address to `.env` without protocol or port,
+then use the LAN command:
+
+```dotenv
+BUREAU_ALLOWED_DEV_ORIGINS=192.168.1.122
+```
+
+```sh
+npm run dev:lan
+```
+
+Open `http://<mac-address>:3000/en` on the device. Local HTTP can exercise the
+journey, persistence, consultation, and manual sharing fallback, but it is not
+evidence for production HTTPS metadata or secure-context native sharing.
+
+A deployed full Node.js server should instead set `DATABASE_URL` to a
+PostgreSQL connection string; the initial managed target is Supabase. It must
+also set `BUREAU_PUBLIC_ORIGIN` to the bare public HTTPS origin used by canonical
+metadata and sharing, a strong `BUREAU_NETWORK_HMAC_SECRET`, and the trusted
+proxy-hop count. The application applies its idempotent schema migration when
+the shared database runtime starts.
+
+Provider configuration is optional because the complete deterministic fallback supports the production journey. `BUREAU_OPENAI_MODEL` defaults to `gpt-5.6-luna`. The one-fixture paid smoke test is deliberate and separate from ordinary verification:
 
 ```sh
 npm run test:provider:live
@@ -72,7 +104,7 @@ npm run analytics:operate -- status
 - **Benevolence must be real.** Safety, fairness, privacy, recovery, and proportionate remedies are product behavior.
 - **Internal complexity is not user burden.** The Bureau may dramatize procedure, but it must remain effortless to use.
 - **Cost is bounded by design.** Generative actions must have server-side budgets, limits, and graceful fallbacks.
-- **Internationalization starts at the boundary.** English is the first enabled locale, not a hardcoded assumption.
+- **Internationalization starts at the boundary.** English and Italian are enabled end to end; English remains the default rather than a hardcoded assumption.
 
 ## Documentation
 

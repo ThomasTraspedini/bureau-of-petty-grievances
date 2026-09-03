@@ -99,8 +99,9 @@ function brandMark(tone = "dark") {
       <circle cx="24" cy="24" r="22.5" fill="none" stroke="${stroke}" stroke-width="1.15"/>
       <circle cx="24" cy="24" r="18.25" fill="none" stroke="${stroke}" stroke-width="0.75" opacity="0.72"/>
       <path d="M24 1.5v4M24 42.5v4M1.5 24h4M42.5 24h4" fill="none" stroke="${stroke}" stroke-width="1.15"/>
-      <path d="m11.5 24 2.3-2.3 2.3 2.3-2.3 2.3Zm20.4 0 2.3-2.3 2.3 2.3-2.3 2.3Z" fill="${accent}"/>
-      <text x="24" y="32" fill="${stroke}" font-family="Source Serif 4, Georgia, serif" font-size="25" font-weight="700" text-anchor="middle">${t("brandInitial")}</text>
+      <circle cx="24" cy="13.75" r="2.25" fill="${accent}"/>
+      <circle cx="24" cy="34.25" r="2.25" fill="${accent}"/>
+      <text x="24" y="28" fill="${stroke}" font-family="Source Serif 4, Georgia, serif" font-size="11.25" font-weight="700" letter-spacing="1.1" text-anchor="middle">${t("brandInitial")}</text>
     </svg>`;
 }
 

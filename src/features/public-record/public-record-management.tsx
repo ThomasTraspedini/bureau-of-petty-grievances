@@ -89,12 +89,18 @@ export function PublicRecordManagement({
       const journeyId = currentAnalyticsJourneyId();
       result = journeyId
         ? await applyOwnerRecordAction(
+            locale,
             publicId,
             state.ownerCredential,
             action,
             journeyId,
           )
-        : await applyOwnerRecordAction(publicId, state.ownerCredential, action);
+        : await applyOwnerRecordAction(
+            locale,
+            publicId,
+            state.ownerCredential,
+            action,
+          );
     } catch {
       setChanging(false);
       setFailed(true);

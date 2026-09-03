@@ -43,7 +43,7 @@ Dependencies express the minimum ordering currently supported by product evidenc
 These are part of every capability rather than deferred to C14:
 
 - visual and product taste;
-- English-first internationalization architecture;
+- English-default internationalization with complete English and Italian product locales;
 - designed errors and recovery;
 - safety and privacy boundaries;
 - deterministic testability;

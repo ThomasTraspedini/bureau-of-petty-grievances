@@ -1,5 +1,9 @@
 import type { InterfaceLocale } from "@/i18n/routing";
 
+import { CivicSeal } from "../brand/civic-seal";
+
+export { CivicSeal } from "../brand/civic-seal";
+
 export interface ApplicationShellCopy {
   navigation: {
     skipToContent: string;
@@ -53,56 +57,6 @@ interface ApplicationShellProps {
   copy: ApplicationShellCopy;
 }
 
-export function CivicSeal({ initial }: { initial: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className="civic-seal"
-      viewBox="0 0 48 48"
-      focusable="false"
-    >
-      <circle
-        cx="24"
-        cy="24"
-        r="22.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.15"
-      />
-      <circle
-        cx="24"
-        cy="24"
-        r="18.25"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="0.75"
-        opacity="0.72"
-      />
-      <path
-        d="M24 1.5v4M24 42.5v4M1.5 24h4M42.5 24h4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.15"
-      />
-      <path
-        d="m11.5 24 2.3-2.3 2.3 2.3-2.3 2.3Zm20.4 0 2.3-2.3 2.3 2.3-2.3 2.3Z"
-        fill="var(--apricot)"
-      />
-      <text
-        x="24"
-        y="32"
-        fill="currentColor"
-        fontFamily="var(--serif)"
-        fontSize="25"
-        fontWeight="700"
-        textAnchor="middle"
-      >
-        {initial}
-      </text>
-    </svg>
-  );
-}
-
 export function ApplicationShell({ locale, copy }: ApplicationShellProps) {
   const { navigation, home } = copy;
 
@@ -147,7 +101,7 @@ export function ApplicationShell({ locale, copy }: ApplicationShellProps) {
               </a>
               <a
                 className="button button-secondary"
-                href="#example"
+                href={`/${locale}/example`}
                 data-analytics-example="true"
               >
                 {home.secondaryAction}

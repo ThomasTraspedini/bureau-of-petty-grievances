@@ -158,6 +158,17 @@ describe("public-record sharing boundary", () => {
     expect(JSON.stringify(localized)).not.toContain("Shoes");
   });
 
+  it("uses the institutional seal in the share preview", () => {
+    const { container } = renderSharing();
+
+    expect(
+      container.querySelector(".share-object-mark .civic-seal"),
+    ).toBeInTheDocument();
+    expect(
+      container.querySelector(".share-object-mark .civic-seal text"),
+    ).toHaveTextContent("BPG");
+  });
+
   it("uses native sharing with the public URL and no owner fragment", async () => {
     const share = vi.fn<Navigator["share"]>().mockResolvedValue(undefined);
     defineNavigatorValue("share", share);
@@ -292,7 +303,7 @@ describe("canonical public-record origin", () => {
 function renderSharing(analyticsSubject?: `sub_${string}`) {
   const record = recordFixture();
   const descriptor = createPublicRecordShareDescriptor(record);
-  render(
+  return render(
     <PublicRecordSharing
       descriptor={descriptor}
       localized={localizePublicRecordShare(descriptor, "en", messages.Sharing)}

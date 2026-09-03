@@ -121,6 +121,24 @@ test("keeps the pseudo-localized filing, determination, and public record usable
     maxDiffPixelRatio: 0.01,
   });
 
+  await page
+    .getByRole("link", { name: pseudoLocalize(messages.Home.secondaryAction) })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      level: 1,
+      name: pseudoLocalize(messages.Determination.title).replace(
+        "{respondent}",
+        pseudoLocalize(messages.Example.respondent),
+      ),
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(pseudoLocalize(messages.Example.boundaryTitle)),
+  ).toBeVisible();
+  await expectNarrowLayout(page);
+  await expectAccessible(page);
+
   await page.goto("/en/file/respondent");
   await page.locator("#respondent").fill("Casey");
   await submitCurrentStep(page);

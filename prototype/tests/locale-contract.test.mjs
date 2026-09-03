@@ -45,5 +45,5 @@ test("the representative record carries the complete institutional signature", (
   assert.match(appSource, /class="sample-brand"/);
   assert.match(appSource, /class="sample-brand-name">\$\{t\("brandName"\)\}/);
   assert.match(appSource, /class="sample-brand-office">\$\{t\("brandDescriptor"\)\}/);
-  assert.equal(messages.brandInitial, "B");
+  assert.equal(messages.brandInitial, "BPG");
 });

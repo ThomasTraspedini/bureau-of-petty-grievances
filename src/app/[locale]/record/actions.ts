@@ -27,6 +27,7 @@ import {
   recordServerProductEvent,
 } from "@/server/observability/runtime-product-analytics";
 import { consumeE2eFailureInstruction } from "@/server/testing/e2e-failure-injection";
+import type { InterfaceLocale } from "@/i18n/routing";
 
 export type {
   OwnedPublicRecordResult,
@@ -36,7 +37,7 @@ export type {
 };
 
 export async function publishPublicRecord(
-  locale: string,
+  locale: InterfaceLocale,
   input: unknown,
   journeyId?: unknown,
 ): Promise<PublishPublicRecordResult> {
@@ -61,7 +62,7 @@ export async function publishPublicRecord(
   after(() =>
     recordServerProductEvent({
       journeyId,
-      locale: "en",
+      locale,
       department,
       name: "public_record_published",
       properties: {
@@ -88,6 +89,7 @@ export async function loadOwnedPublicRecord(
 }
 
 export async function applyOwnerRecordAction(
+  locale: InterfaceLocale,
   publicId: string,
   ownerCredential: string,
   action: unknown,
@@ -112,7 +114,7 @@ export async function applyOwnerRecordAction(
     after(() =>
       recordServerProductEvent({
         journeyId,
-        locale: "en",
+        locale,
         department,
         name: "owner_record_changed",
         properties: {
@@ -127,6 +129,7 @@ export async function applyOwnerRecordAction(
 }
 
 export async function reportPublicRecord(
+  locale: InterfaceLocale,
   input: unknown,
   journeyId?: unknown,
 ): Promise<"reported" | "invalid" | "unavailable" | "failed"> {
@@ -145,7 +148,7 @@ export async function reportPublicRecord(
       after(() =>
         recordServerProductEvent({
           journeyId,
-          locale: "en",
+          locale,
           department,
           name: "report_submitted",
           properties: {
@@ -163,7 +166,7 @@ export async function reportPublicRecord(
 }
 
 export async function submitPublicConsultation(
-  locale: string,
+  locale: InterfaceLocale,
   input: unknown,
   journeyId?: unknown,
 ): Promise<SubmitPublicConsultationResult> {
@@ -191,7 +194,7 @@ export async function submitPublicConsultation(
       after(() =>
         recordServerProductEvent({
           journeyId,
-          locale: "en",
+          locale,
           department,
           name: "consultation_submitted",
           properties: {

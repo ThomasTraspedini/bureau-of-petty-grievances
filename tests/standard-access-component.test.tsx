@@ -19,7 +19,7 @@ describe("standard access experience", () => {
     const exchangeToken = vi.fn(() =>
       Promise.resolve({ status: "accepted" as const, summary: ACTIVE }),
     );
-    render(
+    const { container } = render(
       <StandardAccess
         locale="en"
         copy={messages.StandardAccess}
@@ -38,6 +38,9 @@ describe("standard access experience", () => {
       }),
     ).toBeVisible();
     expect(screen.getAllByText("5 of 5")).toHaveLength(2);
+    expect(
+      container.querySelector(".access-mark-seal .civic-seal text"),
+    ).toHaveTextContent("BPG");
     expect(exchangeToken).toHaveBeenCalledWith(`std_${"x".repeat(43)}`);
     expect(
       screen.getByRole("link", { name: messages.StandardAccess.beginAction }),

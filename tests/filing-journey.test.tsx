@@ -26,7 +26,10 @@ import {
   FILING_DRAFT_STORAGE_KEY,
   serializeDraft,
 } from "@/features/filing/draft-storage";
-import { FilingJourney } from "@/features/filing/filing-journey";
+import {
+  FILING_INTERNAL_NAVIGATION_STORAGE_KEY,
+  FilingJourney,
+} from "@/features/filing/filing-journey";
 import { pseudoLocalizeCatalog } from "@/i18n/pseudo";
 import messages from "../messages/en.json";
 import { CHRONOLOGY_DETERMINATION_LANGUAGE_FIXTURES } from "./fixtures/chronology-determination-language";
@@ -117,6 +120,13 @@ describe("filing journey", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
       messages.Filing.respondentTitle,
     );
+    expect(document.querySelector(".filing-service-name")).toHaveTextContent(
+      messages.Filing.intakeServiceName,
+    );
+    expect(screen.getByText(messages.Filing.intakeDepartment)).toBeVisible();
+    expect(
+      screen.queryByText(messages.Filing.department),
+    ).not.toBeInTheDocument();
   });
 
   it("restores safe device-local work and refuses serious witness text", async () => {
@@ -161,6 +171,44 @@ describe("filing journey", () => {
         window.localStorage.getItem(FILING_DRAFT_STORAGE_KEY),
       ).not.toContain("This describes abuse.");
     });
+  });
+
+  it("does not announce recovery during ordinary filing navigation", async () => {
+    const draft = {
+      ...createEmptyChronologyDraft(),
+      respondent: "Marco",
+    };
+    window.localStorage.setItem(
+      FILING_DRAFT_STORAGE_KEY,
+      serializeDraft(draft, Date.now()),
+    );
+    window.sessionStorage.setItem(
+      FILING_INTERNAL_NAVIGATION_STORAGE_KEY,
+      "relationship",
+    );
+
+    render(
+      <FilingJourney
+        locale="en"
+        step="relationship"
+        returnToReview={false}
+        copy={messages.Filing}
+        navigation={messages.Navigation}
+        completeFiling={completeFiling}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "What is your relationship to Marco?",
+      }),
+    ).toBeVisible();
+    expect(
+      screen.queryByText(messages.Filing.restoredTitle),
+    ).not.toBeInTheDocument();
+    expect(
+      window.sessionStorage.getItem(FILING_INTERNAL_NAVIGATION_STORAGE_KEY),
+    ).toBeNull();
   });
 
   it("opens a clean filing when stored data is invalid", async () => {
@@ -267,6 +315,55 @@ describe("filing journey", () => {
     ).toBeVisible();
     expect(screen.getByText(messages.Filing.socialBoundary)).toBeVisible();
     expect(screen.getByText(messages.Filing.socialDepartment)).toBeVisible();
+  });
+
+  it("shows exact whole-number ranges for Social Planning evidence", async () => {
+    const draft = {
+      ...createEmptySocialPlanningDraft(),
+      respondent: "Taylor",
+      relationship: "friend" as const,
+      offence: "confirmed_plan_revision" as const,
+    };
+    window.localStorage.setItem(
+      FILING_DRAFT_STORAGE_KEY,
+      serializeDraft(draft, Date.now()),
+    );
+    render(
+      <FilingJourney
+        locale="en"
+        step="social_evidence"
+        returnToReview={false}
+        copy={messages.Filing}
+        navigation={messages.Navigation}
+        completeFiling={completeFiling}
+      />,
+    );
+
+    const revisions = await screen.findByRole("spinbutton", {
+      name: /Post-confirmation revisions/u,
+    });
+    const participants = screen.getByRole("spinbutton", {
+      name: /Participants affected/u,
+    });
+    const notice = screen.getByRole("spinbutton", {
+      name: /Advance notice/u,
+    });
+    expect(revisions).toHaveAttribute("min", "1");
+    expect(revisions).toHaveAttribute("max", "10");
+    expect(revisions).toHaveAttribute("step", "1");
+    expect(participants).toHaveAttribute("min", "2");
+    expect(participants).toHaveAttribute("max", "20");
+    expect(notice).toHaveAttribute("min", "0");
+    expect(notice).toHaveAttribute("max", "168");
+    expect(screen.getByText("Whole numbers from 0 to 168")).toBeVisible();
+
+    fireEvent.change(notice, { target: { value: "0.5" } });
+    fireEvent.click(
+      screen.getByRole("button", { name: messages.Filing.continue }),
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Enter a whole number within the range shown.",
+    );
   });
 
   it("keeps a server-rejected review visible with safe work preserved", async () => {

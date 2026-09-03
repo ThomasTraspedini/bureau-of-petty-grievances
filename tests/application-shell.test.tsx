@@ -38,12 +38,28 @@ describe("application shell", () => {
     expect(
       screen.getByRole("link", { name: messages.Home.primaryAction }),
     ).toHaveAttribute("href", "/en/file/respondent");
+    expect(
+      screen.getByRole("link", { name: messages.Home.secondaryAction }),
+    ).toHaveAttribute("href", "/en/example");
   });
 
   it("keeps the locale explicit in the shell and home navigation", () => {
     const { container } = render(<ApplicationShell locale="en" copy={copy} />);
 
     expect(container.firstElementChild).toHaveAttribute("data-locale", "en");
+    expect(container.querySelector(".civic-seal text")).toHaveTextContent(
+      "BPG",
+    );
+    const seal = container.querySelector(".civic-seal");
+    const sealDots = Array.from(
+      seal?.querySelectorAll<SVGCircleElement>(".civic-seal-dot") ?? [],
+    );
+    expect(sealDots).toHaveLength(2);
+    expect(sealDots.map((dot) => dot.getAttribute("cx"))).toEqual(["24", "24"]);
+    expect(sealDots.map((dot) => dot.getAttribute("cy"))).toEqual([
+      "13.75",
+      "34.25",
+    ]);
     expect(
       screen.getByRole("link", { name: messages.Navigation.brandName }),
     ).toHaveAttribute("href", "/en");

@@ -40,7 +40,6 @@ export async function getRequestMessageCatalog(
       findingIndex: catalog.Determination.findingIndex,
       consequenceIndex: catalog.Determination.consequenceIndex,
       mitigationIndex: catalog.Determination.mitigationIndex,
-      remedyMark: catalog.Determination.remedyMark,
     },
     Sharing: {
       ...pseudo.Sharing,

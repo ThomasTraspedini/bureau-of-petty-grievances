@@ -110,8 +110,8 @@ export function StandardAccess({
               className="access-card access-card-standard"
               aria-live="polite"
             >
-              <span className="access-mark" aria-hidden="true">
-                B
+              <span className="access-mark access-mark-seal" aria-hidden="true">
+                <CivicSeal initial={navigation.brandInitial} />
               </span>
               <p className="eyebrow">{copy.activeKicker}</p>
               <h1>{copy.activeTitle}</h1>
@@ -156,8 +156,15 @@ export function StandardAccess({
             aria-live="polite"
             aria-busy={state === "checking"}
           >
-            <span className="access-mark" aria-hidden="true">
-              {state === "checking" ? "B" : "!"}
+            <span
+              className={`access-mark${state === "checking" ? " access-mark-seal" : ""}`}
+              aria-hidden="true"
+            >
+              {state === "checking" ? (
+                <CivicSeal initial={navigation.brandInitial} />
+              ) : (
+                "!"
+              )}
             </span>
             <p className="eyebrow">{content?.kicker}</p>
             <h1>{content?.title}</h1>

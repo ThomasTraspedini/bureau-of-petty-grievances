@@ -53,7 +53,7 @@ interface EventEnvelope<Name extends string, Properties> {
   eventId: string;
   journeyId: AnalyticsJourneyId | null;
   occurredAt: string;
-  locale: "en";
+  locale: ProductLocale;
   department: AnalyticsDepartmentCode;
   name: Name;
   properties: Properties;
@@ -376,7 +376,7 @@ function isEnvelope(
     typeof value.eventId !== "string" ||
     !ANALYTICS_EVENT_ID_PATTERN.test(value.eventId) ||
     (value.journeyId !== null && !isAnalyticsJourneyId(value.journeyId)) ||
-    value.locale !== "en" ||
+    !isProductLocale(value.locale) ||
     (value.department !== "chronology" &&
       value.department !== "digital_conduct" &&
       value.department !== "domestic_affairs" &&
@@ -713,3 +713,4 @@ function hasOnlyKeys(
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+import { isProductLocale, type ProductLocale } from "@/domain/locale";

@@ -28,6 +28,32 @@ test("renders localized metadata and passes an automated accessibility scan", as
   expect(results.violations).toEqual([]);
 });
 
+test("opens a complete representative determination on its own page", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/en");
+  await page
+    .getByRole("link", { name: "Inspect a representative determination" })
+    .click();
+
+  await expect(page).toHaveURL(/\/en\/example$/u);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Review concerning Marco" }),
+  ).toBeVisible();
+  await expect(page.getByText("24 minutes later")).toBeVisible();
+  await expect(
+    page.getByText("This is an illustrative determination."),
+  ).toBeVisible();
+  await expect(page.locator(".determination-record")).toHaveCSS("opacity", "1");
+  await expect(
+    page.getByRole("button", { name: "Create the public record" }),
+  ).toHaveCount(0);
+
+  const results = await new AxeBuilder({ page }).analyze();
+  expect(results.violations).toEqual([]);
+});
+
 test("exchanges evaluator access from a clean address without retaining the credential", async ({
   page,
   context,
@@ -172,6 +198,8 @@ test.describe("visual contract", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/en");
 
+    await expect(page.locator(".sample-card")).toHaveCSS("rotate", "none");
+
     await expect(page).toHaveScreenshot("application-shell-mobile.png", {
       fullPage: true,
       animations: "disabled",
@@ -183,11 +211,27 @@ test.describe("visual contract", () => {
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.goto("/en");
 
+    await expect(page.locator(".sample-card")).toHaveCSS("rotate", "0.8deg");
+
     await expect(page).toHaveScreenshot("application-shell-desktop.png", {
       fullPage: true,
       animations: "disabled",
       maxDiffPixelRatio: 0.01,
     });
+  });
+
+  test("desktop representative determination", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.goto("/en/example");
+
+    await expect(page).toHaveScreenshot(
+      "representative-determination-desktop.png",
+      {
+        fullPage: true,
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
   });
 
   test("desktop standard authorization", async ({ page, context }) => {

@@ -13,6 +13,7 @@ import {
 import { createNetworkDigest } from "@/server/access/network-identity";
 import { getRuntimeAccessControlRepository } from "@/server/access/runtime-access-control";
 import { recordServerProductEvent } from "@/server/observability/runtime-product-analytics";
+import type { InterfaceLocale } from "@/i18n/routing";
 
 export type ExchangeEvaluationTokenActionResult =
   | { status: "accepted" }
@@ -21,6 +22,7 @@ export type ExchangeEvaluationTokenActionResult =
     };
 
 export async function exchangeEvaluationToken(
+  locale: InterfaceLocale,
   token: unknown,
   journeyId?: unknown,
 ): Promise<ExchangeEvaluationTokenActionResult> {
@@ -39,7 +41,7 @@ export async function exchangeEvaluationToken(
   after(() =>
     recordServerProductEvent({
       journeyId,
-      locale: "en",
+      locale,
       department: "chronology",
       name: "access_redeemed",
       properties: { kind: "evaluation", outcome: result.status },

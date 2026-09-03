@@ -56,7 +56,7 @@ Social Planning supports three deliberately narrow shared-decision classificatio
 - decision drift records decision rounds, elapsed hours, and participant count;
 - a post-confirmation revision records revision count, participant count, and notice hours.
 
-The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. A filer can move backward, change department without carrying incompatible facts, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review. Existing version-1 through version-3 drafts migrate into the version-4 envelope.
+The journey also records relationship, one low-stakes consequence, one required mitigating circumstance, and one bounded witness statement. Every phase has an explicit locale route. Numeric evidence fields state their exact accepted whole-number range beside the input. A filer can move backward, change department without carrying incompatible facts, refresh, recover a validated device-local draft for 30 days, review every normalized fact, and return directly from a correction to review. Recovery is announced after an actual reload or later return, not during ordinary movement between filing steps. Existing version-1 through version-3 drafts migrate into the version-4 envelope.
 
 Completion means that the server accepts the structured filing boundary, produces its deterministic assessment, and prepares a localized determination through an authorized provider call or the complete fallback path. The issued result is available in the current browser tab for 30 minutes. Completion alone does not publish a record or create an access entitlement; publication is a separate explicit choice.
 
@@ -94,9 +94,9 @@ Each assessment selects an offence-specific remedy family and prohibits coercion
 
 ## Current determination-language contract
 
-A server-owned pipeline can transform a matching validated filing and assessment into determination-language schema version `1`. The shared shape carries explicit English locale and the deterministic `upheld_with_circumstances_noted` disposition, followed by a bounded allegation, finding, consequence, mitigation, remedy, and closing. Factual sections declare the language-neutral inputs that ground them.
+A server-owned pipeline can transform a matching validated filing and assessment into determination-language schema version `1`. The shared shape carries an explicit English or Italian content locale and the deterministic `upheld_with_circumstances_noted` disposition, followed by a bounded allegation, finding, consequence, mitigation, remedy, and closing. Factual sections declare the language-neutral inputs that ground them.
 
-Each enabled department owns English editorial guidance, vocabulary, factual anchors, safety checks, and a complete deterministic fallback behind the shared language schema. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. Department policy also rejects surveillance, fabricated observation, compelled responsiveness, binding household control, and serious excluded matters.
+Each enabled department owns English and Italian editorial guidance, vocabulary, factual anchors, safety checks, and a complete deterministic fallback behind the shared language schema. Italian uses a formal `Lei` register and retains the same calm, exact, sincere Bureau voice. Provider output is rejected if it changes locale or disposition, loses required grounding, introduces unsupported numbers or claims, exceeds length limits, becomes punitive or off-tone, or violates remedy constraints. Department policy also rejects surveillance, fabricated observation, compelled responsiveness, binding household control, and serious excluded matters.
 
 The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic realization after deterministic judgment. It receives no respondent alias or exact clock time and treats the witness statement only as submitted data. For Digital Conduct it receives structured aggregate counts and intervals, not messages or account data; for Domestic Affairs it receives only the filed quantities, correction measures, recurrence, and statement, not photos, sensors, or a household map; for Social Planning it receives only the filed planning counts, intervals, and statement, not calendars, messages, contacts, locations, invitations, attendance, guest lists, or social-network data. Refusal, unavailable configuration, invalid output, timeout, and terminal failure resolve to fallback rather than raw errors.
 
@@ -105,6 +105,8 @@ The initial provider configuration uses `gpt-5.6-luna` for bounded linguistic re
 The localized determination presents provider and fallback output through the same official hierarchy. Its first viewport establishes a transient department reference, issue date, respondent context, disposition, and allegation. Chronology reconstructs timing facts on a measured scale; Digital Conduct uses a communications docket; Domestic Affairs uses a property register with a container gauge, correction path, or inventory markers; Social Planning uses a decision register with an option tree, deliberation history, or revision-impact record. Each visualization is derived only from approved submitted facts and states its evidence source. All departments separate finding, consequence, and mitigation, preserve the witness statement as the filer’s account, and give the non-binding remedy visual priority.
 
 The transient reference and curated presentation signature exclude aliases, witness prose, relationship context, and exact clock time. The result is validated again before restoration from tab-scoped session state. Missing, expired, or inconsistent state returns to the preserved review; a terminal internal failure offers retry without discarding the safe draft. Loading reflects actual pending work, adds no artificial delay, and the single determination reveal becomes immediate under reduced motion.
+
+The landing page links to a dedicated representative determination built through the same deterministic Chronology assessment, language fallback, and presentation contract as a real result. Its fixed localized case data is illustrative only: opening it performs no filing, provider call, persistence, publication, or consultation. The compact landing preview retains a slight paper-like angle on representative desktop layouts and remains upright on mobile.
 
 The experience explicitly states that it is transient until the filer opts into a public record. Publication, consultation, and sharing remain deliberate later stages rather than implied effects of completing a filing.
 
@@ -196,7 +198,7 @@ The product supports low-stakes teasing among people who know one another.
 
 ## Internationalization
 
-English is the first enabled product language. Locale remains explicit throughout routing, validation, formatting, persistence, deterministic copy, generative instructions, output validation, sharing, and tests.
+English and Italian are enabled product languages. English remains the default. Locale remains explicit throughout routing, validation, formatting, persistence, deterministic copy, generative instructions, output validation, sharing, and tests.
 
 Interface locale and determination locale are separate. A generated determination remains an immutable localized snapshot unless a deliberate future feature creates another translation.
 

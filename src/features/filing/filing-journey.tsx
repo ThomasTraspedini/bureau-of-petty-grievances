@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  type MouseEvent as ReactMouseEvent,
   type SyntheticEvent,
   useEffect,
   useRef,
@@ -46,14 +47,14 @@ import {
   getOrCreateGenerationIdempotencyKey,
 } from "../access/generation-idempotency";
 import {
-  DETERMINATION_SESSION_KEY,
+  determinationSessionKey,
   LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
   LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
   LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
   serializeDeterminationSession,
 } from "../determination/determination-session";
 import {
-  FILING_DRAFT_STORAGE_KEY,
+  filingDraftStorageKey,
   LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY,
   LEGACY_DOMESTIC_DRAFT_STORAGE_KEY,
   LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY,
@@ -77,7 +78,7 @@ type FilingCopy = MessageCatalog["Filing"];
 type NavigationCopy = MessageCatalog["Navigation"];
 
 type CompleteFiling = (
-  locale: string,
+  locale: InterfaceLocale,
   draft: unknown,
   idempotencyKey: unknown,
   journeyId?: unknown,
@@ -100,6 +101,9 @@ interface FilingJourneyProps {
 }
 
 type RecoveryNotice = "restored" | "expired" | "invalid" | null;
+
+export const FILING_INTERNAL_NAVIGATION_STORAGE_KEY =
+  "bpg:filing:internal-navigation:v1";
 
 const FIELD_STEPS: Record<FilingField, FilingStepCode> = {
   department: "department",
@@ -151,21 +155,37 @@ export function FilingJourney({
   );
   const [isPending, startTransition] = useTransition();
   const stepStartedAt = useRef<number | null>(null);
+  const draftStorageKey = filingDraftStorageKey(locale);
+  const currentDeterminationSessionKey = determinationSessionKey(locale);
 
   useEffect(() => {
     stepStartedAt.current = Date.now();
     const timer = window.setTimeout(() => {
       const stored = parseStoredDraft(
-        window.localStorage.getItem(FILING_DRAFT_STORAGE_KEY) ??
-          window.localStorage.getItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY) ??
-          window.localStorage.getItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY) ??
-          window.localStorage.getItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY),
+        window.localStorage.getItem(draftStorageKey) ??
+          (locale === "en"
+            ? (window.localStorage.getItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY) ??
+              window.localStorage.getItem(
+                LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY,
+              ) ??
+              window.localStorage.getItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY))
+            : null),
         Date.now(),
+        locale,
       );
+      const internalNavigationTarget = window.sessionStorage.getItem(
+        FILING_INTERNAL_NAVIGATION_STORAGE_KEY,
+      );
+      window.sessionStorage.removeItem(FILING_INTERNAL_NAVIGATION_STORAGE_KEY);
       setDraft(stored.draft);
-      setNotice(stored.status === "empty" ? null : stored.status);
+      setNotice(
+        stored.status === "empty" ||
+          (stored.status === "restored" && internalNavigationTarget === step)
+          ? null
+          : stored.status,
+      );
       if (stored.status === "expired" || stored.status === "invalid") {
-        window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
+        window.localStorage.removeItem(draftStorageKey);
         window.localStorage.removeItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY);
         window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
         window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
@@ -179,15 +199,15 @@ export function FilingJourney({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [locale, step]);
+  }, [draftStorageKey, locale, step]);
 
   useEffect(() => {
     if (!hydrated) return;
     window.localStorage.setItem(
-      FILING_DRAFT_STORAGE_KEY,
-      serializeDraft(draft, Date.now()),
+      draftStorageKey,
+      serializeDraft(draft, Date.now(), locale),
     );
-  }, [draft, hydrated]);
+  }, [draft, draftStorageKey, hydrated, locale]);
 
   const pathFor = (target: FilingStepCode) => `/${locale}/file/${target}`;
   const questionIndex = filingStepIndex(step, draft.department);
@@ -196,7 +216,7 @@ export function FilingJourney({
   const observedPathCode = analyticsPathCode(draft);
 
   function updateDraft(update: (current: FilingDraft) => FilingDraft) {
-    window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(currentDeterminationSessionKey);
     window.sessionStorage.removeItem(LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY);
     window.sessionStorage.removeItem(
       LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
@@ -213,7 +233,31 @@ export function FilingJourney({
   }
 
   function navigate(target: FilingStepCode) {
+    markInternalNavigation(target);
     window.location.assign(pathFor(target));
+  }
+
+  function markInternalNavigation(target: FilingStepCode) {
+    window.sessionStorage.setItem(
+      FILING_INTERNAL_NAVIGATION_STORAGE_KEY,
+      target,
+    );
+  }
+
+  function markInternalLinkNavigation(
+    event: ReactMouseEvent<HTMLAnchorElement>,
+    target: FilingStepCode,
+  ) {
+    if (
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    markInternalNavigation(target);
   }
 
   function handleContinue(event: SyntheticEvent<HTMLFormElement>) {
@@ -302,7 +346,7 @@ export function FilingJourney({
         if (result.status === "accepted") {
           window.sessionStorage.removeItem(GENERATION_IDEMPOTENCY_STORAGE_KEY);
           window.sessionStorage.setItem(
-            DETERMINATION_SESSION_KEY,
+            currentDeterminationSessionKey,
             serializeDeterminationSession(
               draft,
               result.determination,
@@ -328,11 +372,11 @@ export function FilingJourney({
   }
 
   function resetDraft() {
-    window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
+    window.localStorage.removeItem(draftStorageKey);
     window.localStorage.removeItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY);
     window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
     window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
-    window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(currentDeterminationSessionKey);
     window.sessionStorage.removeItem(LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY);
     window.sessionStorage.removeItem(
       LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
@@ -350,14 +394,26 @@ export function FilingJourney({
   }
 
   const previous = previousFilingStep(step, draft.department);
-  const serviceName =
-    draft.department === "chronology"
+  const departmentPending =
+    step === "respondent" || step === "relationship" || step === "department";
+  const serviceName = departmentPending
+    ? copy.intakeServiceName
+    : draft.department === "chronology"
       ? copy.serviceName
       : draft.department === "digital_conduct"
         ? copy.digitalServiceName
         : draft.department === "domestic_affairs"
           ? copy.domesticServiceName
           : copy.socialServiceName;
+  const departmentName = departmentPending
+    ? copy.intakeDepartment
+    : draft.department === "chronology"
+      ? copy.department
+      : draft.department === "digital_conduct"
+        ? copy.digitalDepartment
+        : draft.department === "domestic_affairs"
+          ? copy.domesticDepartment
+          : copy.socialDepartment;
 
   return (
     <div className="filing-shell" data-locale={locale}>
@@ -396,15 +452,7 @@ export function FilingJourney({
 
       <main className="filing-main" id="filing-question">
         <aside className="filing-rail" aria-label={serviceName}>
-          <p>
-            {draft.department === "chronology"
-              ? copy.department
-              : draft.department === "digital_conduct"
-                ? copy.digitalDepartment
-                : draft.department === "domestic_affairs"
-                  ? copy.domesticDepartment
-                  : copy.socialDepartment}
-          </p>
+          <p>{departmentName}</p>
           {showProgress ? (
             <>
               <span>
@@ -473,6 +521,7 @@ export function FilingJourney({
                 locale={locale}
                 isPending={!hydrated}
                 onComplete={handleComplete}
+                onInternalNavigation={markInternalLinkNavigation}
               />
             )
           ) : (
@@ -491,11 +540,23 @@ export function FilingJourney({
                 />
                 <div className="filing-actions">
                   {returnToReview ? (
-                    <a className="text-action" href={pathFor("review")}>
+                    <a
+                      className="text-action"
+                      href={pathFor("review")}
+                      onClick={(event) => {
+                        markInternalLinkNavigation(event, "review");
+                      }}
+                    >
                       <span aria-hidden="true">←</span> {copy.back}
                     </a>
                   ) : previous ? (
-                    <a className="text-action" href={pathFor(previous)}>
+                    <a
+                      className="text-action"
+                      href={pathFor(previous)}
+                      onClick={(event) => {
+                        markInternalLinkNavigation(event, previous);
+                      }}
+                    >
                       <span aria-hidden="true">←</span> {copy.back}
                     </a>
                   ) : (
@@ -1543,6 +1604,7 @@ function DigitalConductQuestion({
         body={copy.fragmentedMessagesBody}
       >
         <EvidenceNumberGrid
+          rangeCopy={copy.numberRange}
           fields={[
             [
               copy.messageCountLabel,
@@ -1619,6 +1681,7 @@ function DigitalConductQuestion({
         body={copy.excessiveVoiceNoteBody}
       >
         <EvidenceNumberGrid
+          rangeCopy={copy.numberRange}
           fields={[
             [
               copy.voiceDurationLabel,
@@ -1675,6 +1738,7 @@ function DigitalConductQuestion({
       body={copy.unacknowledgedCoordinationBody}
     >
       <EvidenceNumberGrid
+        rangeCopy={copy.numberRange}
         fields={[
           [
             copy.responseHoursLabel,
@@ -1769,6 +1833,7 @@ function DomesticAffairsQuestion({
         body={copy.tokenRemainderBody}
       >
         <EvidenceNumberGrid
+          rangeCopy={copy.numberRange}
           fields={[
             [
               copy.remainingServingsLabel,
@@ -1827,6 +1892,7 @@ function DomesticAffairsQuestion({
         body={copy.misplacedObjectBody}
       >
         <EvidenceNumberGrid
+          rangeCopy={copy.numberRange}
           fields={[
             [
               copy.itemCountLabel,
@@ -1903,6 +1969,7 @@ function DomesticAffairsQuestion({
       body={copy.emptyPackagingBody}
     >
       <EvidenceNumberGrid
+        rangeCopy={copy.numberRange}
         fields={[
           [
             copy.emptyPackageCountLabel,
@@ -1997,6 +2064,7 @@ function SocialPlanningQuestion({
         body={copy.optionVetoCycleBody}
       >
         <EvidenceNumberGrid
+          rangeCopy={copy.numberRange}
           fields={[
             [
               copy.proposedOptionCountLabel,
@@ -2074,6 +2142,7 @@ function SocialPlanningQuestion({
         body={copy.decisionDriftBody}
       >
         <EvidenceNumberGrid
+          rangeCopy={copy.numberRange}
           fields={[
             [
               copy.decisionRoundCountLabel,
@@ -2150,6 +2219,7 @@ function SocialPlanningQuestion({
       body={copy.confirmedPlanRevisionBody}
     >
       <EvidenceNumberGrid
+        rangeCopy={copy.numberRange}
         fields={[
           [
             copy.revisionCountLabel,
@@ -2231,34 +2301,43 @@ type EvidenceNumberField = readonly [
 function EvidenceNumberGrid({
   fields,
   errorId,
+  rangeCopy,
 }: {
   fields: readonly EvidenceNumberField[];
   errorId: string | undefined;
+  rangeCopy: string;
 }) {
   return (
     <div className="timing-grid evidence-number-grid">
       {fields.map(
-        ([label, value, minimum, maximum, suffix, onChange], index) => (
-          <label key={label}>
-            <span className="field-label">{label}</span>
-            <span className="number-control">
-              <input
-                autoFocus={index === 0}
-                className="text-input"
-                type="number"
-                inputMode="numeric"
-                min={minimum}
-                max={maximum}
-                value={value}
-                aria-describedby={errorId}
-                onChange={(event) => {
-                  onChange(event.target.value);
-                }}
-              />
-              <span>{suffix}</span>
-            </span>
-          </label>
-        ),
+        ([label, value, minimum, maximum, suffix, onChange], index) => {
+          const rangeId = `evidence-number-range-${String(index)}`;
+          return (
+            <label key={label}>
+              <span className="field-label">{label}</span>
+              <span className="number-control">
+                <input
+                  autoFocus={index === 0}
+                  className="text-input"
+                  type="number"
+                  inputMode="numeric"
+                  min={minimum}
+                  max={maximum}
+                  step={1}
+                  value={value}
+                  aria-describedby={errorId ? `${rangeId} ${errorId}` : rangeId}
+                  onChange={(event) => {
+                    onChange(event.target.value);
+                  }}
+                />
+                <span className="field-unit">{suffix}</span>
+              </span>
+              <small className="field-range" id={rangeId}>
+                {format(rangeCopy, { minimum, maximum })}
+              </small>
+            </label>
+          );
+        },
       )}
     </div>
   );
@@ -2389,6 +2468,10 @@ interface ReviewStepProps {
   locale: InterfaceLocale;
   isPending: boolean;
   onComplete: () => void;
+  onInternalNavigation: (
+    event: ReactMouseEvent<HTMLAnchorElement>,
+    target: FilingStepCode,
+  ) => void;
 }
 
 function ReviewStep({
@@ -2397,6 +2480,7 @@ function ReviewStep({
   locale,
   isPending,
   onComplete,
+  onInternalNavigation,
 }: ReviewStepProps) {
   const rows = [
     [copy.reviewRespondent, draft.respondent || "—", "respondent"],
@@ -2458,7 +2542,12 @@ function ReviewStep({
             <dt>{label}</dt>
             <dd>
               <span>{value}</span>
-              <a href={`/${locale}/file/${target}?return=review`}>
+              <a
+                href={`/${locale}/file/${target}?return=review`}
+                onClick={(event) => {
+                  onInternalNavigation(event, target);
+                }}
+              >
                 {copy.correct}
               </a>
             </dd>
@@ -2470,7 +2559,13 @@ function ReviewStep({
         <p>{copy.reviewBoundaryBody}</p>
       </div>
       <div className="filing-actions">
-        <a className="text-action" href={`/${locale}/file/statement`}>
+        <a
+          className="text-action"
+          href={`/${locale}/file/statement`}
+          onClick={(event) => {
+            onInternalNavigation(event, "statement");
+          }}
+        >
           <span aria-hidden="true">←</span> {copy.back}
         </a>
         <button

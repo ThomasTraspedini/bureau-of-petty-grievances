@@ -38,6 +38,12 @@ import {
 import { createSocialPlanningDeterminationLanguageCommand } from "@/domain/determination/determination-language";
 import { validateEnglishSocialPlanningLanguage } from "@/domain/determination/locales/en-social-planning";
 import {
+  validateItalianChronologyLanguage,
+  validateItalianDigitalConductLanguage,
+  validateItalianDomesticAffairsLanguage,
+  validateItalianSocialPlanningLanguage,
+} from "@/domain/determination/locales/it";
+import {
   type SocialPlanningFiling,
   validateSocialPlanningFiling,
 } from "@/domain/filing/social-planning";
@@ -182,7 +188,7 @@ export function validateChronologyDeterminationSnapshot(
       "presentationVariant",
     ]) ||
     value.experienceVersion !== DETERMINATION_EXPERIENCE_VERSION ||
-    value.locale !== "en" ||
+    (value.locale !== "en" && value.locale !== "it") ||
     !isDeterminationReference(value.reference) ||
     typeof value.issuedAt !== "string"
   ) {
@@ -201,10 +207,10 @@ export function validateChronologyDeterminationSnapshot(
     assessment,
   );
   if (command.status === "invalid") return { status: "invalid" };
-  const language = validateEnglishChronologyLanguage(
-    value.language,
-    command.command,
-  );
+  const language =
+    command.command.locale === "it"
+      ? validateItalianChronologyLanguage(value.language, command.command)
+      : validateEnglishChronologyLanguage(value.language, command.command);
   if (language.status === "invalid") return { status: "invalid" };
 
   const issuedAt = new Date(value.issuedAt);
@@ -228,7 +234,7 @@ export function validateChronologyDeterminationSnapshot(
     status: "valid",
     snapshot: {
       experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
-      locale: "en",
+      locale: filingResult.filing.locale,
       reference: value.reference,
       issuedAt: value.issuedAt,
       assessment,
@@ -257,7 +263,7 @@ export function validateDigitalConductDeterminationSnapshot(
       "presentationVariant",
     ]) ||
     value.experienceVersion !== DETERMINATION_EXPERIENCE_VERSION ||
-    value.locale !== "en" ||
+    (value.locale !== "en" && value.locale !== "it") ||
     !isDeterminationReference(value.reference) ||
     typeof value.issuedAt !== "string"
   )
@@ -272,10 +278,10 @@ export function validateDigitalConductDeterminationSnapshot(
     assessment,
   );
   if (command.status === "invalid") return { status: "invalid" };
-  const language = validateEnglishDigitalConductLanguage(
-    value.language,
-    command.command,
-  );
+  const language =
+    command.command.locale === "it"
+      ? validateItalianDigitalConductLanguage(value.language, command.command)
+      : validateEnglishDigitalConductLanguage(value.language, command.command);
   if (language.status === "invalid") return { status: "invalid" };
   const issuedAt = new Date(value.issuedAt);
   if (
@@ -294,7 +300,7 @@ export function validateDigitalConductDeterminationSnapshot(
     status: "valid",
     snapshot: {
       experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
-      locale: "en",
+      locale: filingResult.filing.locale,
       reference: value.reference,
       issuedAt: value.issuedAt,
       assessment,
@@ -323,7 +329,7 @@ export function validateDomesticAffairsDeterminationSnapshot(
       "presentationVariant",
     ]) ||
     value.experienceVersion !== DETERMINATION_EXPERIENCE_VERSION ||
-    value.locale !== "en" ||
+    (value.locale !== "en" && value.locale !== "it") ||
     !isDeterminationReference(value.reference) ||
     typeof value.issuedAt !== "string"
   )
@@ -341,10 +347,10 @@ export function validateDomesticAffairsDeterminationSnapshot(
     assessment,
   );
   if (command.status === "invalid") return { status: "invalid" };
-  const language = validateEnglishDomesticAffairsLanguage(
-    value.language,
-    command.command,
-  );
+  const language =
+    command.command.locale === "it"
+      ? validateItalianDomesticAffairsLanguage(value.language, command.command)
+      : validateEnglishDomesticAffairsLanguage(value.language, command.command);
   if (language.status === "invalid") return { status: "invalid" };
   const issuedAt = new Date(value.issuedAt);
   if (
@@ -363,7 +369,7 @@ export function validateDomesticAffairsDeterminationSnapshot(
     status: "valid",
     snapshot: {
       experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
-      locale: "en",
+      locale: filingResult.filing.locale,
       reference: value.reference,
       issuedAt: value.issuedAt,
       assessment,
@@ -392,7 +398,7 @@ export function validateSocialPlanningDeterminationSnapshot(
       "presentationVariant",
     ]) ||
     value.experienceVersion !== DETERMINATION_EXPERIENCE_VERSION ||
-    value.locale !== "en" ||
+    (value.locale !== "en" && value.locale !== "it") ||
     !isDeterminationReference(value.reference) ||
     typeof value.issuedAt !== "string"
   )
@@ -407,10 +413,10 @@ export function validateSocialPlanningDeterminationSnapshot(
     assessment,
   );
   if (command.status === "invalid") return { status: "invalid" };
-  const language = validateEnglishSocialPlanningLanguage(
-    value.language,
-    command.command,
-  );
+  const language =
+    command.command.locale === "it"
+      ? validateItalianSocialPlanningLanguage(value.language, command.command)
+      : validateEnglishSocialPlanningLanguage(value.language, command.command);
   if (language.status === "invalid") return { status: "invalid" };
   const issuedAt = new Date(value.issuedAt);
   if (
@@ -429,7 +435,7 @@ export function validateSocialPlanningDeterminationSnapshot(
     status: "valid",
     snapshot: {
       experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
-      locale: "en",
+      locale: filingResult.filing.locale,
       reference: value.reference,
       issuedAt: value.issuedAt,
       assessment,

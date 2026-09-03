@@ -6,6 +6,7 @@ import type { PublicRecordShareDescriptor } from "@/domain/public-record/public-
 import type { AnalyticsSubject } from "@/domain/observability/product-analytics";
 import type { InterfaceLocale } from "@/i18n/routing";
 
+import { CivicSeal } from "../brand/civic-seal";
 import type {
   LocalizedPublicRecordShare,
   PublicRecordSharingCopy,
@@ -107,7 +108,7 @@ export function PublicRecordSharing({
         aria-label={copy.previewLabel}
       >
         <div className="share-object-mark" aria-hidden="true">
-          <span>{localized.brandInitial}</span>
+          <CivicSeal initial={localized.brandInitial} />
         </div>
         <div className="share-object-copy">
           <span>{copy.previewLabel}</span>

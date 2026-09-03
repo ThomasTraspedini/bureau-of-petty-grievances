@@ -291,7 +291,7 @@ function parseStoredRecord(value: unknown): StoredPublicRecord | null {
     typeof row.ownerCredentialDigest !== "string" ||
     typeof row.snapshotDigest !== "string" ||
     Number(row.snapshotVersion) !== PUBLIC_RECORD_SNAPSHOT_VERSION ||
-    row.locale !== "en" ||
+    !isProductLocale(row.locale) ||
     (row.department !== "chronology" &&
       row.department !== "digital_conduct" &&
       row.department !== "domestic_affairs" &&
@@ -404,3 +404,4 @@ function safeCount(value: unknown): number | null {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
+import { isProductLocale } from "@/domain/locale";

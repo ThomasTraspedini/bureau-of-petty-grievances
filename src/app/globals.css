@@ -175,6 +175,16 @@ a {
   font-weight: 700;
 }
 
+.access-mark-seal {
+  border: 0;
+  background: transparent;
+}
+
+.access-mark-seal .civic-seal {
+  width: 68px;
+  height: 68px;
+}
+
 .standard-access-stack {
   display: grid;
   width: 100%;
@@ -555,9 +565,25 @@ a {
   gap: 10px;
 }
 
+.number-control .text-input {
+  min-width: 0;
+}
+
 .number-control span {
   color: var(--ink-soft);
   font-size: 13px;
+}
+
+.number-control .field-unit {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.field-range {
+  display: block;
+  margin-top: 6px;
+  color: var(--ink-soft);
+  font-size: 11px;
 }
 
 .why-panel {
@@ -993,19 +1019,18 @@ a {
 .social-register-diagram {
   display: grid;
   max-width: 760px;
-  gap: 30px;
-  min-height: 190px;
-  padding: 24px 18px 30px;
+  gap: 22px;
+  padding: 18px 18px 24px;
   border-bottom: 1px solid rgb(255 255 255 / 34%);
 }
 
 .social-option-tree {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(4, minmax(28px, 1fr));
+  grid-template-columns: 44px repeat(auto-fit, minmax(44px, 1fr));
   align-items: center;
-  gap: 20px;
-  min-height: 90px;
+  gap: 16px;
+  min-height: 72px;
 }
 
 .social-option-tree::before {
@@ -1033,7 +1058,6 @@ a {
 .social-option-tree > span {
   width: 30px;
   height: 30px;
-  grid-row: span 2;
   border-width: 5px;
 }
 
@@ -1072,13 +1096,16 @@ a {
 
 .social-register figcaption {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 22px;
+  max-width: 760px;
   margin-top: 22px;
 }
 
 .social-register figcaption > div {
-  padding-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(132px, 0.42fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 28px;
+  padding: 14px 18px;
   border-top: 1px solid rgb(255 255 255 / 18%);
 }
 
@@ -1088,7 +1115,6 @@ a {
 }
 
 .social-register figcaption span {
-  margin-bottom: 7px;
   opacity: 0.65;
   font-family: var(--mono);
   font-size: 9px;
@@ -1097,9 +1123,9 @@ a {
 }
 
 .social-register figcaption strong {
-  font-family: var(--serif);
-  font-size: clamp(19px, 2.4vw, 25px);
-  font-weight: 620;
+  font-size: clamp(16px, 1.9vw, 20px);
+  font-weight: 650;
+  line-height: 1.35;
 }
 
 .domestic-reconstruction .determination-section-heading > p:last-child {
@@ -1481,17 +1507,17 @@ a {
 
 .remedy-seal {
   display: grid;
-  width: 76px;
-  height: 76px;
+  width: 96px;
+  height: 96px;
   place-items: center;
-  border: 2px solid var(--ink);
-  border-radius: 50%;
 }
 
-.remedy-seal span {
-  font-family: var(--serif);
-  font-size: 34px;
-  font-weight: 700;
+.remedy-stamp {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.88;
+  rotate: -7deg;
 }
 
 .remedy-record h2 {
@@ -1847,19 +1873,13 @@ a {
 }
 
 .share-object-mark {
-  display: grid;
   width: clamp(64px, 9vw, 84px);
   height: clamp(64px, 9vw, 84px);
-  place-items: center;
-  border: 3px solid var(--ink);
-  border-radius: 50%;
-  background: var(--ivory-light);
-  box-shadow:
-    inset 0 0 0 6px var(--ivory-light),
-    inset 0 0 0 9px var(--share-accent);
-  font-family: var(--serif);
-  font-size: 29px;
-  font-weight: 700;
+  color: var(--ink);
+}
+
+.share-object-mark .civic-seal-dot {
+  fill: var(--share-accent);
 }
 
 .share-object-copy {
@@ -2229,6 +2249,12 @@ h1 {
   border-radius: var(--radius-lg);
   background: var(--paper);
   box-shadow: var(--shadow);
+}
+
+@media (min-width: 841px) {
+  .sample-card {
+    rotate: 0.8deg;
+  }
 }
 
 .sample-card::after {
@@ -2790,18 +2816,18 @@ footer p {
   }
 
   .social-register-diagram {
-    min-height: 160px;
     padding-inline: 4px;
   }
 
   .social-option-tree {
-    grid-template-columns: repeat(3, minmax(24px, 1fr));
+    grid-template-columns: 36px repeat(auto-fit, minmax(32px, 1fr));
     gap: 12px;
   }
 
-  .social-register figcaption {
+  .social-register figcaption > div {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 7px;
+    padding-inline: 4px;
   }
 
   .remedy-record {
@@ -2809,8 +2835,8 @@ footer p {
   }
 
   .remedy-seal {
-    width: 58px;
-    height: 58px;
+    width: 82px;
+    height: 82px;
   }
 
   .determination-actions {

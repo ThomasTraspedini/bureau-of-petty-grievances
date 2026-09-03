@@ -10,7 +10,7 @@
   "Navigation": {
     "skipToContent": "Skip to the main content",
     "brandName": "Bureau of Petty Grievances",
-    "brandInitial": "B",
+    "brandInitial": "BPG",
     "brandDescriptor": "Office for Interpersonal Continuity",
     "locale": "English"
   },
@@ -124,8 +124,21 @@
     "footerMission": "Nothing human is too small to improve.",
     "footerStatus": "English is the enabled interface locale."
   },
+  "Example": {
+    "metadataTitle": "Representative determination — Bureau of Petty Grievances",
+    "metadataDescription": "Inspect a complete, fixed example of a Bureau determination.",
+    "sessionLabel": "Representative determination · fixed example",
+    "boundaryTitle": "This is an illustrative determination.",
+    "boundaryBody": "It is a fixed example, not a submitted filing or public record. It uses no provider service and cannot be published or opened to consultation.",
+    "homeAction": "Return to the Bureau",
+    "filingAction": "File your own grievance",
+    "respondent": "Marco",
+    "statement": "Shoes were still being located after an announced departure."
+  },
   "Filing": {
     "skipToContent": "Skip to the filing question",
+    "intakeServiceName": "Bureau filing service",
+    "intakeDepartment": "Central Filing Office",
     "serviceName": "Chronology filing service",
     "digitalServiceName": "Digital Conduct filing service",
     "domesticServiceName": "Domestic Affairs filing service",
@@ -154,6 +167,7 @@
     "invalidDraftTitle": "Saved draft could not be restored",
     "invalidDraftBody": "The stored data was invalid, so the Bureau opened a clean filing.",
     "whyLabel": "Why the Bureau asks",
+    "numberRange": "Whole numbers from {minimum} to {maximum}",
     "respondentKicker": "The people concerned",
     "respondentTitle": "Who is this grievance about?",
     "respondentBody": "Use a first name, nickname, or fictional name. Do not include contact details.",
@@ -378,7 +392,7 @@
     "errorIdentifier": "Remove contact details, links, or account handles before continuing.",
     "errorInvalidSelection": "Select one option before continuing.",
     "errorInvalidTime": "Enter a valid time.",
-    "errorInvalidDuration": "Enter a whole number within the permitted range.",
+    "errorInvalidDuration": "Enter a whole number within the range shown.",
     "errorEstimateNotExceeded": "The actual duration must be greater than the stated estimate.",
     "errorRatioNotExceeded": "The message count must be greater than the number of ideas for this classification.",
     "errorFollowUpRequired": "Enter at least one follow-up for this classification.",
@@ -466,7 +480,7 @@
     "socialAlternativesValue": "{count} {unit} offered",
     "socialRoundsValue": "{count} decision rounds",
     "socialHoursParticipantsValue": "{hours} {hourUnit} · {participants} participants",
-    "socialRevisionsValue": "{count} confirmed-plan {unit}",
+    "socialRevisionsValue": "{count} confirmed plan {unit}",
     "socialNoticeParticipantsValue": "{hours} {noticeUnit} notice · {participants} participants",
     "findingsKicker": "Reasons entered into the record",
     "findingsTitle": "Facts, consequence, and fairness.",
@@ -479,7 +493,6 @@
     "witnessKicker": "Submitted evidence",
     "witnessTitle": "Witness statement",
     "witnessBoundary": "Accepted as the filer’s account. The Bureau did not seek external evidence.",
-    "remedyMark": "B",
     "remedyKicker": "Proportionate remedy",
     "remedyBoundary": "Private · non-binding · limited in duration",
     "transientTitle": "This determination is available in this browser tab only.",
@@ -553,7 +566,7 @@
   },
   "Sharing": {
     "brandName": "Bureau of Petty Grievances",
-    "brandInitial": "B",
+    "brandInitial": "BPG",
     "imageStatus": "Public determination",
     "imageMotto": "Harmony, administered.",
     "metadataTitle": "{offence} — Bureau of Petty Grievances",

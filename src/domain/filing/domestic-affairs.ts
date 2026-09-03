@@ -60,7 +60,7 @@ export interface DomesticAffairsDraft {
 }
 
 interface DomesticAffairsFilingCommon {
-  locale: "en";
+  locale: ProductLocale;
   department: "domestic_affairs";
   respondent: string;
   relationship: RelationshipCode;
@@ -125,7 +125,7 @@ export function validateDomesticAffairsDraft(
   locale: unknown,
 ): DomesticAffairsValidationResult {
   const draft = parseDomesticAffairsDraft(value);
-  if (!draft || locale !== "en") return invalidFiling();
+  if (!draft || !isProductLocale(locale)) return invalidFiling();
 
   const errors: FilingError[] = [];
   const respondent = draft.respondent.trim();
@@ -159,7 +159,7 @@ export function validateDomesticAffairsDraft(
     return { status: "invalid", errors };
 
   const common: DomesticAffairsFilingCommon = {
-    locale: "en",
+    locale,
     department: "domestic_affairs",
     respondent,
     relationship: draft.relationship,
@@ -233,7 +233,12 @@ export function validateDomesticAffairsFiling(
   value: unknown,
   locale: unknown,
 ): DomesticAffairsValidationResult {
-  if (!isRecord(value) || value.department !== "domestic_affairs")
+  if (
+    !isRecord(value) ||
+    value.department !== "domestic_affairs" ||
+    !isProductLocale(value.locale) ||
+    value.locale !== locale
+  )
     return invalidFiling();
   if (
     typeof value.respondent !== "string" ||
@@ -470,3 +475,4 @@ function isMitigationOrEmpty(
 ): value is DomesticAffairsMitigationCode | "" {
   return value === "" || isMitigation(value);
 }
+import { isProductLocale, type ProductLocale } from "@/domain/locale";

@@ -35,7 +35,7 @@ export default async function EvaluationPage({ params }: EvaluationPageProps) {
       locale={locale}
       copy={messages.Access}
       navigation={messages.Navigation}
-      exchangeToken={exchangeEvaluationToken}
+      exchangeToken={exchangeEvaluationToken.bind(null, locale)}
     />
   );
 }

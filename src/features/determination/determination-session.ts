@@ -9,8 +9,12 @@ import {
 } from "@/domain/determination/determination-experience";
 import { type FilingDraft, validateFilingDraft } from "@/domain/filing/filing";
 import { assessFiling } from "@/domain/determination/assessment";
+import { isProductLocale, type ProductLocale } from "@/domain/locale";
 
 export const DETERMINATION_SESSION_KEY = "bpg:determination:en:v4";
+export function determinationSessionKey(locale: ProductLocale): string {
+  return `bpg:determination:${locale}:v4`;
+}
 export const LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY =
   "bpg:determination:en:v3";
 export const LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY =
@@ -22,7 +26,7 @@ export const DETERMINATION_SESSION_LIFETIME_MS =
 
 interface DeterminationSessionEnvelope {
   version: 1 | 2 | 3 | 4;
-  locale: "en";
+  locale: ProductLocale;
   createdAt: number;
   draft: FilingDraft;
   determination: IssuedDetermination;
@@ -39,7 +43,7 @@ export function serializeDeterminationSession(
 ): string {
   const envelope: DeterminationSessionEnvelope = {
     version: 4,
-    locale: "en",
+    locale: determination.locale,
     createdAt: now,
     draft,
     determination,
@@ -50,12 +54,14 @@ export function serializeDeterminationSession(
 export function parseDeterminationSession(
   value: string | null,
   now: number,
+  expectedLocale: ProductLocale = "en",
 ): StoredDeterminationResult {
   if (value === null) return { status: "empty" };
 
   try {
     const parsed: unknown = JSON.parse(value);
-    if (!isSessionEnvelope(parsed)) return { status: "invalid" };
+    if (!isSessionEnvelope(parsed) || parsed.locale !== expectedLocale)
+      return { status: "invalid" };
     if (
       parsed.createdAt > now ||
       now - parsed.createdAt > DETERMINATION_SESSION_LIFETIME_MS
@@ -87,7 +93,7 @@ export function parseDeterminationSession(
     const validated = validateDeterminationSnapshot(
       {
         experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
-        locale: "en",
+        locale: parsed.locale,
         reference: parsed.determination.reference,
         issuedAt: parsed.determination.issuedAt,
         assessment,
@@ -123,7 +129,7 @@ function isSessionEnvelope(
       value.version !== 2 &&
       value.version !== 3 &&
       value.version !== 4) ||
-    value.locale !== "en" ||
+    !isProductLocale(value.locale) ||
     typeof value.createdAt !== "number" ||
     !Number.isFinite(value.createdAt) ||
     !isExactRecord(value.determination, [
@@ -141,7 +147,8 @@ function isSessionEnvelope(
   const determination = value.determination;
   return (
     determination.experienceVersion === DETERMINATION_EXPERIENCE_VERSION &&
-    determination.locale === "en" &&
+    isProductLocale(determination.locale) &&
+    determination.locale === value.locale &&
     isDeterminationReference(determination.reference) &&
     typeof determination.issuedAt === "string"
   );

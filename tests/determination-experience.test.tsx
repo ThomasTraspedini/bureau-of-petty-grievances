@@ -157,7 +157,7 @@ describe("determination experience", () => {
       ),
     );
 
-    render(
+    const { container } = render(
       <DeterminationExperience
         locale="en"
         copy={messages.Determination}
@@ -179,6 +179,10 @@ describe("determination experience", () => {
     expect(
       screen.getByText(messages.Determination.transientBody),
     ).toBeVisible();
+    const remedyStamp =
+      container.querySelector<HTMLImageElement>(".remedy-stamp");
+    expect(remedyStamp).toBeInTheDocument();
+    expect(remedyStamp?.getAttribute("src")).toContain("stamp");
   });
 
   it("renders expanded pseudo-localized interface copy", async () => {

@@ -47,7 +47,7 @@ export default async function DeterminationPage({
       standardAccessCopy={messages.StandardAccess}
       standardAccess={access.status === "available" ? access.summary : null}
       issueInvitation={issueSuccessorInvitation}
-      cancelInvitation={cancelSuccessorInvitation}
+      cancelInvitation={cancelSuccessorInvitation.bind(null, locale)}
     />
   );
 }

@@ -60,7 +60,7 @@ export interface DigitalConductDraft {
 }
 
 interface DigitalConductFilingCommon {
-  locale: "en";
+  locale: ProductLocale;
   department: "digital_conduct";
   respondent: string;
   relationship: RelationshipCode;
@@ -119,7 +119,7 @@ export function validateDigitalConductDraft(
   locale: unknown,
 ): DigitalConductValidationResult {
   const draft = parseDigitalConductDraft(value);
-  if (!draft || locale !== "en") return invalidFiling();
+  if (!draft || !isProductLocale(locale)) return invalidFiling();
 
   const errors: FilingError[] = [];
   const respondent = draft.respondent.trim();
@@ -154,7 +154,7 @@ export function validateDigitalConductDraft(
   }
 
   const common: DigitalConductFilingCommon = {
-    locale: "en",
+    locale,
     department: "digital_conduct",
     respondent,
     relationship: draft.relationship,
@@ -228,7 +228,12 @@ export function validateDigitalConductFiling(
   value: unknown,
   locale: unknown,
 ): DigitalConductValidationResult {
-  if (!isRecord(value) || value.department !== "digital_conduct") {
+  if (
+    !isRecord(value) ||
+    value.department !== "digital_conduct" ||
+    !isProductLocale(value.locale) ||
+    value.locale !== locale
+  ) {
     return invalidFiling();
   }
   const draft = createEmptyDigitalConductDraft();
@@ -437,3 +442,4 @@ function isMitigationOrEmpty(
 ): value is DigitalConductMitigationCode | "" {
   return value === "" || isMitigation(value);
 }
+import { isProductLocale, type ProductLocale } from "@/domain/locale";

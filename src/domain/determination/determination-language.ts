@@ -216,7 +216,7 @@ export const DETERMINATION_LANGUAGE_JSON_SCHEMA: Record<string, unknown> = {
   ],
   properties: {
     schemaVersion: { type: "integer", const: 1 },
-    locale: { type: "string", const: "en" },
+    locale: { type: "string", enum: ["en", "it"] },
     disposition: {
       type: "string",
       enum: DETERMINATION_DISPOSITION_CODES,

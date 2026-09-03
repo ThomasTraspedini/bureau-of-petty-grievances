@@ -89,6 +89,7 @@ export function PublicRecordExperience({
             />
             <PublicRecordReport
               publicId={record.publicId}
+              locale={locale}
               copy={messages.PublicRecord}
             />
           </>

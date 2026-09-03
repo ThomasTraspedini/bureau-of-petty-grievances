@@ -24,6 +24,7 @@ import {
 } from "@/server/observability/runtime-product-analytics";
 
 export async function exchangeStandardToken(
+  locale: InterfaceLocale,
   token: unknown,
   journeyId?: unknown,
 ) {
@@ -47,7 +48,7 @@ export async function exchangeStandardToken(
   after(() =>
     recordServerProductEvent({
       journeyId,
-      locale: "en",
+      locale,
       department: "chronology",
       name: "access_redeemed",
       properties: {
@@ -61,7 +62,7 @@ export async function exchangeStandardToken(
     after(() =>
       recordServerProductEvent({
         journeyId,
-        locale: "en",
+        locale,
         department: "chronology",
         name: "successor_invitation_changed",
         properties: {
@@ -104,7 +105,7 @@ export async function issueSuccessorInvitation(
     after(() =>
       recordServerProductEvent({
         journeyId,
-        locale: "en",
+        locale,
         department: "chronology",
         name: "successor_invitation_changed",
         properties: {
@@ -131,7 +132,7 @@ export async function issueSuccessorInvitation(
   after(() =>
     recordServerProductEvent({
       journeyId,
-      locale: "en",
+      locale,
       department: "chronology",
       name: "successor_invitation_changed",
       properties: {
@@ -150,7 +151,10 @@ export async function issueSuccessorInvitation(
     : result;
 }
 
-export async function cancelSuccessorInvitation(journeyId?: unknown) {
+export async function cancelSuccessorInvitation(
+  locale: InterfaceLocale,
+  journeyId?: unknown,
+) {
   const repository = await getRuntimeAccessControlRepository();
   const result = await cancelSuccessorTokenWith(
     (await cookies()).get(STANDARD_SESSION_COOKIE)?.value ?? null,
@@ -159,7 +163,7 @@ export async function cancelSuccessorInvitation(journeyId?: unknown) {
   after(() =>
     recordServerProductEvent({
       journeyId,
-      locale: "en",
+      locale,
       department: "chronology",
       name: "successor_invitation_changed",
       properties: { action: "cancel", outcome: result.status },

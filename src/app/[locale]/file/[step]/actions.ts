@@ -17,11 +17,12 @@ import {
 } from "@/server/determination/complete-filing-review";
 import { recordServerProductEvent } from "@/server/observability/runtime-product-analytics";
 import { consumeE2eFailureInstruction } from "@/server/testing/e2e-failure-injection";
+import type { InterfaceLocale } from "@/i18n/routing";
 
 export type { CompleteFilingResult };
 
 export async function completeFilingReview(
-  locale: string,
+  locale: InterfaceLocale,
   draft: unknown,
   idempotencyKey: unknown,
   journeyId?: unknown,
@@ -52,7 +53,7 @@ export async function completeFilingReview(
       after(() =>
         recordServerProductEvent({
           journeyId,
-          locale: "en",
+          locale,
           department,
           name: "determination_completed",
           properties: observation,
