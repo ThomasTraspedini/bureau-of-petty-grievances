@@ -1,17 +1,25 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
+import { assessSocialPlanningFiling } from "@/domain/determination/social-planning-assessment";
 import {
   determinationPresentationVariant,
   DETERMINATION_EXPERIENCE_VERSION,
   type ChronologyDeterminationSnapshot,
+  type SocialPlanningDeterminationSnapshot,
 } from "@/domain/determination/determination-experience";
 import { createChronologyDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import { createSocialPlanningDeterminationLanguageCommand } from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
+import { createEnglishSocialPlanningFallback } from "@/domain/determination/locales/en-social-planning";
 import {
   createEmptyChronologyDraft,
   validateChronologyDraft,
 } from "@/domain/filing/chronology";
+import {
+  createEmptySocialPlanningDraft,
+  validateSocialPlanningDraft,
+} from "@/domain/filing/social-planning";
 import {
   ownerTransition,
   publicRecordAvailability,
@@ -110,6 +118,30 @@ describe("persistent public records", () => {
         },
       ),
     ).resolves.toEqual({ status: "failed" });
+  });
+
+  it("persists and restores a Social Planning snapshot through schema version 6", async () => {
+    const snapshot = socialDeterminationSnapshot();
+    await expect(
+      publishPublicRecordWith(
+        "en",
+        { snapshot, publicationKey, ownerCredential },
+        {
+          repository,
+          now: () => publishedAt,
+          publicId: () => publicId,
+        },
+      ),
+    ).resolves.toMatchObject({ status: "published", publicId });
+    await expect(repository.find(publicId)).resolves.toMatchObject({
+      snapshot: {
+        filing: {
+          department: "social_planning",
+          offence: "decision_drift",
+        },
+        reference: "SOC · 2026 · P1A2N3",
+      },
+    });
   });
 
   it("rejects altered snapshots and unsupported publication input", async () => {
@@ -602,6 +634,48 @@ function determinationSnapshot(): ChronologyDeterminationSnapshot {
     issuedAt: issuedAt.toISOString(),
     assessment,
     language: createEnglishChronologyFallback(command.command),
+    filing: validation.filing,
+    presentationVariant: determinationPresentationVariant(
+      reference,
+      assessment.presentation.visualSeed,
+    ),
+  };
+}
+
+function socialDeterminationSnapshot(): SocialPlanningDeterminationSnapshot {
+  const draft = {
+    ...createEmptySocialPlanningDraft(),
+    respondent: "Taylor",
+    relationship: "friend" as const,
+    offence: "decision_drift" as const,
+    facts: {
+      ...createEmptySocialPlanningDraft().facts,
+      decisionDrift: {
+        decisionRoundCount: "5",
+        elapsedHours: "72",
+        participantCount: "4",
+      },
+    },
+    impact: "participants_waiting" as const,
+    mitigation: "usually_flexible" as const,
+    statement: "The dinner date remained open through five planning rounds.",
+  };
+  const validation = validateSocialPlanningDraft(draft, "en");
+  if (validation.status === "invalid") throw new Error("Invalid fixture.");
+  const assessment = assessSocialPlanningFiling(validation.filing);
+  const command = createSocialPlanningDeterminationLanguageCommand(
+    validation.filing,
+    assessment,
+  );
+  if (command.status === "invalid") throw new Error("Invalid command.");
+  const reference = "SOC · 2026 · P1A2N3";
+  return {
+    experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+    locale: "en",
+    reference,
+    issuedAt: issuedAt.toISOString(),
+    assessment,
+    language: createEnglishSocialPlanningFallback(command.command),
     filing: validation.filing,
     presentationVariant: determinationPresentationVariant(
       reference,

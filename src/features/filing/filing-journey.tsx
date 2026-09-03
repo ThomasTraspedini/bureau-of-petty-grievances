@@ -26,6 +26,10 @@ import {
   validateDomesticAffairsDraftField,
 } from "@/domain/filing/domestic-affairs";
 import {
+  type SocialPlanningDraft,
+  validateSocialPlanningDraftField,
+} from "@/domain/filing/social-planning";
+import {
   createEmptyFilingDraft,
   type Filing,
   type FilingDraft,
@@ -44,12 +48,14 @@ import {
 import {
   DETERMINATION_SESSION_KEY,
   LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
+  LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
   LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
   serializeDeterminationSession,
 } from "../determination/determination-session";
 import {
   FILING_DRAFT_STORAGE_KEY,
   LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY,
+  LEGACY_DOMESTIC_DRAFT_STORAGE_KEY,
   LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY,
   parseStoredDraft,
   serializeDraft,
@@ -103,6 +109,7 @@ const FIELD_STEPS: Record<FilingField, FilingStepCode> = {
   chronology: "chronology",
   communications: "communications",
   domestic_evidence: "domestic_evidence",
+  social_evidence: "social_evidence",
   impact: "impact",
   mitigation: "mitigation",
   statement: "statement",
@@ -116,6 +123,7 @@ const STEP_FIELDS: Partial<Record<FilingStepCode, FilingField>> = {
   chronology: "chronology",
   communications: "communications",
   domestic_evidence: "domestic_evidence",
+  social_evidence: "social_evidence",
   impact: "impact",
   mitigation: "mitigation",
   statement: "statement",
@@ -149,6 +157,7 @@ export function FilingJourney({
     const timer = window.setTimeout(() => {
       const stored = parseStoredDraft(
         window.localStorage.getItem(FILING_DRAFT_STORAGE_KEY) ??
+          window.localStorage.getItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY) ??
           window.localStorage.getItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY) ??
           window.localStorage.getItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY),
         Date.now(),
@@ -157,9 +166,11 @@ export function FilingJourney({
       setNotice(stored.status === "empty" ? null : stored.status);
       if (stored.status === "expired" || stored.status === "invalid") {
         window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
+        window.localStorage.removeItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY);
         window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
         window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
       } else if (stored.status === "restored") {
+        window.localStorage.removeItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY);
         window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
         window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
       }
@@ -186,6 +197,7 @@ export function FilingJourney({
 
   function updateDraft(update: (current: FilingDraft) => FilingDraft) {
     window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY);
     window.sessionStorage.removeItem(
       LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
     );
@@ -317,9 +329,11 @@ export function FilingJourney({
 
   function resetDraft() {
     window.localStorage.removeItem(FILING_DRAFT_STORAGE_KEY);
+    window.localStorage.removeItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY);
     window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
     window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
     window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+    window.sessionStorage.removeItem(LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY);
     window.sessionStorage.removeItem(
       LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
     );
@@ -341,7 +355,9 @@ export function FilingJourney({
       ? copy.serviceName
       : draft.department === "digital_conduct"
         ? copy.digitalServiceName
-        : copy.domesticServiceName;
+        : draft.department === "domestic_affairs"
+          ? copy.domesticServiceName
+          : copy.socialServiceName;
 
   return (
     <div className="filing-shell" data-locale={locale}>
@@ -385,7 +401,9 @@ export function FilingJourney({
               ? copy.department
               : draft.department === "digital_conduct"
                 ? copy.digitalDepartment
-                : copy.domesticDepartment}
+                : draft.department === "domestic_affairs"
+                  ? copy.domesticDepartment
+                  : copy.socialDepartment}
           </p>
           {showProgress ? (
             <>
@@ -551,6 +569,12 @@ function analyticsPathCode(
       return "domestic_affairs_misplaced_object";
     case "empty_packaging":
       return "domestic_affairs_empty_packaging";
+    case "option_veto_cycle":
+      return "social_planning_option_veto_cycle";
+    case "decision_drift":
+      return "social_planning_decision_drift";
+    case "confirmed_plan_revision":
+      return "social_planning_confirmed_plan_revision";
     default:
       return undefined;
   }
@@ -562,9 +586,11 @@ function validateActiveDraftField(
 ): FilingErrorCode | null {
   if (draft.department === "chronology")
     return validateChronologyDraftField(field, draft);
-  return draft.department === "digital_conduct"
-    ? validateDigitalConductDraftField(field, draft)
-    : validateDomesticAffairsDraftField(field, draft);
+  if (draft.department === "digital_conduct")
+    return validateDigitalConductDraftField(field, draft);
+  return draft.department === "domestic_affairs"
+    ? validateDomesticAffairsDraftField(field, draft)
+    : validateSocialPlanningDraftField(field, draft);
 }
 
 function analyticsValidationReason(
@@ -750,12 +776,18 @@ function QuestionStep({
               copy.departmentDomesticAffairs,
               copy.departmentDomesticAffairsDescription,
             ],
+            [
+              "social_planning",
+              copy.departmentSocialPlanning,
+              copy.departmentSocialPlanningDescription,
+            ],
           ]}
           onSelect={(value) => {
             if (
               value !== "chronology" &&
               value !== "digital_conduct" &&
-              value !== "domestic_affairs"
+              value !== "domestic_affairs" &&
+              value !== "social_planning"
             )
               return;
             updateDraft((current) => switchDraftDepartment(current, value));
@@ -802,23 +834,41 @@ function QuestionStep({
                 copy.offenceUnacknowledgedCoordinationDescription,
               ],
             ] as const)
-          : ([
-              [
-                "token_remainder",
-                copy.offenceTokenRemainder,
-                copy.offenceTokenRemainderDescription,
-              ],
-              [
-                "misplaced_object",
-                copy.offenceMisplacedObject,
-                copy.offenceMisplacedObjectDescription,
-              ],
-              [
-                "empty_packaging",
-                copy.offenceEmptyPackaging,
-                copy.offenceEmptyPackagingDescription,
-              ],
-            ] as const);
+          : draft.department === "domestic_affairs"
+            ? ([
+                [
+                  "token_remainder",
+                  copy.offenceTokenRemainder,
+                  copy.offenceTokenRemainderDescription,
+                ],
+                [
+                  "misplaced_object",
+                  copy.offenceMisplacedObject,
+                  copy.offenceMisplacedObjectDescription,
+                ],
+                [
+                  "empty_packaging",
+                  copy.offenceEmptyPackaging,
+                  copy.offenceEmptyPackagingDescription,
+                ],
+              ] as const)
+            : ([
+                [
+                  "option_veto_cycle",
+                  copy.offenceOptionVetoCycle,
+                  copy.offenceOptionVetoCycleDescription,
+                ],
+                [
+                  "decision_drift",
+                  copy.offenceDecisionDrift,
+                  copy.offenceDecisionDriftDescription,
+                ],
+                [
+                  "confirmed_plan_revision",
+                  copy.offenceConfirmedPlanRevision,
+                  copy.offenceConfirmedPlanRevisionDescription,
+                ],
+              ] as const);
     return (
       <QuestionFrame
         kicker={copy.classificationKicker}
@@ -827,14 +877,18 @@ function QuestionStep({
             ? copy.classificationTitle
             : draft.department === "digital_conduct"
               ? copy.digitalClassificationTitle
-              : copy.domesticClassificationTitle
+              : draft.department === "domestic_affairs"
+                ? copy.domesticClassificationTitle
+                : copy.socialClassificationTitle
         }
         body={
           draft.department === "chronology"
             ? copy.classificationBody
             : draft.department === "digital_conduct"
               ? copy.digitalClassificationBody
-              : copy.domesticClassificationBody
+              : draft.department === "domestic_affairs"
+                ? copy.domesticClassificationBody
+                : copy.socialClassificationBody
         }
         why={copy.classificationWhy}
         copy={copy}
@@ -867,12 +921,23 @@ function QuestionStep({
                       : "",
                 };
               }
+              if (current.department === "domestic_affairs") {
+                return {
+                  ...current,
+                  offence:
+                    value === "token_remainder" ||
+                    value === "misplaced_object" ||
+                    value === "empty_packaging"
+                      ? value
+                      : "",
+                };
+              }
               return {
                 ...current,
                 offence:
-                  value === "token_remainder" ||
-                  value === "misplaced_object" ||
-                  value === "empty_packaging"
+                  value === "option_veto_cycle" ||
+                  value === "decision_drift" ||
+                  value === "confirmed_plan_revision"
                     ? value
                     : "",
               };
@@ -949,6 +1014,27 @@ function QuestionStep({
     );
   }
 
+  if (step === "social_evidence") {
+    if (draft.department !== "social_planning") {
+      return (
+        <DepartmentEvidenceMismatch
+          copy={copy}
+          goToClassification={goToClassification}
+        />
+      );
+    }
+    return (
+      <SocialPlanningQuestion
+        draft={draft}
+        copy={copy}
+        errorMessage={errorMessage}
+        errorId={errorId}
+        updateDraft={updateDraft}
+        goToClassification={goToClassification}
+      />
+    );
+  }
+
   if (step === "impact") {
     const options =
       draft.department === "chronology"
@@ -965,12 +1051,19 @@ function QuestionStep({
               ["attention_fragmented", copy.impactAttentionFragmented],
               ["irritation_only", copy.impactIrritation],
             ] as const)
-          : ([
-              ["needed_item_unavailable", copy.impactNeededItemUnavailable],
-              ["shared_space_obstructed", copy.impactSharedSpaceObstructed],
-              ["false_stock_signal", copy.impactFalseStockSignal],
-              ["irritation_only", copy.impactIrritation],
-            ] as const);
+          : draft.department === "domestic_affairs"
+            ? ([
+                ["needed_item_unavailable", copy.impactNeededItemUnavailable],
+                ["shared_space_obstructed", copy.impactSharedSpaceObstructed],
+                ["false_stock_signal", copy.impactFalseStockSignal],
+                ["irritation_only", copy.impactIrritation],
+              ] as const)
+            : ([
+                ["planning_stalled", copy.impactPlanningStalled],
+                ["participants_waiting", copy.impactParticipantsWaiting],
+                ["arrangements_disrupted", copy.impactArrangementsDisrupted],
+                ["irritation_only", copy.impactIrritation],
+              ] as const);
     return (
       <QuestionFrame
         kicker={copy.impactKicker}
@@ -1009,12 +1102,24 @@ function QuestionStep({
                       : "",
                 };
               }
+              if (current.department === "domestic_affairs") {
+                return {
+                  ...current,
+                  impact:
+                    value === "needed_item_unavailable" ||
+                    value === "shared_space_obstructed" ||
+                    value === "false_stock_signal" ||
+                    value === "irritation_only"
+                      ? value
+                      : "",
+                };
+              }
               return {
                 ...current,
                 impact:
-                  value === "needed_item_unavailable" ||
-                  value === "shared_space_obstructed" ||
-                  value === "false_stock_signal" ||
+                  value === "planning_stalled" ||
+                  value === "participants_waiting" ||
+                  value === "arrangements_disrupted" ||
                   value === "irritation_only"
                     ? value
                     : "",
@@ -1045,12 +1150,22 @@ function QuestionStep({
               ["usually_clear", copy.mitigationUsuallyClear],
               ["helps_coordinate", copy.mitigationHelpsCoordinate],
             ] as const)
-          : ([
-              ["usually_restocks", copy.mitigationUsuallyRestocks],
-              ["corrects_when_asked", copy.mitigationCorrectsWhenAsked],
-              ["handles_other_chores", copy.mitigationHandlesOtherChores],
-              ["usually_orderly", copy.mitigationUsuallyOrderly],
-            ] as const);
+          : draft.department === "domestic_affairs"
+            ? ([
+                ["usually_restocks", copy.mitigationUsuallyRestocks],
+                ["corrects_when_asked", copy.mitigationCorrectsWhenAsked],
+                ["handles_other_chores", copy.mitigationHandlesOtherChores],
+                ["usually_orderly", copy.mitigationUsuallyOrderly],
+              ] as const)
+            : ([
+                [
+                  "offers_alternatives_sometimes",
+                  copy.mitigationOffersAlternativesSometimes,
+                ],
+                ["confirms_when_prompted", copy.mitigationConfirmsWhenPrompted],
+                ["gave_some_notice", copy.mitigationGaveSomeNotice],
+                ["usually_flexible", copy.mitigationUsuallyFlexible],
+              ] as const);
     return (
       <QuestionFrame
         kicker={copy.mitigationKicker}
@@ -1092,13 +1207,25 @@ function QuestionStep({
                       : "",
                 };
               }
+              if (current.department === "domestic_affairs") {
+                return {
+                  ...current,
+                  mitigation:
+                    value === "usually_restocks" ||
+                    value === "corrects_when_asked" ||
+                    value === "handles_other_chores" ||
+                    value === "usually_orderly"
+                      ? value
+                      : "",
+                };
+              }
               return {
                 ...current,
                 mitigation:
-                  value === "usually_restocks" ||
-                  value === "corrects_when_asked" ||
-                  value === "handles_other_chores" ||
-                  value === "usually_orderly"
+                  value === "offers_alternatives_sometimes" ||
+                  value === "confirms_when_prompted" ||
+                  value === "gave_some_notice" ||
+                  value === "usually_flexible"
                     ? value
                     : "",
               };
@@ -1826,6 +1953,272 @@ function DomesticAffairsQuestion({
   );
 }
 
+function SocialPlanningQuestion({
+  draft,
+  copy,
+  errorMessage,
+  errorId,
+  updateDraft,
+  goToClassification,
+}: {
+  draft: SocialPlanningDraft;
+  copy: FilingCopy;
+  errorMessage: string | null;
+  errorId: string | undefined;
+  updateDraft: (update: (current: FilingDraft) => FilingDraft) => void;
+  goToClassification: () => void;
+}) {
+  if (!draft.offence) {
+    return (
+      <DepartmentEvidenceMismatch
+        copy={copy}
+        goToClassification={goToClassification}
+      />
+    );
+  }
+  const updateSocial = (
+    update: (current: SocialPlanningDraft) => SocialPlanningDraft,
+  ) => {
+    updateDraft((current) =>
+      current.department === "social_planning" ? update(current) : current,
+    );
+  };
+  const shared = {
+    kicker: copy.socialEvidenceKicker,
+    why: copy.socialEvidenceWhy,
+    copy,
+  };
+  if (draft.offence === "option_veto_cycle") {
+    const facts = draft.facts.optionVetoCycle;
+    return (
+      <QuestionFrame
+        {...shared}
+        title={copy.optionVetoCycleTitle}
+        body={copy.optionVetoCycleBody}
+      >
+        <EvidenceNumberGrid
+          fields={[
+            [
+              copy.proposedOptionCountLabel,
+              facts.proposedOptionCount,
+              2,
+              20,
+              copy.optionsSuffix,
+              (value) => {
+                updateSocial((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    optionVetoCycle: {
+                      ...current.facts.optionVetoCycle,
+                      proposedOptionCount: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.rejectedOptionCountLabel,
+              facts.rejectedOptionCount,
+              1,
+              20,
+              copy.optionsSuffix,
+              (value) => {
+                updateSocial((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    optionVetoCycle: {
+                      ...current.facts.optionVetoCycle,
+                      rejectedOptionCount: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.alternativeOptionCountLabel,
+              facts.alternativeOptionCount,
+              0,
+              10,
+              copy.optionsSuffix,
+              (value) => {
+                updateSocial((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    optionVetoCycle: {
+                      ...current.facts.optionVetoCycle,
+                      alternativeOptionCount: value,
+                    },
+                  },
+                }));
+              },
+            ],
+          ]}
+          errorId={errorId}
+        />
+        <p className="field-hint">{copy.socialBoundary}</p>
+        {errorMessage ? (
+          <FieldError id={errorId}>{errorMessage}</FieldError>
+        ) : null}
+      </QuestionFrame>
+    );
+  }
+  if (draft.offence === "decision_drift") {
+    const facts = draft.facts.decisionDrift;
+    return (
+      <QuestionFrame
+        {...shared}
+        title={copy.decisionDriftTitle}
+        body={copy.decisionDriftBody}
+      >
+        <EvidenceNumberGrid
+          fields={[
+            [
+              copy.decisionRoundCountLabel,
+              facts.decisionRoundCount,
+              2,
+              12,
+              copy.roundsSuffix,
+              (value) => {
+                updateSocial((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    decisionDrift: {
+                      ...current.facts.decisionDrift,
+                      decisionRoundCount: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.elapsedHoursLabel,
+              facts.elapsedHours,
+              1,
+              336,
+              copy.hoursSuffix,
+              (value) => {
+                updateSocial((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    decisionDrift: {
+                      ...current.facts.decisionDrift,
+                      elapsedHours: value,
+                    },
+                  },
+                }));
+              },
+            ],
+            [
+              copy.participantCountLabel,
+              facts.participantCount,
+              2,
+              20,
+              copy.participantsSuffix,
+              (value) => {
+                updateSocial((current) => ({
+                  ...current,
+                  facts: {
+                    ...current.facts,
+                    decisionDrift: {
+                      ...current.facts.decisionDrift,
+                      participantCount: value,
+                    },
+                  },
+                }));
+              },
+            ],
+          ]}
+          errorId={errorId}
+        />
+        <p className="field-hint">{copy.socialBoundary}</p>
+        {errorMessage ? (
+          <FieldError id={errorId}>{errorMessage}</FieldError>
+        ) : null}
+      </QuestionFrame>
+    );
+  }
+  const facts = draft.facts.confirmedPlanRevision;
+  return (
+    <QuestionFrame
+      {...shared}
+      title={copy.confirmedPlanRevisionTitle}
+      body={copy.confirmedPlanRevisionBody}
+    >
+      <EvidenceNumberGrid
+        fields={[
+          [
+            copy.revisionCountLabel,
+            facts.revisionCount,
+            1,
+            10,
+            copy.revisionsSuffix,
+            (value) => {
+              updateSocial((current) => ({
+                ...current,
+                facts: {
+                  ...current.facts,
+                  confirmedPlanRevision: {
+                    ...current.facts.confirmedPlanRevision,
+                    revisionCount: value,
+                  },
+                },
+              }));
+            },
+          ],
+          [
+            copy.participantCountLabel,
+            facts.participantCount,
+            2,
+            20,
+            copy.participantsSuffix,
+            (value) => {
+              updateSocial((current) => ({
+                ...current,
+                facts: {
+                  ...current.facts,
+                  confirmedPlanRevision: {
+                    ...current.facts.confirmedPlanRevision,
+                    participantCount: value,
+                  },
+                },
+              }));
+            },
+          ],
+          [
+            copy.noticeHoursLabel,
+            facts.noticeHours,
+            0,
+            168,
+            copy.hoursSuffix,
+            (value) => {
+              updateSocial((current) => ({
+                ...current,
+                facts: {
+                  ...current.facts,
+                  confirmedPlanRevision: {
+                    ...current.facts.confirmedPlanRevision,
+                    noticeHours: value,
+                  },
+                },
+              }));
+            },
+          ],
+        ]}
+        errorId={errorId}
+      />
+      <p className="field-hint">{copy.socialBoundary}</p>
+      {errorMessage ? (
+        <FieldError id={errorId}>{errorMessage}</FieldError>
+      ) : null}
+    </QuestionFrame>
+  );
+}
+
 type EvidenceNumberField = readonly [
   label: string,
   value: string,
@@ -2018,7 +2411,9 @@ function ReviewStep({
         ? copy.departmentChronology
         : draft.department === "digital_conduct"
           ? copy.departmentDigitalConduct
-          : copy.departmentDomesticAffairs,
+          : draft.department === "domestic_affairs"
+            ? copy.departmentDomesticAffairs
+            : copy.departmentSocialPlanning,
       "department",
     ],
     [
@@ -2031,13 +2426,17 @@ function ReviewStep({
         ? copy.reviewChronology
         : draft.department === "digital_conduct"
           ? copy.reviewCommunications
-          : copy.reviewDomesticEvidence,
+          : draft.department === "domestic_affairs"
+            ? copy.reviewDomesticEvidence
+            : copy.reviewSocialEvidence,
       evidenceSummary(draft, copy),
       draft.department === "chronology"
         ? "chronology"
         : draft.department === "digital_conduct"
           ? "communications"
-          : "domestic_evidence",
+          : draft.department === "domestic_affairs"
+            ? "domestic_evidence"
+            : "social_evidence",
     ],
     [copy.reviewImpact, impactLabel(draft.impact, copy), "impact"],
     [
@@ -2207,6 +2606,7 @@ function errorCopy(error: FilingErrorCode, copy: FilingCopy): string {
     ratio_not_exceeded: copy.errorRatioNotExceeded,
     follow_up_required: copy.errorFollowUpRequired,
     remainder_not_smaller: copy.errorRemainderNotSmaller,
+    rejections_exceed_options: copy.errorRejectionsExceedOptions,
     statement_too_long: copy.errorStatementTooLong,
     restricted_content: copy.errorRestricted,
     invalid_selection: copy.errorInvalidSelection,
@@ -2239,6 +2639,9 @@ function offenceLabel(value: FilingDraft["offence"], copy: FilingCopy): string {
     token_remainder: copy.offenceTokenRemainder,
     misplaced_object: copy.offenceMisplacedObject,
     empty_packaging: copy.offenceEmptyPackaging,
+    option_veto_cycle: copy.offenceOptionVetoCycle,
+    decision_drift: copy.offenceDecisionDrift,
+    confirmed_plan_revision: copy.offenceConfirmedPlanRevision,
     "": "—",
   }[value];
 }
@@ -2254,6 +2657,9 @@ function impactLabel(value: FilingDraft["impact"], copy: FilingCopy): string {
     needed_item_unavailable: copy.impactNeededItemUnavailable,
     shared_space_obstructed: copy.impactSharedSpaceObstructed,
     false_stock_signal: copy.impactFalseStockSignal,
+    planning_stalled: copy.impactPlanningStalled,
+    participants_waiting: copy.impactParticipantsWaiting,
+    arrangements_disrupted: copy.impactArrangementsDisrupted,
     irritation_only: copy.impactIrritation,
     "": "—",
   }[value];
@@ -2276,6 +2682,10 @@ function mitigationLabel(
     corrects_when_asked: copy.mitigationCorrectsWhenAsked,
     handles_other_chores: copy.mitigationHandlesOtherChores,
     usually_orderly: copy.mitigationUsuallyOrderly,
+    offers_alternatives_sometimes: copy.mitigationOffersAlternativesSometimes,
+    confirms_when_prompted: copy.mitigationConfirmsWhenPrompted,
+    gave_some_notice: copy.mitigationGaveSomeNotice,
+    usually_flexible: copy.mitigationUsuallyFlexible,
     "": "—",
   }[value];
 }
@@ -2321,6 +2731,46 @@ function evidenceSummary(draft: FilingDraft, copy: FilingCopy): string {
       return format(copy.summaryEmptyPackaging, {
         packages: draft.facts.emptyPackaging.emptyPackageCount || "—",
         occurrences: draft.facts.emptyPackaging.recurrencesInThirtyDays || "—",
+      });
+    }
+    return "—";
+  }
+  if (draft.department === "social_planning") {
+    if (draft.offence === "option_veto_cycle") {
+      return format(copy.summaryOptionVetoCycle, {
+        proposed: draft.facts.optionVetoCycle.proposedOptionCount || "—",
+        rejected: draft.facts.optionVetoCycle.rejectedOptionCount || "—",
+        alternatives: draft.facts.optionVetoCycle.alternativeOptionCount || "—",
+        alternativeUnit:
+          draft.facts.optionVetoCycle.alternativeOptionCount === "1"
+            ? copy.alternativeSingular
+            : copy.alternativesPlural,
+      });
+    }
+    if (draft.offence === "decision_drift") {
+      return format(copy.summaryDecisionDrift, {
+        rounds: draft.facts.decisionDrift.decisionRoundCount || "—",
+        hours: draft.facts.decisionDrift.elapsedHours || "—",
+        hourUnit:
+          draft.facts.decisionDrift.elapsedHours === "1"
+            ? copy.hourSingular
+            : copy.hoursSuffix,
+        participants: draft.facts.decisionDrift.participantCount || "—",
+      });
+    }
+    if (draft.offence === "confirmed_plan_revision") {
+      return format(copy.summaryConfirmedPlanRevision, {
+        revisions: draft.facts.confirmedPlanRevision.revisionCount || "—",
+        revisionUnit:
+          draft.facts.confirmedPlanRevision.revisionCount === "1"
+            ? copy.revisionSingular
+            : copy.revisionsSuffix,
+        participants: draft.facts.confirmedPlanRevision.participantCount || "—",
+        hours: draft.facts.confirmedPlanRevision.noticeHours || "—",
+        hourUnit:
+          draft.facts.confirmedPlanRevision.noticeHours === "1"
+            ? copy.hourSingular
+            : copy.hoursSuffix,
       });
     }
     return "—";

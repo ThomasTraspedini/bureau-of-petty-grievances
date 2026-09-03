@@ -31,6 +31,16 @@ import {
   type DomesticAffairsFiling,
   validateDomesticAffairsFiling,
 } from "@/domain/filing/domestic-affairs";
+import {
+  assessSocialPlanningFiling,
+  type SocialPlanningAssessment,
+} from "@/domain/determination/social-planning-assessment";
+import { createSocialPlanningDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import { validateEnglishSocialPlanningLanguage } from "@/domain/determination/locales/en-social-planning";
+import {
+  type SocialPlanningFiling,
+  validateSocialPlanningFiling,
+} from "@/domain/filing/social-planning";
 
 export const DETERMINATION_EXPERIENCE_VERSION = 1 as const;
 export const DETERMINATION_TRANSIENT_LIFETIME_MS = 30 * 60 * 1000;
@@ -77,20 +87,39 @@ export interface DomesticAffairsDeterminationSnapshot extends IssuedDomesticAffa
   presentationVariant: 0 | 1 | 2 | 3;
 }
 
+export interface IssuedSocialPlanningDetermination {
+  experienceVersion: typeof DETERMINATION_EXPERIENCE_VERSION;
+  locale: SocialPlanningFiling["locale"];
+  reference: string;
+  issuedAt: string;
+  assessment: SocialPlanningAssessment;
+  language: DeterminationLanguage;
+}
+
+export interface SocialPlanningDeterminationSnapshot extends IssuedSocialPlanningDetermination {
+  filing: SocialPlanningFiling;
+  presentationVariant: 0 | 1 | 2 | 3;
+}
+
 export type IssuedDetermination =
   | IssuedChronologyDetermination
   | IssuedDigitalConductDetermination
-  | IssuedDomesticAffairsDetermination;
+  | IssuedDomesticAffairsDetermination
+  | IssuedSocialPlanningDetermination;
 export type DeterminationSnapshot =
   | ChronologyDeterminationSnapshot
   | DigitalConductDeterminationSnapshot
-  | DomesticAffairsDeterminationSnapshot;
+  | DomesticAffairsDeterminationSnapshot
+  | SocialPlanningDeterminationSnapshot;
 
 export function createIssuedDetermination(
   reference: string,
   issuedAt: string,
   assessment:
-    ChronologyAssessment | DigitalConductAssessment | DomesticAffairsAssessment,
+    | ChronologyAssessment
+    | DigitalConductAssessment
+    | DomesticAffairsAssessment
+    | SocialPlanningAssessment,
   language: DeterminationLanguage,
 ): IssuedDetermination {
   if (assessment.department === "chronology") {
@@ -104,6 +133,16 @@ export function createIssuedDetermination(
     };
   }
   if (assessment.department === "digital_conduct") {
+    return {
+      experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+      locale: assessment.locale,
+      reference,
+      issuedAt,
+      assessment,
+      language,
+    };
+  }
+  if (assessment.department === "domestic_affairs") {
     return {
       experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
       locale: assessment.locale,
@@ -335,6 +374,72 @@ export function validateDomesticAffairsDeterminationSnapshot(
   };
 }
 
+export function validateSocialPlanningDeterminationSnapshot(
+  value: unknown,
+  now: Date,
+):
+  | { status: "valid"; snapshot: SocialPlanningDeterminationSnapshot }
+  | { status: "invalid" } {
+  if (
+    !isExactRecord(value, [
+      "experienceVersion",
+      "locale",
+      "reference",
+      "issuedAt",
+      "assessment",
+      "language",
+      "filing",
+      "presentationVariant",
+    ]) ||
+    value.experienceVersion !== DETERMINATION_EXPERIENCE_VERSION ||
+    value.locale !== "en" ||
+    !isDeterminationReference(value.reference) ||
+    typeof value.issuedAt !== "string"
+  )
+    return { status: "invalid" };
+  const filingResult = validateSocialPlanningFiling(value.filing, value.locale);
+  if (filingResult.status === "invalid") return { status: "invalid" };
+  const assessment = assessSocialPlanningFiling(filingResult.filing);
+  if (canonicalJson(value.assessment) !== canonicalJson(assessment))
+    return { status: "invalid" };
+  const command = createSocialPlanningDeterminationLanguageCommand(
+    filingResult.filing,
+    assessment,
+  );
+  if (command.status === "invalid") return { status: "invalid" };
+  const language = validateEnglishSocialPlanningLanguage(
+    value.language,
+    command.command,
+  );
+  if (language.status === "invalid") return { status: "invalid" };
+  const issuedAt = new Date(value.issuedAt);
+  if (
+    !Number.isFinite(issuedAt.getTime()) ||
+    issuedAt.getTime() > now.getTime() + 5 * 60 * 1000 ||
+    !value.reference.includes(String(issuedAt.getUTCFullYear()))
+  )
+    return { status: "invalid" };
+  const presentationVariant = determinationPresentationVariant(
+    value.reference,
+    assessment.presentation.visualSeed,
+  );
+  if (value.presentationVariant !== presentationVariant)
+    return { status: "invalid" };
+  return {
+    status: "valid",
+    snapshot: {
+      experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+      locale: "en",
+      reference: value.reference,
+      issuedAt: value.issuedAt,
+      assessment,
+      language: language.language,
+      filing: filingResult.filing,
+      presentationVariant,
+    },
+  };
+}
+
 export function validateDeterminationSnapshot(
   value: unknown,
   now: Date,
@@ -372,6 +477,22 @@ export function validateDeterminationSnapshot(
   ) {
     return validateDomesticAffairsDeterminationSnapshot(value, now);
   }
+  if (
+    isExactRecord(value, [
+      "experienceVersion",
+      "locale",
+      "reference",
+      "issuedAt",
+      "assessment",
+      "language",
+      "filing",
+      "presentationVariant",
+    ]) &&
+    isRecord(value.filing) &&
+    value.filing.department === "social_planning"
+  ) {
+    return validateSocialPlanningDeterminationSnapshot(value, now);
+  }
   return validateChronologyDeterminationSnapshot(value, now);
 }
 
@@ -398,7 +519,10 @@ export function createDeterminationReference(
   issuedAt: Date,
   randomPart: string,
   department:
-    "chronology" | "digital_conduct" | "domestic_affairs" = "chronology",
+    | "chronology"
+    | "digital_conduct"
+    | "domestic_affairs"
+    | "social_planning" = "chronology",
 ): string {
   const normalizedPart = randomPart
     .normalize("NFKC")
@@ -412,14 +536,16 @@ export function createDeterminationReference(
       ? "CHR"
       : department === "digital_conduct"
         ? "DIG"
-        : "DOM";
+        : department === "domestic_affairs"
+          ? "DOM"
+          : "SOC";
   return `${prefix} · ${String(issuedAt.getUTCFullYear())} · ${normalizedPart}`;
 }
 
 export function isDeterminationReference(value: unknown): value is string {
   return (
     typeof value === "string" &&
-    /^(?:CHR|DIG|DOM) · \d{4} · [A-Z0-9]{6}$/u.test(value)
+    /^(?:CHR|DIG|DOM|SOC) · \d{4} · [A-Z0-9]{6}$/u.test(value)
   );
 }
 

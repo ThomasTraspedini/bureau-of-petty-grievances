@@ -4,17 +4,21 @@ import { describe, expect, it } from "vitest";
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
 import { assessDomesticAffairsFiling } from "@/domain/determination/domestic-affairs-assessment";
+import { assessSocialPlanningFiling } from "@/domain/determination/social-planning-assessment";
 import {
   createChronologyDeterminationLanguageCommand,
   createDigitalConductDeterminationLanguageCommand,
   createDomesticAffairsDeterminationLanguageCommand,
+  createSocialPlanningDeterminationLanguageCommand,
 } from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
 import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
 import { createEnglishDomesticAffairsFallback } from "@/domain/determination/locales/en-domestic-affairs";
+import { createEnglishSocialPlanningFallback } from "@/domain/determination/locales/en-social-planning";
 import type { ChronologyFiling } from "@/domain/filing/chronology";
 import type { DigitalConductFiling } from "@/domain/filing/digital-conduct";
 import type { DomesticAffairsFiling } from "@/domain/filing/domestic-affairs";
+import type { SocialPlanningFiling } from "@/domain/filing/social-planning";
 import {
   createConfiguredOpenAIDeterminationLanguageProvider,
   DEFAULT_OPENAI_DETERMINATION_MODEL,
@@ -57,6 +61,18 @@ const domesticFiling: DomesticAffairsFiling = {
   statement: "Four objects remained beside their ordinary location.",
 };
 
+const socialFiling: SocialPlanningFiling = {
+  locale: "en",
+  department: "social_planning",
+  respondent: "Taylor",
+  relationship: "friend",
+  offence: "decision_drift",
+  facts: { decisionRoundCount: 5, elapsedHours: 72, participantCount: 4 },
+  impact: "participants_waiting",
+  mitigation: "usually_flexible",
+  statement: "Five rounds passed without a dinner date.",
+};
+
 function command() {
   const result = createChronologyDeterminationLanguageCommand(
     filing,
@@ -79,6 +95,15 @@ function domesticCommand() {
   const result = createDomesticAffairsDeterminationLanguageCommand(
     domesticFiling,
     assessDomesticAffairsFiling(domesticFiling),
+  );
+  if (result.status === "invalid") throw new Error(result.reason);
+  return result.command;
+}
+
+function socialCommand() {
+  const result = createSocialPlanningDeterminationLanguageCommand(
+    socialFiling,
+    assessSocialPlanningFiling(socialFiling),
   );
   if (result.status === "invalid") throw new Error(result.reason);
   return result.command;
@@ -222,6 +247,34 @@ describe("OpenAI determination-language adapter", () => {
     expect(serialized).toContain("no photo, sensor, home map");
     expect(serialized).toContain('\\"distanceSteps\\":8');
     expect(serialized).not.toContain("Riley");
+  });
+
+  it("uses the Social Planning editorial boundary without external planning access", async () => {
+    const requests: unknown[] = [];
+    const language = createEnglishSocialPlanningFallback(socialCommand());
+    const provider = new OpenAIDeterminationLanguageProvider((request) => {
+      requests.push(request);
+      return Promise.resolve({
+        id: "resp_social",
+        model: "gpt-5.6-luna",
+        status: "completed",
+        output_text: JSON.stringify(language),
+        output: [],
+      });
+    });
+    await expect(
+      provider.generate(socialCommand(), {
+        attempt: 1,
+        previousValidationIssues: [],
+      }),
+    ).resolves.toMatchObject({ status: "success", output: language });
+    expect(requests[0]).toMatchObject({
+      metadata: { department: "social_planning" },
+    });
+    const serialized = JSON.stringify(requests[0]);
+    expect(serialized).toContain("no calendar, message, contact");
+    expect(serialized).toContain('\\"elapsedHours\\":72');
+    expect(serialized).not.toContain("Taylor");
   });
 
   it("normalizes timeouts and incomplete responses as retryable failures", async () => {

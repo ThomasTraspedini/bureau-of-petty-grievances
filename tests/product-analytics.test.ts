@@ -23,7 +23,7 @@ const now = new Date("2026-09-03T12:00:00.000Z");
 
 function browserEvent(): BrowserProductAnalyticsEvent {
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     eventId: `evt_${"e".repeat(22)}`,
     journeyId: `jrn_${"j".repeat(22)}`,
     occurredAt: now.toISOString(),
@@ -70,6 +70,29 @@ describe("product analytics contract", () => {
         {
           ...event,
           properties: { ...event.properties, distanceSteps: 8 },
+        },
+        now,
+      ),
+    ).toBe(false);
+  });
+
+  it("accepts Social Planning paths without decision facts", () => {
+    const event = {
+      ...browserEvent(),
+      department: "social_planning",
+      properties: {
+        step: "social_evidence",
+        direction: "forward",
+        durationMs: 1_600,
+        pathCode: "social_planning_decision_drift",
+      },
+    };
+    expect(isBrowserProductAnalyticsEvent(event, now)).toBe(true);
+    expect(
+      isBrowserProductAnalyticsEvent(
+        {
+          ...event,
+          properties: { ...event.properties, participantCount: 4 },
         },
         now,
       ),

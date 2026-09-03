@@ -1,4 +1,4 @@
-export const PRODUCT_ANALYTICS_SCHEMA_VERSION = 3 as const;
+export const PRODUCT_ANALYTICS_SCHEMA_VERSION = 4 as const;
 
 export const ANALYTICS_RETENTION_DAYS = 180 as const;
 export const ANALYTICS_EVENT_ID_PATTERN = /^evt_[A-Za-z0-9_-]{22}$/u;
@@ -13,6 +13,7 @@ export const ANALYTICS_FILING_STEPS = [
   "chronology",
   "communications",
   "domestic_evidence",
+  "social_evidence",
   "impact",
   "mitigation",
   "statement",
@@ -39,9 +40,12 @@ export type AnalyticsPathCode =
   | "digital_conduct_unacknowledged_coordination"
   | "domestic_affairs_token_remainder"
   | "domestic_affairs_misplaced_object"
-  | "domestic_affairs_empty_packaging";
+  | "domestic_affairs_empty_packaging"
+  | "social_planning_option_veto_cycle"
+  | "social_planning_decision_drift"
+  | "social_planning_confirmed_plan_revision";
 export type AnalyticsDepartmentCode =
-  "chronology" | "digital_conduct" | "domestic_affairs";
+  "chronology" | "digital_conduct" | "domestic_affairs" | "social_planning";
 export type AnalyticsAccessKind = "anonymous" | "evaluation" | "standard";
 
 interface EventEnvelope<Name extends string, Properties> {
@@ -284,6 +288,9 @@ const PATH_CODES = new Set<AnalyticsPathCode>([
   "domestic_affairs_token_remainder",
   "domestic_affairs_misplaced_object",
   "domestic_affairs_empty_packaging",
+  "social_planning_option_veto_cycle",
+  "social_planning_decision_drift",
+  "social_planning_confirmed_plan_revision",
 ]);
 const FILING_STEPS = new Set<string>(ANALYTICS_FILING_STEPS);
 const FALLBACK_REASONS = new Set<AnalyticsFallbackReason>([
@@ -372,7 +379,8 @@ function isEnvelope(
     value.locale !== "en" ||
     (value.department !== "chronology" &&
       value.department !== "digital_conduct" &&
-      value.department !== "domestic_affairs") ||
+      value.department !== "domestic_affairs" &&
+      value.department !== "social_planning") ||
     typeof value.name !== "string" ||
     !isRecord(value.properties)
   )

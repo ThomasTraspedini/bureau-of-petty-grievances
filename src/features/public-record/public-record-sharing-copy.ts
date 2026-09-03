@@ -38,11 +38,14 @@ export function localizePublicRecordShare(
     values.minutes = number.format(descriptor.discrepancyMinutes);
   } else if (descriptor.department === "digital_conduct") {
     values.evidence = digitalEvidenceSummary(descriptor, number, copy);
-  } else {
+  } else if (descriptor.department === "domestic_affairs") {
     values.evidence = domesticEvidenceSummary(descriptor, number, copy);
+  } else {
+    values.evidence = socialEvidenceSummary(descriptor, number, copy);
   }
   const digitalConduct = descriptor.department === "digital_conduct";
   const domesticAffairs = descriptor.department === "domestic_affairs";
+  const socialPlanning = descriptor.department === "social_planning";
 
   return {
     brandName: copy.brandName,
@@ -53,7 +56,9 @@ export function localizePublicRecordShare(
       ? copy.digitalDepartment
       : domesticAffairs
         ? copy.domesticDepartment
-        : copy.department,
+        : socialPlanning
+          ? copy.socialDepartment
+          : copy.department,
     disposition: copy.disposition,
     offence,
     mitigation,
@@ -65,7 +70,9 @@ export function localizePublicRecordShare(
         ? copy.digitalSummary
         : domesticAffairs
           ? copy.domesticSummary
-          : copy.summary,
+          : socialPlanning
+            ? copy.socialSummary
+            : copy.summary,
       values,
     ),
     shareText: format(
@@ -73,7 +80,9 @@ export function localizePublicRecordShare(
         ? copy.digitalShareText
         : domesticAffairs
           ? copy.domesticShareText
-          : copy.shareText,
+          : socialPlanning
+            ? copy.socialShareText
+            : copy.shareText,
       values,
     ),
     imageAlt: format(
@@ -81,7 +90,9 @@ export function localizePublicRecordShare(
         ? copy.digitalImageAlt
         : domesticAffairs
           ? copy.domesticImageAlt
-          : copy.imageAlt,
+          : socialPlanning
+            ? copy.socialImageAlt
+            : copy.imageAlt,
       values,
     ),
   };
@@ -110,6 +121,12 @@ function offenceLabel(
       return copy.offenceMisplacedObject;
     case "empty_packaging":
       return copy.offenceEmptyPackaging;
+    case "option_veto_cycle":
+      return copy.offenceOptionVetoCycle;
+    case "decision_drift":
+      return copy.offenceDecisionDrift;
+    case "confirmed_plan_revision":
+      return copy.offenceConfirmedPlanRevision;
   }
 }
 
@@ -142,6 +159,14 @@ function mitigationLabel(
       return copy.mitigationHandlesOtherChores;
     case "usually_orderly":
       return copy.mitigationUsuallyOrderly;
+    case "offers_alternatives_sometimes":
+      return copy.mitigationOffersAlternativesSometimes;
+    case "confirms_when_prompted":
+      return copy.mitigationConfirmsWhenPrompted;
+    case "gave_some_notice":
+      return copy.mitigationGaveSomeNotice;
+    case "usually_flexible":
+      return copy.mitigationUsuallyFlexible;
   }
 }
 
@@ -194,6 +219,35 @@ function domesticEvidenceSummary(
       return format(copy.evidenceEmptyInventory, {
         packages: number.format(descriptor.evidence.emptyPackageCount),
         occurrences: number.format(descriptor.evidence.recurrencesInThirtyDays),
+      });
+  }
+}
+
+function socialEvidenceSummary(
+  descriptor: Extract<
+    PublicRecordShareDescriptor,
+    { department: "social_planning" }
+  >,
+  number: Intl.NumberFormat,
+  copy: PublicRecordSharingCopy,
+): string {
+  switch (descriptor.evidence.kind) {
+    case "option_tree":
+      return format(copy.evidenceOptionTree, {
+        rejected: number.format(descriptor.evidence.rejectedOptionCount),
+        proposed: number.format(descriptor.evidence.proposedOptionCount),
+      });
+    case "decision_history":
+      return format(copy.evidenceDecisionHistory, {
+        rounds: number.format(descriptor.evidence.decisionRoundCount),
+        hours: number.format(descriptor.evidence.elapsedHours),
+        participants: number.format(descriptor.evidence.participantCount),
+      });
+    case "revision_impact":
+      return format(copy.evidenceRevisionImpact, {
+        revisions: number.format(descriptor.evidence.revisionCount),
+        participants: number.format(descriptor.evidence.participantCount),
+        hours: number.format(descriptor.evidence.noticeHours),
       });
   }
 }

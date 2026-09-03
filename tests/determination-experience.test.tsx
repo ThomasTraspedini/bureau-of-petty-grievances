@@ -3,10 +3,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import { assessDomesticAffairsFiling } from "@/domain/determination/domestic-affairs-assessment";
+import { assessSocialPlanningFiling } from "@/domain/determination/social-planning-assessment";
 import {
   DETERMINATION_EXPERIENCE_VERSION,
   type IssuedChronologyDetermination,
   type IssuedDomesticAffairsDetermination,
+  type IssuedSocialPlanningDetermination,
 } from "@/domain/determination/determination-experience";
 import {
   createEmptyChronologyDraft,
@@ -16,8 +18,14 @@ import {
   createEmptyDomesticAffairsDraft,
   validateDomesticAffairsDraft,
 } from "@/domain/filing/domestic-affairs";
+import {
+  createEmptySocialPlanningDraft,
+  validateSocialPlanningDraft,
+} from "@/domain/filing/social-planning";
 import { createDomesticAffairsDeterminationLanguageCommand } from "@/domain/determination/determination-language";
 import { createEnglishDomesticAffairsFallback } from "@/domain/determination/locales/en-domestic-affairs";
+import { createSocialPlanningDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import { createEnglishSocialPlanningFallback } from "@/domain/determination/locales/en-social-planning";
 import { DeterminationExperience } from "@/features/determination/determination-experience";
 import {
   DETERMINATION_SESSION_KEY,
@@ -92,6 +100,43 @@ function domesticDeterminationFixture() {
     issuedAt: "2026-09-02T12:00:00.000Z",
     assessment,
     language: createEnglishDomesticAffairsFallback(command.command),
+  };
+  return { draft, determination };
+}
+
+function socialDeterminationFixture() {
+  const draft = {
+    ...createEmptySocialPlanningDraft(),
+    respondent: "Taylor",
+    relationship: "friend" as const,
+    offence: "decision_drift" as const,
+    facts: {
+      ...createEmptySocialPlanningDraft().facts,
+      decisionDrift: {
+        decisionRoundCount: "5",
+        elapsedHours: "72",
+        participantCount: "4",
+      },
+    },
+    impact: "participants_waiting" as const,
+    mitigation: "usually_flexible" as const,
+    statement: "The dinner date remained open through five planning rounds.",
+  };
+  const validated = validateSocialPlanningDraft(draft, "en");
+  if (validated.status === "invalid") throw new Error("Invalid fixture.");
+  const assessment = assessSocialPlanningFiling(validated.filing);
+  const command = createSocialPlanningDeterminationLanguageCommand(
+    validated.filing,
+    assessment,
+  );
+  if (command.status === "invalid") throw new Error("Invalid command.");
+  const determination: IssuedSocialPlanningDetermination = {
+    experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+    locale: "en",
+    reference: "SOC · 2026 · P1A2N3",
+    issuedAt: "2026-09-02T12:00:00.000Z",
+    assessment,
+    language: createEnglishSocialPlanningFallback(command.command),
   };
   return { draft, determination };
 }
@@ -190,6 +235,36 @@ describe("determination experience", () => {
     expect(screen.getByText("45 seconds")).toBeVisible();
     expect(
       screen.getByText(messages.Determination.domesticReconstructionBody),
+    ).toBeVisible();
+  });
+
+  it("renders the Social Planning register with its no-access boundary", async () => {
+    const fixture = socialDeterminationFixture();
+    window.sessionStorage.setItem(
+      DETERMINATION_SESSION_KEY,
+      serializeDeterminationSession(
+        fixture.draft,
+        fixture.determination,
+        Date.now(),
+      ),
+    );
+    render(
+      <DeterminationExperience
+        locale="en"
+        copy={messages.Determination}
+        navigation={messages.Navigation}
+        publicRecord={messages.PublicRecord}
+      />,
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: messages.Determination.socialReconstructionTitle,
+      }),
+    ).toBeVisible();
+    expect(screen.getByText("5 decision rounds")).toBeVisible();
+    expect(screen.getByText("72 hours · 4 participants")).toBeVisible();
+    expect(
+      screen.getByText(messages.Determination.socialReconstructionBody),
     ).toBeVisible();
   });
 

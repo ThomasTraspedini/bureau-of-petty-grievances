@@ -302,12 +302,15 @@ function analyticsPathCode(
   filing:
     | import("@/domain/filing/chronology").ChronologyFiling
     | import("@/domain/filing/digital-conduct").DigitalConductFiling
-    | import("@/domain/filing/domestic-affairs").DomesticAffairsFiling,
+    | import("@/domain/filing/domestic-affairs").DomesticAffairsFiling
+    | import("@/domain/filing/social-planning").SocialPlanningFiling,
 ): AnalyticsPathCode {
   if (filing.department === "chronology") return `chronology_${filing.offence}`;
-  return filing.department === "digital_conduct"
-    ? `digital_conduct_${filing.offence}`
-    : `domestic_affairs_${filing.offence}`;
+  if (filing.department === "digital_conduct")
+    return `digital_conduct_${filing.offence}`;
+  return filing.department === "domestic_affairs"
+    ? `domestic_affairs_${filing.offence}`
+    : `social_planning_${filing.offence}`;
 }
 
 function elapsed(

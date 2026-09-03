@@ -1,8 +1,9 @@
 import type { DigitalConductDeterminationSnapshot } from "@/domain/determination/determination-experience";
 import type { DomesticAffairsDeterminationSnapshot } from "@/domain/determination/determination-experience";
+import type { SocialPlanningDeterminationSnapshot } from "@/domain/determination/determination-experience";
 import type { PublicRecord } from "./public-record";
 
-export const PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION = 3 as const;
+export const PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION = 4 as const;
 
 interface ShareDescriptorCommon {
   descriptorVersion: typeof PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION;
@@ -64,6 +65,34 @@ export type PublicRecordShareDescriptor =
         | "corrects_when_asked"
         | "handles_other_chores"
         | "usually_orderly";
+    })
+  | (ShareDescriptorCommon & {
+      department: "social_planning";
+      offence:
+        "option_veto_cycle" | "decision_drift" | "confirmed_plan_revision";
+      evidence:
+        | {
+            kind: "option_tree";
+            proposedOptionCount: number;
+            rejectedOptionCount: number;
+          }
+        | {
+            kind: "decision_history";
+            decisionRoundCount: number;
+            elapsedHours: number;
+            participantCount: number;
+          }
+        | {
+            kind: "revision_impact";
+            revisionCount: number;
+            participantCount: number;
+            noticeHours: number;
+          };
+      mitigation:
+        | "offers_alternatives_sometimes"
+        | "confirms_when_prompted"
+        | "gave_some_notice"
+        | "usually_flexible";
     });
 
 export function createPublicRecordShareDescriptor(
@@ -128,6 +157,39 @@ export function createPublicRecordShareDescriptor(
       presentationVariant: snapshot.presentationVariant,
     };
   }
+  if (isSocialSnapshot(snapshot)) {
+    const source = snapshot.assessment.evidence;
+    const evidence =
+      source.kind === "option_tree"
+        ? {
+            kind: source.kind,
+            proposedOptionCount: source.proposedOptionCount,
+            rejectedOptionCount: source.rejectedOptionCount,
+          }
+        : source.kind === "decision_history"
+          ? {
+              kind: source.kind,
+              decisionRoundCount: source.decisionRoundCount,
+              elapsedHours: source.elapsedHours,
+              participantCount: source.participantCount,
+            }
+          : {
+              kind: source.kind,
+              revisionCount: source.revisionCount,
+              participantCount: source.participantCount,
+              noticeHours: source.noticeHours,
+            };
+    return {
+      descriptorVersion: PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION,
+      department: "social_planning",
+      disposition: "upheld_with_circumstances_noted",
+      reference: snapshot.reference,
+      offence: snapshot.filing.offence,
+      evidence,
+      mitigation: snapshot.filing.mitigation,
+      presentationVariant: snapshot.presentationVariant,
+    };
+  }
   return {
     descriptorVersion: PUBLIC_RECORD_SHARE_DESCRIPTOR_VERSION,
     department: "chronology",
@@ -150,4 +212,10 @@ function isDomesticSnapshot(
   snapshot: PublicRecord["snapshot"],
 ): snapshot is DomesticAffairsDeterminationSnapshot {
   return snapshot.filing.department === "domestic_affairs";
+}
+
+function isSocialSnapshot(
+  snapshot: PublicRecord["snapshot"],
+): snapshot is SocialPlanningDeterminationSnapshot {
+  return snapshot.filing.department === "social_planning";
 }

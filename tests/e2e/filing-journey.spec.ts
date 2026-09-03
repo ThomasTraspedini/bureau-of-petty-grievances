@@ -10,15 +10,18 @@ import {
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
 import { assessDomesticAffairsFiling } from "@/domain/determination/domestic-affairs-assessment";
+import { assessSocialPlanningFiling } from "@/domain/determination/social-planning-assessment";
 import { DETERMINATION_EXPERIENCE_VERSION } from "@/domain/determination/determination-experience";
 import {
   createChronologyDeterminationLanguageCommand,
   createDigitalConductDeterminationLanguageCommand,
   createDomesticAffairsDeterminationLanguageCommand,
+  createSocialPlanningDeterminationLanguageCommand,
 } from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
 import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
 import { createEnglishDomesticAffairsFallback } from "@/domain/determination/locales/en-domestic-affairs";
+import { createEnglishSocialPlanningFallback } from "@/domain/determination/locales/en-social-planning";
 import {
   type ChronologyDraft,
   validateChronologyDraft,
@@ -33,6 +36,11 @@ import {
   type DomesticAffairsDraft,
   validateDomesticAffairsDraft,
 } from "@/domain/filing/domestic-affairs";
+import {
+  createEmptySocialPlanningDraft,
+  type SocialPlanningDraft,
+  validateSocialPlanningDraft,
+} from "@/domain/filing/social-planning";
 import {
   DETERMINATION_SESSION_KEY,
   serializeDeterminationSession,
@@ -103,6 +111,25 @@ const completeDomesticDraft = {
   mitigation: "handles_other_chores",
   statement: "Four items waited beside their ordinary location.",
 } satisfies DomesticAffairsDraft;
+
+const completeSocialDraft = {
+  ...createEmptySocialPlanningDraft(),
+  respondent: "Morgan",
+  relationship: "friend",
+  offence: "option_veto_cycle",
+  facts: {
+    ...createEmptySocialPlanningDraft().facts,
+    optionVetoCycle: {
+      proposedOptionCount: "6",
+      rejectedOptionCount: "5",
+      alternativeOptionCount: "1",
+    },
+  },
+  impact: "planning_stalled",
+  mitigation: "offers_alternatives_sometimes",
+  statement:
+    "Five practical dinner options were declined before one alternative appeared.",
+} satisfies SocialPlanningDraft;
 
 async function choose(page: Page, name: string) {
   await page.getByRole("radio", { name }).check();
@@ -200,6 +227,37 @@ function fixedDomesticDeterminationSession(): string {
   );
 }
 
+function fixedSocialDeterminationSession(): string {
+  const validation = validateSocialPlanningDraft(completeSocialDraft, "en");
+  if (validation.status === "invalid") {
+    throw new Error(
+      "The Social Planning end-to-end fixture must remain valid.",
+    );
+  }
+  const assessment = assessSocialPlanningFiling(validation.filing);
+  const command = createSocialPlanningDeterminationLanguageCommand(
+    validation.filing,
+    assessment,
+  );
+  if (command.status === "invalid") {
+    throw new Error("The Social Planning assessment must match its filing.");
+  }
+  const issuedAt = new Date();
+  issuedAt.setMilliseconds(0);
+  return serializeDeterminationSession(
+    completeSocialDraft,
+    {
+      experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+      locale: "en",
+      reference: "SOC · 2026 · P1A2N3",
+      issuedAt: issuedAt.toISOString(),
+      assessment,
+      language: createEnglishSocialPlanningFallback(command.command),
+    },
+    Date.now(),
+  );
+}
+
 async function openFixedDetermination(page: Page) {
   await page.addInitScript(
     ({ key, value }) => {
@@ -245,6 +303,22 @@ async function openFixedDomesticDetermination(page: Page) {
   ).toBeVisible();
 }
 
+async function openFixedSocialDetermination(page: Page) {
+  await page.addInitScript(
+    ({ key, value }) => {
+      window.sessionStorage.setItem(key, value);
+    },
+    {
+      key: DETERMINATION_SESSION_KEY,
+      value: fixedSocialDeterminationSession(),
+    },
+  );
+  await page.goto("/en/determination");
+  await expect(
+    page.getByRole("heading", { name: "Review concerning Morgan" }),
+  ).toBeVisible();
+}
+
 async function publishFixedRecord(page: Page) {
   await openFixedDetermination(page);
   await page.getByRole("checkbox").check();
@@ -278,6 +352,23 @@ async function publishFixedDomesticRecord(page: Page) {
     .getAttribute("href");
   if (!publicAddress)
     throw new Error("Domestic publication must return a public address.");
+  return publicAddress;
+}
+
+async function publishFixedSocialRecord(page: Page) {
+  await openFixedSocialDetermination(page);
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create the public record" }).click();
+  await expect(
+    page.getByRole("heading", { name: "The public record is available." }),
+  ).toBeVisible();
+  const publicAddress = await page
+    .getByRole("link", { name: "Open the public record" })
+    .getAttribute("href");
+  if (!publicAddress)
+    throw new Error(
+      "Social Planning publication must return a public address.",
+    );
   return publicAddress;
 }
 
@@ -486,6 +577,78 @@ test("completes and publishes a Domestic Affairs property register", async ({
   expect(head).toContain("Incomplete object placement");
   expect(head).not.toContain("Riley");
   expect(head).not.toContain("45 seconds");
+});
+
+test("completes and publishes a Social Planning decision register", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/en/file/respondent");
+  await page.getByRole("textbox", { name: "Respondent alias" }).fill("Morgan");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await choose(page, "Friend");
+  await choose(
+    page,
+    "Social Planning Option cycles, decision drift, and confirmed-plan revisions.",
+  );
+  await choose(
+    page,
+    "Rejected the available options without resolving the choice Compare proposed and rejected options with practical alternatives offered.",
+  );
+  await page.getByLabel("Practical options proposed").fill("6");
+  await page.getByLabel("Options rejected").fill("5");
+  await page.getByLabel("Alternatives offered").fill("1");
+  await page.getByRole("button", { name: "Continue" }).click();
+  await choose(page, "An ordinary planning decision stalled");
+  await choose(page, "Sometimes offers practical alternatives");
+  await page
+    .getByRole("textbox", { name: "Submitted statement" })
+    .fill(
+      "Five practical dinner options were declined before one alternative appeared.",
+    );
+  await page.getByRole("button", { name: "Review the record" }).click();
+
+  await expect(
+    page.getByText("Social Planning", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText("5 of 6 options rejected; 1 alternative offered"),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Submit for determination" }).click();
+
+  await expect(page).toHaveURL(/\/en\/determination$/u);
+  await expect(
+    page.getByText("Department of Social Planning").first(),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "The social decision register is established.",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText("Bounded shortlist protocol")).toBeVisible();
+  await expect(page.getByText("Filer-submitted counts")).toBeVisible();
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Create the public record" }).click();
+  const publicAddress = await page
+    .getByRole("link", { name: "Open the public record" })
+    .getAttribute("href");
+  if (!publicAddress)
+    throw new Error(
+      "Social Planning publication must return a public address.",
+    );
+  await page.goto(publicAddress);
+  await expect(
+    page.getByText("Department of Social Planning").first(),
+  ).toBeVisible();
+  await expect(page.locator(".share-object")).toContainText(
+    "5 of 6 submitted options rejected",
+  );
+  const head = await page.locator("head").innerHTML();
+  expect(head).toContain("Option-veto cycle");
+  expect(head).not.toContain("Morgan");
+  expect(head).not.toContain("one alternative appeared");
 });
 
 test("preserves a safe draft across refresh and excludes rejected text", async ({
@@ -967,6 +1130,53 @@ test.describe("filing visual contract", () => {
     await page.goto(publicAddress);
     await expect(page).toHaveScreenshot(
       "domestic-affairs-public-record-mobile.png",
+      {
+        fullPage: true,
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
+  });
+
+  test("mobile Social Planning evidence", async ({ page }) => {
+    await page.addInitScript(
+      ({ key, value }) => {
+        window.localStorage.setItem(key, value);
+      },
+      {
+        key: storageKey,
+        value: serializeDraft(completeSocialDraft, Date.now()),
+      },
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/en/file/social_evidence");
+    await expect(page.getByText("Draft restored")).toBeVisible();
+    await expect(page).toHaveScreenshot("social-planning-evidence-mobile.png", {
+      fullPage: true,
+      animations: "disabled",
+      maxDiffPixelRatio: 0.01,
+    });
+  });
+
+  test("desktop Social Planning determination", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await openFixedSocialDetermination(page);
+    await expect(page).toHaveScreenshot(
+      "social-planning-determination-desktop.png",
+      {
+        fullPage: true,
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
+  });
+
+  test("mobile Social Planning public record", async ({ page }) => {
+    const publicAddress = await publishFixedSocialRecord(page);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(publicAddress);
+    await expect(page).toHaveScreenshot(
+      "social-planning-public-record-mobile.png",
       {
         fullPage: true,
         animations: "disabled",

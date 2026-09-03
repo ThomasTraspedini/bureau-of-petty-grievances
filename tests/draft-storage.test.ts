@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createEmptyChronologyDraft } from "@/domain/filing/chronology";
 import { createEmptyDomesticAffairsDraft } from "@/domain/filing/domestic-affairs";
+import { createEmptySocialPlanningDraft } from "@/domain/filing/social-planning";
 import {
   FILING_DRAFT_LIFETIME_MS,
   parseStoredDraft,
@@ -67,6 +68,26 @@ describe("device-local filing drafts", () => {
           itemCount: "3",
           distanceSteps: "8",
           correctionSeconds: "40",
+        },
+      },
+    };
+    expect(parseStoredDraft(serializeDraft(draft, 100), 101)).toEqual({
+      status: "restored",
+      draft,
+    });
+  });
+
+  it("restores a bounded Social Planning draft", () => {
+    const draft = {
+      ...createEmptySocialPlanningDraft(),
+      respondent: "Taylor",
+      offence: "decision_drift" as const,
+      facts: {
+        ...createEmptySocialPlanningDraft().facts,
+        decisionDrift: {
+          decisionRoundCount: "5",
+          elapsedHours: "72",
+          participantCount: "4",
         },
       },
     };

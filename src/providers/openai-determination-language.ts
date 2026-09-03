@@ -27,6 +27,11 @@ import {
   EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION,
 } from "@/domain/determination/locales/en-domestic-affairs";
 import {
+  buildEnglishSocialPlanningGenerationInput,
+  EN_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS,
+  EN_SOCIAL_PLANNING_EDITORIAL_POLICY_VERSION,
+} from "@/domain/determination/locales/en-social-planning";
+import {
   createUnavailableDeterminationLanguageProvider,
   type DeterminationLanguageProvider,
   type DeterminationLanguageProviderResult,
@@ -63,7 +68,9 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
           ? EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS
           : command.department === "digital_conduct"
             ? EN_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS
-            : EN_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS;
+            : command.department === "domestic_affairs"
+              ? EN_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS
+              : EN_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS;
       const input =
         command.department === "chronology"
           ? buildEnglishChronologyGenerationInput(
@@ -75,16 +82,23 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
                 command,
                 attempt.previousValidationIssues,
               )
-            : buildEnglishDomesticAffairsGenerationInput(
-                command,
-                attempt.previousValidationIssues,
-              );
+            : command.department === "domestic_affairs"
+              ? buildEnglishDomesticAffairsGenerationInput(
+                  command,
+                  attempt.previousValidationIssues,
+                )
+              : buildEnglishSocialPlanningGenerationInput(
+                  command,
+                  attempt.previousValidationIssues,
+                );
       const editorialPolicyVersion =
         command.department === "chronology"
           ? EN_CHRONOLOGY_EDITORIAL_POLICY_VERSION
           : command.department === "digital_conduct"
             ? EN_DIGITAL_CONDUCT_EDITORIAL_POLICY_VERSION
-            : EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION;
+            : command.department === "domestic_affairs"
+              ? EN_DOMESTIC_AFFAIRS_EDITORIAL_POLICY_VERSION
+              : EN_SOCIAL_PLANNING_EDITORIAL_POLICY_VERSION;
       const response = await this.createResponse({
         model: this.model,
         store: false,

@@ -16,7 +16,7 @@ Production events have a 180-day provider retention limit. The application store
 
 ## Event catalog
 
-Every event carries schema version, event ID, occurrence time, locale, department, optional journey ID, application version, and deployment environment. Schema version `3` adds the Domestic Affairs evidence step and path codes while retaining the content-free envelope. Only the following event-specific fields are accepted:
+Every event carries schema version, event ID, occurrence time, locale, department, optional journey ID, application version, and deployment environment. Schema version `4` adds the Social Planning evidence step and path codes while retaining the content-free envelope. Only the following event-specific fields are accepted:
 
 | Event | Meaning | Allowed analysis fields |
 | --- | --- | --- |
@@ -39,7 +39,7 @@ Every event carries schema version, event ID, occurrence time, locale, departmen
 | `owner_record_changed` | Owner unpublish, restore, or delete resolved | action, outcome, record pseudonym |
 | `operational_failure` | A content-free operational category occurred | operation, category |
 
-Path codes name product logic, not submitted values: the three Chronology codes, three Digital Conduct codes, and `domestic_affairs_token_remainder`, `domestic_affairs_misplaced_object`, or `domestic_affairs_empty_packaging`. Steps may identify `department` or the department-specific `chronology`, `communications`, and `domestic_evidence` phases. No event carries selected quantities, distances, durations, effort, recurrence, room names, witness text, or communication content. Entry surfaces are coarse categories only: direct, internal, external, share, evaluation, standard, or successor.
+Path codes name product logic, not submitted values: the three Chronology codes, three Digital Conduct codes, three Domestic Affairs codes, and `social_planning_option_veto_cycle`, `social_planning_decision_drift`, or `social_planning_confirmed_plan_revision`. Steps may identify `department` or the department-specific `chronology`, `communications`, `domestic_evidence`, and `social_evidence` phases. No event carries selected quantities, distances, durations, effort, recurrence, participant counts, room names, locations, witness text, or communication content. Entry surfaces are coarse categories only: direct, internal, external, share, evaluation, standard, or successor.
 
 ## Required analyses
 

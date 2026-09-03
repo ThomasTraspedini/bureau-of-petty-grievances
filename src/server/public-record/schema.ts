@@ -1,4 +1,4 @@
-export const PUBLIC_RECORD_SCHEMA_VERSION = 5 as const;
+export const PUBLIC_RECORD_SCHEMA_VERSION = 6 as const;
 
 export const PUBLIC_RECORD_SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS bureau_schema_migrations (
@@ -297,5 +297,27 @@ ALTER TABLE standard_generation_requests
 
 INSERT INTO bureau_schema_migrations (version)
 VALUES (5)
+ON CONFLICT (version) DO NOTHING;
+
+ALTER TABLE public_records
+  DROP CONSTRAINT IF EXISTS public_records_department_check;
+ALTER TABLE public_records
+  ADD CONSTRAINT public_records_department_check
+  CHECK (department IN ('chronology', 'digital_conduct', 'domestic_affairs', 'social_planning'));
+
+ALTER TABLE generation_requests
+  DROP CONSTRAINT IF EXISTS generation_requests_procedural_reference_check;
+ALTER TABLE generation_requests
+  ADD CONSTRAINT generation_requests_procedural_reference_check
+  CHECK (procedural_reference ~ '^(CHR|DIG|DOM|SOC) · [0-9]{4} · [A-Z0-9]{6}$');
+
+ALTER TABLE standard_generation_requests
+  DROP CONSTRAINT IF EXISTS standard_generation_requests_procedural_reference_check;
+ALTER TABLE standard_generation_requests
+  ADD CONSTRAINT standard_generation_requests_procedural_reference_check
+  CHECK (procedural_reference ~ '^(CHR|DIG|DOM|SOC) · [0-9]{4} · [A-Z0-9]{6}$');
+
+INSERT INTO bureau_schema_migrations (version)
+VALUES (6)
 ON CONFLICT (version) DO NOTHING;
 `;

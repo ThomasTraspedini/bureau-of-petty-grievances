@@ -294,7 +294,8 @@ function parseStoredRecord(value: unknown): StoredPublicRecord | null {
     row.locale !== "en" ||
     (row.department !== "chronology" &&
       row.department !== "digital_conduct" &&
-      row.department !== "domestic_affairs") ||
+      row.department !== "domestic_affairs" &&
+      row.department !== "social_planning") ||
     !isPublicRecordStatus(row.status) ||
     !isDateValue(row.publishedAt) ||
     !isDateValue(row.expiresAt) ||

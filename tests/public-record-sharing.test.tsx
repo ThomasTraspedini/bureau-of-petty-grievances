@@ -4,21 +4,25 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
 import { assessDigitalConductFiling } from "@/domain/determination/digital-conduct-assessment";
 import { assessDomesticAffairsFiling } from "@/domain/determination/domestic-affairs-assessment";
+import { assessSocialPlanningFiling } from "@/domain/determination/social-planning-assessment";
 import {
   DETERMINATION_EXPERIENCE_VERSION,
   determinationPresentationVariant,
   type ChronologyDeterminationSnapshot,
   type DigitalConductDeterminationSnapshot,
   type DomesticAffairsDeterminationSnapshot,
+  type SocialPlanningDeterminationSnapshot,
 } from "@/domain/determination/determination-experience";
 import {
   createChronologyDeterminationLanguageCommand,
   createDigitalConductDeterminationLanguageCommand,
   createDomesticAffairsDeterminationLanguageCommand,
+  createSocialPlanningDeterminationLanguageCommand,
 } from "@/domain/determination/determination-language";
 import { createEnglishChronologyFallback } from "@/domain/determination/locales/en";
 import { createEnglishDigitalConductFallback } from "@/domain/determination/locales/en-digital-conduct";
 import { createEnglishDomesticAffairsFallback } from "@/domain/determination/locales/en-domestic-affairs";
+import { createEnglishSocialPlanningFallback } from "@/domain/determination/locales/en-social-planning";
 import {
   createEmptyChronologyDraft,
   validateChronologyDraft,
@@ -31,6 +35,10 @@ import {
   createEmptyDomesticAffairsDraft,
   validateDomesticAffairsDraft,
 } from "@/domain/filing/domestic-affairs";
+import {
+  createEmptySocialPlanningDraft,
+  validateSocialPlanningDraft,
+} from "@/domain/filing/social-planning";
 import type { PublicRecord } from "@/domain/public-record/public-record";
 import { createPublicRecordShareDescriptor } from "@/domain/public-record/public-record-sharing";
 import { PublicRecordSharing } from "@/features/public-record/public-record-sharing";
@@ -50,7 +58,7 @@ describe("public-record sharing boundary", () => {
   it("derives only the approved non-identifying preview facts", () => {
     const descriptor = createPublicRecordShareDescriptor(recordFixture());
     expect(descriptor).toEqual({
-      descriptorVersion: 3,
+      descriptorVersion: 4,
       department: "chronology",
       disposition: "upheld_with_circumstances_noted",
       reference: "CHR · 2026 · A1B2C3",
@@ -73,7 +81,7 @@ describe("public-record sharing boundary", () => {
       snapshot: digitalDeterminationSnapshot(),
     });
     expect(descriptor).toEqual({
-      descriptorVersion: 3,
+      descriptorVersion: 4,
       department: "digital_conduct",
       disposition: "upheld_with_circumstances_noted",
       reference: "DIG · 2026 · D4E5F6",
@@ -95,7 +103,7 @@ describe("public-record sharing boundary", () => {
       snapshot: domesticDeterminationSnapshot(),
     });
     expect(descriptor).toEqual({
-      descriptorVersion: 3,
+      descriptorVersion: 4,
       department: "domestic_affairs",
       disposition: "upheld_with_circumstances_noted",
       reference: "DOM · 2026 · H0M3A1",
@@ -109,6 +117,33 @@ describe("public-record sharing boundary", () => {
     expect(serialized).not.toContain("hallway");
     expect(serialized).not.toContain("correctionSeconds");
     expect(serialized).not.toContain("address");
+  });
+
+  it("shares only approved Social Planning aggregates and excludes private planning context", () => {
+    const descriptor = createPublicRecordShareDescriptor({
+      ...recordFixture(),
+      snapshot: socialDeterminationSnapshot(),
+    });
+    expect(descriptor).toEqual({
+      descriptorVersion: 4,
+      department: "social_planning",
+      disposition: "upheld_with_circumstances_noted",
+      reference: "SOC · 2026 · P1A2N3",
+      offence: "confirmed_plan_revision",
+      evidence: {
+        kind: "revision_impact",
+        revisionCount: 2,
+        participantCount: 5,
+        noticeHours: 8,
+      },
+      mitigation: "gave_some_notice",
+      presentationVariant: descriptor.presentationVariant,
+    });
+    const serialized = JSON.stringify(descriptor);
+    expect(serialized).not.toContain("Taylor");
+    expect(serialized).not.toContain("restaurant");
+    expect(serialized).not.toContain("statement");
+    expect(serialized).not.toContain("relationship");
   });
 
   it("localizes a bounded metadata and share payload", () => {
@@ -400,6 +435,48 @@ function domesticDeterminationSnapshot(): DomesticAffairsDeterminationSnapshot {
     filing: validation.filing,
     assessment,
     language: createEnglishDomesticAffairsFallback(command.command),
+    presentationVariant: determinationPresentationVariant(
+      reference,
+      assessment.presentation.visualSeed,
+    ),
+  };
+}
+
+function socialDeterminationSnapshot(): SocialPlanningDeterminationSnapshot {
+  const draft = {
+    ...createEmptySocialPlanningDraft(),
+    respondent: "Taylor",
+    relationship: "friend" as const,
+    offence: "confirmed_plan_revision" as const,
+    facts: {
+      ...createEmptySocialPlanningDraft().facts,
+      confirmedPlanRevision: {
+        revisionCount: "2",
+        participantCount: "5",
+        noticeHours: "8",
+      },
+    },
+    impact: "arrangements_disrupted" as const,
+    mitigation: "gave_some_notice" as const,
+    statement: "The restaurant changed after everyone confirmed the plan.",
+  };
+  const validation = validateSocialPlanningDraft(draft, "en");
+  if (validation.status === "invalid") throw new Error("Invalid fixture.");
+  const assessment = assessSocialPlanningFiling(validation.filing);
+  const command = createSocialPlanningDeterminationLanguageCommand(
+    validation.filing,
+    assessment,
+  );
+  if (command.status === "invalid") throw new Error("Invalid command.");
+  const reference = "SOC · 2026 · P1A2N3";
+  return {
+    experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
+    locale: "en",
+    reference,
+    issuedAt: "2026-09-02T12:00:00.000Z",
+    filing: validation.filing,
+    assessment,
+    language: createEnglishSocialPlanningFallback(command.command),
     presentationVariant: determinationPresentationVariant(
       reference,
       assessment.presentation.visualSeed,

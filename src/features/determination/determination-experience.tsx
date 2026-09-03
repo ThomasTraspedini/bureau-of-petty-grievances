@@ -15,6 +15,7 @@ import { DeterminationRecord } from "./determination-record";
 import {
   DETERMINATION_SESSION_KEY,
   LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
+  LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
   LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
   parseDeterminationSession,
 } from "./determination-session";
@@ -53,6 +54,9 @@ export function DeterminationExperience({
       const stored = parseDeterminationSession(
         window.sessionStorage.getItem(DETERMINATION_SESSION_KEY) ??
           window.sessionStorage.getItem(
+            LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
+          ) ??
+          window.sessionStorage.getItem(
             LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
           ) ??
           window.sessionStorage.getItem(
@@ -62,6 +66,9 @@ export function DeterminationExperience({
       );
       if (stored.status !== "restored") {
         window.sessionStorage.removeItem(DETERMINATION_SESSION_KEY);
+        window.sessionStorage.removeItem(
+          LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
+        );
         window.sessionStorage.removeItem(
           LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
         );
@@ -73,6 +80,9 @@ export function DeterminationExperience({
         );
         return;
       }
+      window.sessionStorage.removeItem(
+        LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
+      );
       window.sessionStorage.removeItem(
         LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
       );

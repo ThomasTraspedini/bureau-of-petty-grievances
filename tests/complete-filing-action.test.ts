@@ -12,6 +12,10 @@ import {
   createEmptyDomesticAffairsDraft,
   type DomesticAffairsDraft,
 } from "@/domain/filing/domestic-affairs";
+import {
+  createEmptySocialPlanningDraft,
+  type SocialPlanningDraft,
+} from "@/domain/filing/social-planning";
 import { createUnavailableDeterminationLanguageProvider } from "@/providers/determination-language-provider";
 import { completeFilingReviewWith } from "@/server/determination/complete-filing-review";
 import { completeFilingReviewControlledWith } from "@/server/determination/complete-filing-review";
@@ -70,6 +74,26 @@ function completeDomesticDraft(): DomesticAffairsDraft {
     impact: "false_stock_signal",
     mitigation: "handles_other_chores",
     statement: "The empty carton returned to the shared shelf twice this week.",
+  };
+}
+
+function completeSocialDraft(): SocialPlanningDraft {
+  return {
+    ...createEmptySocialPlanningDraft(),
+    respondent: "Taylor",
+    relationship: "friend",
+    offence: "decision_drift",
+    facts: {
+      ...createEmptySocialPlanningDraft().facts,
+      decisionDrift: {
+        decisionRoundCount: "5",
+        elapsedHours: "72",
+        participantCount: "4",
+      },
+    },
+    impact: "participants_waiting",
+    mitigation: "usually_flexible",
+    statement: "The dinner date remained open through five planning rounds.",
   };
 }
 
@@ -154,6 +178,28 @@ describe("complete filing server boundary", () => {
           remedyConstraints: { family: "empty_packaging_protocol" },
         },
         language: { remedy: { title: "Empty-packaging protocol" } },
+      },
+    });
+  });
+
+  it("issues a complete Social Planning determination through deterministic fallback", async () => {
+    await expect(
+      completeFilingReviewWith("en", completeSocialDraft(), dependencies),
+    ).resolves.toMatchObject({
+      status: "accepted",
+      determination: {
+        reference: "SOC · 2026 · A1B2C3",
+        assessment: {
+          department: "social_planning",
+          offence: "decision_drift",
+          evidence: {
+            decisionRoundCount: 5,
+            elapsedHours: 72,
+            participantCount: 4,
+          },
+          remedyConstraints: { family: "decision_point_protocol" },
+        },
+        language: { remedy: { title: "Decision-point protocol" } },
       },
     });
   });

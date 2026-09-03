@@ -10,7 +10,9 @@ import {
 import { type FilingDraft, validateFilingDraft } from "@/domain/filing/filing";
 import { assessFiling } from "@/domain/determination/assessment";
 
-export const DETERMINATION_SESSION_KEY = "bpg:determination:en:v3";
+export const DETERMINATION_SESSION_KEY = "bpg:determination:en:v4";
+export const LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY =
+  "bpg:determination:en:v3";
 export const LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY =
   "bpg:determination:en:v2";
 export const LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY =
@@ -19,7 +21,7 @@ export const DETERMINATION_SESSION_LIFETIME_MS =
   DETERMINATION_TRANSIENT_LIFETIME_MS;
 
 interface DeterminationSessionEnvelope {
-  version: 1 | 2 | 3;
+  version: 1 | 2 | 3 | 4;
   locale: "en";
   createdAt: number;
   draft: FilingDraft;
@@ -36,7 +38,7 @@ export function serializeDeterminationSession(
   now: number,
 ): string {
   const envelope: DeterminationSessionEnvelope = {
-    version: 3,
+    version: 4,
     locale: "en",
     createdAt: now,
     draft,
@@ -117,7 +119,10 @@ function isSessionEnvelope(
       "draft",
       "determination",
     ]) ||
-    (value.version !== 1 && value.version !== 2 && value.version !== 3) ||
+    (value.version !== 1 &&
+      value.version !== 2 &&
+      value.version !== 3 &&
+      value.version !== 4) ||
     value.locale !== "en" ||
     typeof value.createdAt !== "number" ||
     !Number.isFinite(value.createdAt) ||

@@ -952,7 +952,8 @@ a {
 }
 
 .digital-reconstruction,
-.domestic-reconstruction {
+.domestic-reconstruction,
+.social-reconstruction {
   padding: clamp(38px, 7vw, 72px);
   background: var(--ink-strong);
   color: var(--ivory-light);
@@ -968,6 +969,133 @@ a {
 .domestic-reconstruction h2,
 .domestic-reconstruction .determination-section-heading > p:last-child {
   color: inherit;
+}
+
+.social-reconstruction .eyebrow,
+.social-reconstruction h2,
+.social-reconstruction .determination-section-heading > p:last-child {
+  color: inherit;
+}
+
+.social-reconstruction .determination-section-heading > p:last-child {
+  max-width: 680px;
+  opacity: 0.72;
+}
+
+.social-register {
+  margin: 46px 0 0;
+}
+
+.social-register-diagram {
+  display: grid;
+  max-width: 760px;
+  gap: 30px;
+  min-height: 190px;
+  padding: 24px 18px 30px;
+  border-bottom: 1px solid rgb(255 255 255 / 34%);
+}
+
+.social-option-tree {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(28px, 1fr));
+  align-items: center;
+  gap: 20px;
+  min-height: 90px;
+}
+
+.social-option-tree::before {
+  position: absolute;
+  right: 5%;
+  left: 5%;
+  height: 1px;
+  background: rgb(255 255 255 / 42%);
+  content: "";
+}
+
+.social-option-tree > span,
+.social-option-tree i {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 22px;
+  height: 22px;
+  justify-self: center;
+  border: 2px solid var(--record-accent);
+  border-radius: 50%;
+  background: var(--ink-strong);
+}
+
+.social-option-tree > span {
+  width: 30px;
+  height: 30px;
+  grid-row: span 2;
+  border-width: 5px;
+}
+
+.social-option-tree i[data-resolved="true"] {
+  border-radius: 4px;
+  background: var(--record-accent);
+}
+
+.social-decision-scale {
+  position: relative;
+  height: 22px;
+  border-top: 1px solid rgb(255 255 255 / 42%);
+}
+
+.social-decision-scale i {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  display: block;
+  height: 3px;
+  max-width: 100%;
+  background: var(--record-accent);
+}
+
+.social-decision-scale span {
+  position: absolute;
+  top: -7px;
+  width: 14px;
+  height: 14px;
+  max-width: calc(100% - 2px);
+  border: 3px solid var(--ink-strong);
+  border-radius: 50%;
+  background: var(--record-accent);
+  transform: translateX(-50%);
+}
+
+.social-register figcaption {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  margin-top: 22px;
+}
+
+.social-register figcaption > div {
+  padding-top: 14px;
+  border-top: 1px solid rgb(255 255 255 / 18%);
+}
+
+.social-register figcaption span,
+.social-register figcaption strong {
+  display: block;
+}
+
+.social-register figcaption span {
+  margin-bottom: 7px;
+  opacity: 0.65;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.social-register figcaption strong {
+  font-family: var(--serif);
+  font-size: clamp(19px, 2.4vw, 25px);
+  font-weight: 620;
 }
 
 .domestic-reconstruction .determination-section-heading > p:last-child {
@@ -2611,6 +2739,7 @@ footer p {
   .chronology-reconstruction,
   .digital-reconstruction,
   .domestic-reconstruction,
+  .social-reconstruction,
   .determination-findings,
   .witness-record,
   .remedy-record,
@@ -2649,6 +2778,25 @@ footer p {
   }
 
   .domestic-register figcaption {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .social-register {
+    margin-top: 34px;
+  }
+
+  .social-register-diagram {
+    min-height: 160px;
+    padding-inline: 4px;
+  }
+
+  .social-option-tree {
+    grid-template-columns: repeat(3, minmax(24px, 1fr));
+    gap: 12px;
+  }
+
+  .social-register figcaption {
     grid-template-columns: 1fr;
     gap: 14px;
   }

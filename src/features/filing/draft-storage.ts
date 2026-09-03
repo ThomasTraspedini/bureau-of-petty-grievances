@@ -21,18 +21,25 @@ import {
   type DomesticAffairsDraft,
 } from "@/domain/filing/domestic-affairs";
 import {
+  SOCIAL_PLANNING_IMPACT_CODES,
+  SOCIAL_PLANNING_MITIGATION_CODES,
+  SOCIAL_PLANNING_OFFENCE_CODES,
+  type SocialPlanningDraft,
+} from "@/domain/filing/social-planning";
+import {
   createEmptyFilingDraft,
   type FilingDraft,
 } from "@/domain/filing/filing";
 
-export const FILING_DRAFT_STORAGE_KEY = "bpg:filing:en:v3";
+export const FILING_DRAFT_STORAGE_KEY = "bpg:filing:en:v4";
+export const LEGACY_DOMESTIC_DRAFT_STORAGE_KEY = "bpg:filing:en:v3";
 export const LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY = "bpg:filing:en:v2";
 export const LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY =
   "bpg:filing:chronology:en:v1";
 export const FILING_DRAFT_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 
 interface DraftEnvelope {
-  version: 3;
+  version: 4;
   locale: "en";
   updatedAt: number;
   draft: FilingDraft;
@@ -46,7 +53,7 @@ export type StoredDraftResult =
 
 export function serializeDraft(draft: FilingDraft, now: number): string {
   const envelope: DraftEnvelope = {
-    version: 3,
+    version: 4,
     locale: "en",
     updatedAt: now,
     draft: safeDraft(draft),
@@ -65,7 +72,10 @@ export function parseStoredDraft(
     const parsed: unknown = JSON.parse(value);
     if (
       !isRecord(parsed) ||
-      (parsed.version !== 1 && parsed.version !== 2 && parsed.version !== 3) ||
+      (parsed.version !== 1 &&
+        parsed.version !== 2 &&
+        parsed.version !== 3 &&
+        parsed.version !== 4) ||
       parsed.locale !== "en" ||
       typeof parsed.updatedAt !== "number" ||
       !Number.isFinite(parsed.updatedAt)
@@ -99,7 +109,7 @@ function safeDraft(draft: FilingDraft): FilingDraft {
 
 function normalizeDraft(
   value: unknown,
-  version: 1 | 2 | 3,
+  version: 1 | 2 | 3 | 4,
 ): FilingDraft | null {
   if (version === 1 && isChronologyDraft(value, true)) {
     return { ...value, department: "chronology" };
@@ -107,6 +117,7 @@ function normalizeDraft(
   if (isChronologyDraft(value, false)) return value;
   if (isDigitalConductDraft(value)) return value;
   if (isDomesticAffairsDraft(value)) return value;
+  if (isSocialPlanningDraft(value)) return value;
   return null;
 }
 
@@ -253,6 +264,59 @@ function isDomesticAffairsDraft(value: unknown): value is DomesticAffairsDraft {
     stringsWithin(
       packaging,
       ["emptyPackageCount", "recurrencesInThirtyDays"],
+      3,
+    )
+  );
+}
+
+function isSocialPlanningDraft(value: unknown): value is SocialPlanningDraft {
+  if (
+    !isRecord(value) ||
+    value.department !== "social_planning" ||
+    !isRecord(value.facts)
+  )
+    return false;
+  const veto = value.facts.optionVetoCycle;
+  const drift = value.facts.decisionDrift;
+  const revision = value.facts.confirmedPlanRevision;
+  const statementIssue =
+    typeof value.statement === "string" && value.statement.length > 0
+      ? validateWitnessStatement(value.statement)
+      : null;
+  return (
+    typeof value.respondent === "string" &&
+    countCharacters(value.respondent) <= 32 &&
+    !containsUnnecessaryIdentifier(value.respondent) &&
+    (value.relationship === "" ||
+      RELATIONSHIP_CODES.some((code) => code === value.relationship)) &&
+    (value.offence === "" ||
+      SOCIAL_PLANNING_OFFENCE_CODES.some((code) => code === value.offence)) &&
+    (value.impact === "" ||
+      SOCIAL_PLANNING_IMPACT_CODES.some((code) => code === value.impact)) &&
+    (value.mitigation === "" ||
+      SOCIAL_PLANNING_MITIGATION_CODES.some(
+        (code) => code === value.mitigation,
+      )) &&
+    typeof value.statement === "string" &&
+    statementIssue !== "statement_too_long" &&
+    statementIssue !== "restricted_content" &&
+    statementIssue !== "unnecessary_identifier" &&
+    isRecord(veto) &&
+    stringsWithin(
+      veto,
+      ["proposedOptionCount", "rejectedOptionCount", "alternativeOptionCount"],
+      3,
+    ) &&
+    isRecord(drift) &&
+    stringsWithin(
+      drift,
+      ["decisionRoundCount", "elapsedHours", "participantCount"],
+      3,
+    ) &&
+    isRecord(revision) &&
+    stringsWithin(
+      revision,
+      ["revisionCount", "participantCount", "noticeHours"],
       3,
     )
   );

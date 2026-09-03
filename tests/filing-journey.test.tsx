@@ -21,6 +21,7 @@ import {
   validateChronologyDraft,
 } from "@/domain/filing/chronology";
 import { createEmptyDomesticAffairsDraft } from "@/domain/filing/domestic-affairs";
+import { createEmptySocialPlanningDraft } from "@/domain/filing/social-planning";
 import {
   FILING_DRAFT_STORAGE_KEY,
   serializeDraft,
@@ -236,6 +237,36 @@ describe("filing journey", () => {
     ).toBeVisible();
     expect(screen.getByText(messages.Filing.domesticBoundary)).toBeVisible();
     expect(screen.getByText(messages.Filing.domesticDepartment)).toBeVisible();
+  });
+
+  it("renders the adaptive Social Planning decision register", async () => {
+    const draft = {
+      ...createEmptySocialPlanningDraft(),
+      respondent: "Taylor",
+      relationship: "friend" as const,
+      offence: "decision_drift" as const,
+    };
+    window.localStorage.setItem(
+      FILING_DRAFT_STORAGE_KEY,
+      serializeDraft(draft, Date.now()),
+    );
+    render(
+      <FilingJourney
+        locale="en"
+        step="social_evidence"
+        returnToReview={false}
+        copy={messages.Filing}
+        navigation={messages.Navigation}
+        completeFiling={completeFiling}
+      />,
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: messages.Filing.decisionDriftTitle,
+      }),
+    ).toBeVisible();
+    expect(screen.getByText(messages.Filing.socialBoundary)).toBeVisible();
+    expect(screen.getByText(messages.Filing.socialDepartment)).toBeVisible();
   });
 
   it("keeps a server-rejected review visible with safe work preserved", async () => {

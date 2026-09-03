@@ -5,6 +5,7 @@ import type {
   DeterminationSnapshot,
   DigitalConductDeterminationSnapshot,
   DomesticAffairsDeterminationSnapshot,
+  SocialPlanningDeterminationSnapshot,
 } from "@/domain/determination/determination-experience";
 import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
@@ -46,6 +47,7 @@ export function DeterminationRecord({
 }: DeterminationRecordProps) {
   const digitalConduct = isDigitalConductSnapshot(snapshot);
   const domesticAffairs = isDomesticAffairsSnapshot(snapshot);
+  const socialPlanning = isSocialPlanningSnapshot(snapshot);
   const issuedDate = new Intl.DateTimeFormat(locale, {
     dateStyle: "long",
   }).format(new Date(snapshot.issuedAt));
@@ -118,7 +120,9 @@ export function DeterminationRecord({
                 ? copy.digitalDepartment
                 : domesticAffairs
                   ? copy.domesticDepartment
-                  : copy.department}
+                  : socialPlanning
+                    ? copy.socialDepartment
+                    : copy.department}
             </p>
             <h1>
               {format(copy.title, { respondent: snapshot.filing.respondent })}
@@ -139,6 +143,12 @@ export function DeterminationRecord({
             />
           ) : domesticAffairs ? (
             <DomesticAffairsReconstruction
+              snapshot={snapshot}
+              copy={copy}
+              locale={locale}
+            />
+          ) : socialPlanning ? (
+            <SocialPlanningReconstruction
               snapshot={snapshot}
               copy={copy}
               locale={locale}
@@ -222,6 +232,12 @@ function isDomesticAffairsSnapshot(
   snapshot: DeterminationSnapshot,
 ): snapshot is DomesticAffairsDeterminationSnapshot {
   return snapshot.filing.department === "domestic_affairs";
+}
+
+function isSocialPlanningSnapshot(
+  snapshot: DeterminationSnapshot,
+): snapshot is SocialPlanningDeterminationSnapshot {
+  return snapshot.filing.department === "social_planning";
 }
 
 function ChronologyReconstruction({
@@ -467,6 +483,107 @@ function DomesticAffairsReconstruction({
           <div>
             <span>{copy.domesticSourceLabel}</span>
             <strong>{copy.domesticSourceValue}</strong>
+          </div>
+        </figcaption>
+      </figure>
+    </section>
+  );
+}
+
+function SocialPlanningReconstruction({
+  snapshot,
+  copy,
+  locale,
+}: {
+  snapshot: SocialPlanningDeterminationSnapshot;
+  copy: DeterminationCopy;
+  locale: InterfaceLocale;
+}) {
+  const number = new Intl.NumberFormat(locale);
+  const evidence = snapshot.assessment.evidence;
+  const primaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.primaryBasisPoints / 100))}%`;
+  const secondaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.secondaryBasisPoints / 100))}%`;
+  let primaryValue: string;
+  let secondaryValue: string;
+  if (evidence.kind === "option_tree") {
+    primaryValue = format(copy.socialOptionsValue, {
+      rejected: number.format(evidence.rejectedOptionCount),
+      proposed: number.format(evidence.proposedOptionCount),
+    });
+    secondaryValue = format(copy.socialAlternativesValue, {
+      count: number.format(evidence.alternativeOptionCount),
+      unit:
+        evidence.alternativeOptionCount === 1
+          ? copy.alternativeSingular
+          : copy.alternativesPlural,
+    });
+  } else if (evidence.kind === "decision_history") {
+    primaryValue = format(copy.socialRoundsValue, {
+      count: number.format(evidence.decisionRoundCount),
+    });
+    secondaryValue = format(copy.socialHoursParticipantsValue, {
+      hours: number.format(evidence.elapsedHours),
+      hourUnit:
+        evidence.elapsedHours === 1 ? copy.hourSingular : copy.hourPlural,
+      participants: number.format(evidence.participantCount),
+    });
+  } else {
+    primaryValue = format(copy.socialRevisionsValue, {
+      count: number.format(evidence.revisionCount),
+      unit:
+        evidence.revisionCount === 1
+          ? copy.revisionSingular
+          : copy.revisionPlural,
+    });
+    secondaryValue = format(copy.socialNoticeParticipantsValue, {
+      hours: number.format(evidence.noticeHours),
+      noticeUnit:
+        evidence.noticeHours === 1
+          ? copy.hourPossessiveSingular
+          : copy.hourPossessivePlural,
+      participants: number.format(evidence.participantCount),
+    });
+  }
+  return (
+    <section
+      className="social-reconstruction"
+      aria-labelledby="social-planning-title"
+    >
+      <div className="determination-section-heading">
+        <p className="eyebrow">{copy.chronologyKicker}</p>
+        <h2 id="social-planning-title">{copy.socialReconstructionTitle}</h2>
+        <p>{copy.socialReconstructionBody}</p>
+      </div>
+      <figure className="social-register">
+        <div className="social-register-diagram" aria-hidden="true">
+          <div className="social-option-tree">
+            <span />
+            {Array.from(
+              {
+                length: Math.min(8, snapshot.assessment.presentation.itemCount),
+              },
+              (_, index) => (
+                <i key={index} data-resolved={index % 3 === 2} />
+              ),
+            )}
+          </div>
+          <div className="social-decision-scale">
+            <i style={{ width: primaryWidth }} />
+            <span style={{ left: secondaryWidth }} />
+          </div>
+        </div>
+        <figcaption>
+          <div>
+            <span>{copy.socialPrimaryLabel}</span>
+            <strong>{primaryValue}</strong>
+          </div>
+          <div>
+            <span>{copy.socialSecondaryLabel}</span>
+            <strong>{secondaryValue}</strong>
+          </div>
+          <div>
+            <span>{copy.socialSourceLabel}</span>
+            <strong>{copy.socialSourceValue}</strong>
           </div>
         </figcaption>
       </figure>

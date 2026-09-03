@@ -24,3 +24,4 @@ Accepted records:
 - [0016 — Privacy-preserving observability and learning](0016-privacy-preserving-observability-and-learning.md)
 - [0017 — Digital Conduct department](0017-digital-conduct-department.md)
 - [0018 — Domestic Affairs department](0018-domestic-affairs-department.md)
+- [0019 — Social Planning department](0019-social-planning-department.md)

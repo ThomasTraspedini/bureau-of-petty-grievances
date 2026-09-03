@@ -35,6 +35,17 @@ import type {
   DomesticAffairsImpactCode,
   DomesticAffairsMitigationCode,
 } from "@/domain/filing/domestic-affairs";
+import {
+  assessSocialPlanningFiling,
+  type SocialPlanningAssessment,
+  type SocialPlanningProhibitedRemedyCode,
+  type SocialPlanningRemedyFamilyCode,
+} from "./social-planning-assessment";
+import type {
+  SocialPlanningFiling,
+  SocialPlanningImpactCode,
+  SocialPlanningMitigationCode,
+} from "@/domain/filing/social-planning";
 
 export const DETERMINATION_LANGUAGE_SCHEMA_VERSION = 1 as const;
 
@@ -152,10 +163,32 @@ export interface DomesticAffairsDeterminationLanguageCommand {
   };
 }
 
+export interface SocialPlanningDeterminationLanguageCommand {
+  schemaVersion: typeof DETERMINATION_LANGUAGE_SCHEMA_VERSION;
+  assessmentVersion: SocialPlanningAssessment["assessmentVersion"];
+  locale: SocialPlanningFiling["locale"];
+  department: SocialPlanningFiling["department"];
+  disposition: DeterminationDispositionCode;
+  offence: SocialPlanningFiling["offence"];
+  evidence: SocialPlanningAssessment["evidence"];
+  severity: SeverityCode;
+  impact: SocialPlanningImpactCode;
+  mitigation: SocialPlanningMitigationCode;
+  witnessStatement: string;
+  remedy: {
+    family: SocialPlanningRemedyFamilyCode;
+    audience: RemedyAudienceCode;
+    maximumOccasions: 1 | 3;
+    binding: "non_binding";
+    prohibited: readonly SocialPlanningProhibitedRemedyCode[];
+  };
+}
+
 export type DeterminationLanguageCommand =
   | ChronologyDeterminationLanguageCommand
   | DigitalConductDeterminationLanguageCommand
-  | DomesticAffairsDeterminationLanguageCommand;
+  | DomesticAffairsDeterminationLanguageCommand
+  | SocialPlanningDeterminationLanguageCommand;
 
 export type ChronologyLanguageCommandResult =
   | {
@@ -328,6 +361,44 @@ export function createDomesticAffairsDeterminationLanguageCommand(
   };
 }
 
+export function createSocialPlanningDeterminationLanguageCommand(
+  filing: SocialPlanningFiling,
+  assessment: SocialPlanningAssessment,
+):
+  | { status: "valid"; command: SocialPlanningDeterminationLanguageCommand }
+  | { status: "invalid"; reason: "assessment_mismatch" } {
+  const expectedAssessment = assessSocialPlanningFiling(filing);
+  if (JSON.stringify(expectedAssessment) !== JSON.stringify(assessment)) {
+    return { status: "invalid", reason: "assessment_mismatch" };
+  }
+  return {
+    status: "valid",
+    command: {
+      schemaVersion: DETERMINATION_LANGUAGE_SCHEMA_VERSION,
+      assessmentVersion: assessment.assessmentVersion,
+      locale: assessment.locale,
+      department: assessment.department,
+      disposition: "upheld_with_circumstances_noted",
+      offence: assessment.offence,
+      evidence: assessment.evidence,
+      severity: assessment.severity.assessed,
+      impact: assessment.acceptedFactors.impact.code,
+      mitigation: assessment.acceptedFactors.mitigation.code,
+      witnessStatement: redactProviderWitnessStatement(
+        filing.statement,
+        filing.respondent,
+      ),
+      remedy: {
+        family: assessment.remedyConstraints.family,
+        audience: assessment.remedyConstraints.audience,
+        maximumOccasions: assessment.remedyConstraints.maximumOccasions,
+        binding: assessment.remedyConstraints.binding,
+        prohibited: assessment.remedyConstraints.prohibited,
+      },
+    },
+  };
+}
+
 export function createDeterminationLanguageCommand(
   filing: Filing,
   assessment: DeterminationAssessment,
@@ -339,6 +410,12 @@ export function createDeterminationLanguageCommand(
     assessment.department === "chronology"
   ) {
     return createChronologyDeterminationLanguageCommand(filing, assessment);
+  }
+  if (
+    filing.department === "social_planning" &&
+    assessment.department === "social_planning"
+  ) {
+    return createSocialPlanningDeterminationLanguageCommand(filing, assessment);
   }
   if (
     filing.department === "digital_conduct" &&

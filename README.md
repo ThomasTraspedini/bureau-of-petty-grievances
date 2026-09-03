@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.15.0` opens the Department of Domestic Affairs as the third complete filing path. Filers can establish a token remainder in a shared container, an object stopped near its proper location, or empty packaging returned to storage through bounded quantities, correction effort, and recurrence, then receive a distinct domestic property register and publish its privacy-bounded public record.
+Version `0.16.0` opens the Department of Social Planning as the fourth complete filing path. Filers can establish an option-veto cycle, decision drift, or a post-confirmation revision through bounded counts and intervals, then receive a distinct social decision register and publish its privacy-bounded public record.
 
-Domestic Affairs uses only facts the filer deliberately enters. It never requests photos, sensors, a home map, room names, or household surveillance, and it cannot govern safety, access, caregiving, health, work duties, hygiene, food, property disposal, or financial penalties. Chronology and Digital Conduct remain fully supported through explicit local-state migration. Department expansion continues with Social Planning.
+Social Planning uses only facts the filer deliberately enters. It never requests calendars, messages, contacts, locations, invitations, guest lists, attendance records, or social-network access, and it cannot govern serious safety, health, accessibility, caregiving, work, financial, travel, legal, religious, cultural, harassment, coercion, exclusion, attendance, or contact matters. Chronology, Digital Conduct, and Domestic Affairs remain fully supported through explicit local-state migration. Department expansion is complete; cross-journey resilience and refinement is next.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 

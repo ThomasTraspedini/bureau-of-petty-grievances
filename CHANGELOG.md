@@ -2,6 +2,23 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.16.0]
+
+### Added
+
+- A complete Department of Social Planning filing path for option-veto cycles, decision drift, and post-confirmation revisions using bounded filer-entered counts and intervals.
+- Deterministic Social Planning assessment policy, department-owned English editorial validation and fallback, grounded provider commands, and private non-binding remedies limited to three future low-stakes planning decisions.
+- A distinct social decision register with option-tree, deliberation-history, and revision-impact grammars derived only from approved submitted facts.
+- End-to-end Social filing, determination, publication, accessibility, preview privacy, and manually reviewed mobile and desktop visual coverage plus focused domain, language, migration, provider, session, sharing, persistence, and analytics tests.
+- An accepted decision record defining the department's scope, anti-surveillance and serious-matter exclusions, migration, persistence, sharing, and analytics boundaries.
+
+### Changed
+
+- Device draft and tab determination envelopes advance to version 4 with validated migration of versions 1 through 3; share descriptors advance to version 4 with Social-specific preview allowlists.
+- Product analytics advances to schema version 4 with the Social evidence step and three Social path codes while excluding every submitted count, interval, participant measure, or prose value.
+- PostgreSQL schema advances to version 6 to persist Social Planning records and `SOC` procedural references while retaining all existing departments.
+- Department expansion is complete; cross-journey resilience and refinement is the next ready capability.
+
 ## [0.15.0]
 
 ### Added
