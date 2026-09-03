@@ -2456,10 +2456,12 @@ function ReviewStep({
         {rows.map(([label, value, target]) => (
           <div key={target}>
             <dt>{label}</dt>
-            <dd>{value}</dd>
-            <a href={`/${locale}/file/${target}?return=review`}>
-              {copy.correct}
-            </a>
+            <dd>
+              <span>{value}</span>
+              <a href={`/${locale}/file/${target}?return=review`}>
+                {copy.correct}
+              </a>
+            </dd>
           </div>
         ))}
       </dl>

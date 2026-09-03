@@ -28,6 +28,16 @@ export default defineConfig({
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
     },
+    {
+      name: "firefox",
+      testMatch: /browser-compatibility\.spec\.ts/u,
+      use: { ...devices["Desktop Firefox"] },
+    },
+    {
+      name: "webkit",
+      testMatch: /browser-compatibility\.spec\.ts/u,
+      use: { ...devices["Desktop Safari"] },
+    },
   ],
   webServer: {
     command: "node --experimental-strip-types tests/e2e/start-test-server.mjs",

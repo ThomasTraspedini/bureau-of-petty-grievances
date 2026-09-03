@@ -8,11 +8,11 @@ Tests protect product behavior, safety, taste-critical states, and operational i
 
 Every product-changing task must run one documented canonical verification workflow. The workflow will grow with the application but must remain reproducible locally and in CI.
 
-At version `0.16.0`, use Node.js 24, install dependencies and the Playwright Chromium browser, then run:
+At version `0.17.0`, use Node.js 24, install dependencies and the Playwright Chromium, Firefox, and WebKit engines, then run:
 
 ```sh
 npm ci
-npx playwright install chromium
+npx playwright install chromium firefox webkit
 ./scripts/validate-repository.sh
 ```
 
@@ -22,7 +22,7 @@ For subsequent checks with dependencies already installed, the canonical command
 ./scripts/validate-repository.sh
 ```
 
-The canonical workflow includes repository and prototype validation, formatting, linting and dependency-direction rules, strict type checking, focused Vitest component and locale tests, a production build, and Playwright checks. Browser checks cover explicit locale routing, localized metadata, unsupported routes, keyboard access, reduced motion, axe-core accessibility, and reviewed mobile and desktop visual references. CI invokes the same workflow on Node.js 24.
+The canonical workflow includes repository and prototype validation, formatting, linting and dependency-direction rules, strict type checking, focused Vitest component and locale tests, a production build, and Playwright checks. The complete established browser suite and reviewed mobile and desktop pixel references run in Chromium. A bounded compatibility contract additionally runs in Firefox and WebKit and covers the essential provider-free filing-to-public-consultation journey, explicit locale routing, mobile and representative desktop viewports, refresh recovery, keyboard access, reduced motion, sharing fallback, and axe-core accessibility. CI invokes the same workflow on Node.js 24.
 
 ## Production application verification
 
@@ -48,7 +48,7 @@ Sharing tests prove the department-discriminated descriptor allowlist, exclusion
 
 Consultation tests prove the exact approved position set, real zero counts, bounded percentages, strict key validation, digest-only persistence, immutable idempotency, concurrent response accuracy, record-lifecycle gating, restoration, deletion cascade, failed-submission retry, browser-state recovery, and pseudo-localized expansion. The complete browser journey submits without an account, observes the aggregate update, verifies refresh recovery and reduced motion, checks accessibility, and confirms that temporarily unpublished results return intact after restoration. Mobile and desktop public-record references protect the integrated consultation surface.
 
-Visual references use the self-hosted production fonts, disable motion, and are shared across supported test platforms with a one-percent pixel-difference tolerance for platform rasterization. Reference images change only after manual inspection at the affected viewport.
+Visual references use the self-hosted production fonts, disable motion, and remain a single Chromium contract with a one-percent pixel-difference tolerance for platform rasterization. Firefox and WebKit use behavioral, viewport, and accessibility assertions rather than separate screenshots. Reference images change only after manual inspection at the affected viewport.
 
 ## Prototype verification
 

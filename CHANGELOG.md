@@ -2,6 +2,22 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.17.0]
+
+### Added
+
+- A bounded Chromium, Firefox, and WebKit compatibility contract covering the provider-free filing-to-public-consultation journey at a mobile viewport, explicit locale routing, draft recovery, keyboard operation, reduced motion, sharing fallback, accessibility, and representative desktop rendering.
+- An accepted supported-browser verification baseline that keeps the complete established suite and reviewed pixel references in Chromium while adding standards-based functional confidence across all three browser engines.
+
+### Fixed
+
+- Corrected the filing review description-list structure so every fact and its correction action retain valid semantic grouping and pass automated WCAG 1.3.1 checks.
+
+### Changed
+
+- Canonical local and CI setup now installs Chromium, Firefox, and WebKit through the pinned Playwright runtime.
+- Cross-journey resilience and refinement is in progress; broader pseudo-localization, recovery, refinement, and usability evidence remain to complete the capability.
+
 ## [0.16.0]
 
 ### Added

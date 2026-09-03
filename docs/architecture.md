@@ -10,6 +10,8 @@ The production shell uses Next.js 16 App Router, React, strict TypeScript, and `
 
 `/en` is the first enabled application route. The root redirects to it, unsupported paths resolve to a localized unavailable state, and the route locale controls the document language, catalog, metadata, and navigation. Catalog types are derived from the English reference catalog, and a pseudo-localization transform exercises content expansion without enabling an unevaluated public language.
 
+The automated browser boundary covers Chromium, Firefox, and WebKit through the versions pinned by Playwright. The complete established regression and pixel-visual contract remains Chromium-based; Firefox and WebKit run a bounded standards-based journey spanning responsive filing, browser storage recovery, deterministic issuance, publication, consultation, sharing fallback, reduced motion, keyboard behavior, and accessibility. This is an engine-level verification baseline, not a claim about every vendor release or physical device.
+
 Current source ownership is deliberately small:
 
 - `src/app` adapts routes and framework rendering;

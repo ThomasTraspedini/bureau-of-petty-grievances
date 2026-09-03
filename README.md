@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.16.0` opens the Department of Social Planning as the fourth complete filing path. Filers can establish an option-veto cycle, decision drift, or a post-confirmation revision through bounded counts and intervals, then receive a distinct social decision register and publish its privacy-bounded public record.
+Version `0.17.0` establishes a supported-browser verification baseline across Chromium, Firefox, and WebKit. A bounded automated contract now carries the essential provider-free journey from localized filing and refresh recovery through determination, publication, consultation, and sharing fallback in every engine, alongside the complete Chromium regression and visual suite.
 
-Social Planning uses only facts the filer deliberately enters. It never requests calendars, messages, contacts, locations, invitations, guest lists, attendance records, or social-network access, and it cannot govern serious safety, health, accessibility, caregiving, work, financial, travel, legal, religious, cultural, harassment, coercion, exclusion, attendance, or contact matters. Chronology, Digital Conduct, and Domestic Affairs remain fully supported through explicit local-state migration. Department expansion is complete; cross-journey resilience and refinement is next.
+The new matrix also caught and corrected an invalid semantic grouping in the filing review, so its facts and correction actions now pass the same automated accessibility check in all supported engines. Chromium retains the reviewed pixel references; engine-specific screenshots are deliberately avoided. Cross-journey resilience and refinement remains in progress.
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -87,13 +87,13 @@ npm run analytics:operate -- status
 
 ## Repository validation
 
-After installing the Playwright Chromium browser with `npx playwright install chromium`, run the canonical quality gate:
+After installing the supported Playwright browser engines with `npx playwright install chromium firefox webkit`, run the canonical quality gate:
 
 ```sh
 ./scripts/validate-repository.sh
 ```
 
-The command verifies version metadata, repository hygiene, the public/private boundary, prototype behavior, formatting, linting, strict types, focused application tests, the production build, accessibility, reduced motion, localized routing, and mobile and desktop visual references. CI invokes the same command.
+The command verifies version metadata, repository hygiene, the public/private boundary, prototype behavior, formatting, linting, strict types, focused application tests, the production build, accessibility, reduced motion, localized routing, the bounded Chromium/Firefox/WebKit journey contract, and Chromium mobile and desktop visual references. CI invokes the same command.
 
 ## Versioning
 
