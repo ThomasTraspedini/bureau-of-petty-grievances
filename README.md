@@ -2,15 +2,17 @@
 
 > **Harmony, administered.**
 
+**[Try the live demo](https://bureau-of-petty-grievances.netlify.app/)**
+
 Bureau of Petty Grievances is a mobile-first consumer web experience for filing an official grievance about a harmless recurring habit. The Bureau reviews the submitted facts, produces a fair and disproportionately polished determination, and lets other people contribute through a public consultation.
 
 The product explores a simple tension: what if a genuinely competent and benevolent institution applied flawless procedure to parts of human life that may not need administration?
 
 ## Current state
 
-The latest tagged release is `0.21.0`. The application implements four departments and six complete locales, with deterministic and optional provider language, public records, sharing, consultation, access controls and bounded generation costs.
+The evaluation release is `0.22.0`. The application implements four departments and six complete locales, with deterministic and optional provider language, public records, sharing, consultation, access controls and bounded generation costs.
 
-There is no missing feature phase. C14's physical-device evidence and release-relevant refinements are complete; C15 remains for hosted deployment and evaluator evidence. These refinements are not covered by the last release tag. See the [roadmap](docs/roadmap.md).
+C00–C15 are complete, including physical-device refinements, production deployment, and evaluator verification. No planned capability remains. See the [roadmap](docs/roadmap.md).
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 

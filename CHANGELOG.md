@@ -2,6 +2,23 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.22.0]
+
+### Added
+
+- Completed evaluation release on Netlify with Neon PostgreSQL, including production and clean-browser evaluator verification.
+- Home language selection across all six supported locales.
+
+### Changed
+
+- Personalized determination language, clarified evidence reconstructions, and refined remedy stamp placement, narrow form units, and Chronology alignment.
+- Public documentation now reflects completion of C00–C15 and the verified production deployment; the deployment runbook remains available for reproducibility.
+
+### Fixed
+
+- Evaluation access fragment recovery and clean filing restart after completion.
+- Home footer copy now consistently describes six available interface languages; the example analytics application version matches the release.
+
 ## [0.21.0]
 
 ### Added
