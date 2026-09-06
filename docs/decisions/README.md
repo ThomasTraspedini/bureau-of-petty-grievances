@@ -28,3 +28,5 @@ Accepted records:
 - [0020 — Supported-browser verification baseline](0020-supported-browser-verification-baseline.md)
 - [0021 — Italian product locale](0021-italian-product-locale.md)
 - [0022 — Multilingual product routes](0022-multilingual-product-routes.md)
+- [0023 — Personalized determination language](0023-personalized-determination-language.md)
+- [0024 — Completed filing restart semantics](0024-completed-filing-restart-semantics.md)

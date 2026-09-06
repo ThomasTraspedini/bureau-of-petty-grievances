@@ -8,9 +8,9 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-Version `0.19.0` adds a production-rendered recovery contract for the primary journey. Controlled one-shot failures now prove that determination completion preserves the filing and retry identity, publication leaves the transient determination intact without exposing a partial record, and consultation keeps the selected position and records exactly one response after retry.
+The latest tagged release is `0.21.0`. The application implements four departments and six complete locales, with deterministic and optional provider language, public records, sharing, consultation, access controls and bounded generation costs.
 
-Failure instructions require both a dedicated E2E server setting and a validated nonce-bearing request header, remain inert in ordinary runtime, and use the existing localized recovery states. The browser contract also checks accessibility at each injected failure. Cross-journey resilience and refinement remains in progress; physical-device and moderated-usability evidence still remain.
+There is no missing feature phase. C14 remains open for physical-device evidence and release-relevant verification; C15 remains for hosted deployment and evaluator evidence. Existing working-tree refinements await closure and are not covered by the last release tag. See the [roadmap](docs/roadmap.md).
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 
@@ -30,8 +30,12 @@ Open `http://localhost:3000/en`, replacing `en` with any supported locale when n
 For the ordinary local journey, keep `DATABASE_URL` empty and retain
 `BUREAU_EMBEDDED_DATABASE_PATH=.data/public-records`; publication and public
 consultation require that local store. `OPENAI_API_KEY` is optional: leaving it
-empty selects the complete deterministic determination, while setting it
-enables the bounded provider adapter. Keep `BUREAU_ANALYTICS_ENABLED=false`
+empty selects the complete deterministic determination. Setting it configures
+the bounded provider adapter; paid generation additionally requires a valid
+evaluator or standard session and available server-side controls. No other provider field is required;
+`BUREAU_OPENAI_MODEL=gpt-5.6-terra` is the documented default and may be left
+unchanged. Restart the development server after changing `.env`. Keep
+`BUREAU_ANALYTICS_ENABLED=false`
 unless the complete documented analytics configuration has deliberately been
 provided. The remaining empty secret and webhook settings are not required for
 ordinary local use.
@@ -49,8 +53,10 @@ npm run dev:lan
 ```
 
 Open `http://<mac-address>:3000/en` on the device. Local HTTP can exercise the
-journey, persistence, consultation, and manual sharing fallback, but it is not
-evidence for production HTTPS metadata or secure-context native sharing.
+local layout and input behavior. For cross-device publication and sharing,
+use a trusted HTTPS origin reachable by every device and set
+`BUREAU_PUBLIC_ORIGIN` to that same origin. LAN HTTP cannot be the canonical
+public origin; a localhost address is not a usable shared link on other devices.
 
 A deployed full Node.js server should instead set `DATABASE_URL` to a
 PostgreSQL connection string; the initial managed target is Supabase. It must
@@ -59,42 +65,18 @@ metadata and sharing, a strong `BUREAU_NETWORK_HMAC_SECRET`, and the trusted
 proxy-hop count. The application applies its idempotent schema migration when
 the shared database runtime starts.
 
-Provider configuration is optional because the complete deterministic fallback supports the production journey. `BUREAU_OPENAI_MODEL` defaults to `gpt-5.6-luna`. The one-fixture paid smoke test is deliberate and separate from ordinary verification:
+Provider configuration is optional because the complete deterministic fallback supports the production journey. `BUREAU_OPENAI_MODEL` defaults to `gpt-5.6-terra`. The bounded multilingual paid smoke test is deliberate and separate from ordinary verification:
 
 ```sh
 npm run test:provider:live
 ```
 
-Operators can inspect categorical reports or immediately unpublish a reported record without printing its content:
+Next.js development and production builds load `.env` through their normal
+runtime configuration. The live smoke and documented operator commands load it
+automatically when it exists. The live smoke requires a non-empty
+`OPENAI_API_KEY`; ordinary development and canonical verification do not.
 
-```sh
-npm run records:operate -- list-reports
-npm run records:operate -- unpublish rec_0123456789abcdefghijkl
-```
-
-Evaluation links and generation controls are also operator-owned. The creation command prints the bearer link once; later status output contains identifiers and categorical counts only:
-
-```sh
-npm run access:operate -- create
-npm run access:operate -- status
-npm run access:operate -- generation disable
-npm run access:operate -- alerts
-```
-
-Initial standard authorizations and successor issuance are controlled separately. A standard creation command prints its one-use private link once:
-
-```sh
-npm run access:operate -- standard-create
-npm run access:operate -- invitations disable
-```
-
-See [operations](docs/operations.md) for top-up, extension, budget, revocation, and optional alert-delivery commands.
-
-Product analytics is optional and requires a complete server-only configuration. Review the [analytics contract and analysis runbook](docs/analytics.md), then verify configuration without printing secrets:
-
-```sh
-npm run analytics:operate -- status
-```
+See [operations](docs/operations.md) for evaluator/standard access creation, reports, budget controls, and deployment configuration.
 
 ## Product principles
 
@@ -117,26 +99,17 @@ npm run analytics:operate -- status
 - [Decision records](docs/decisions/README.md)
 - [Agent operating contract](AGENTS.md)
 
-## Repository validation
+## Validation and releases
 
-After installing the supported Playwright browser engines with `npx playwright install chromium firefox webkit`, run the canonical quality gate:
+For planning, documentation and repository consistency:
 
 ```sh
-./scripts/validate-repository.sh
+./scripts/validate-repository.sh --checks-only
 ```
 
-The command verifies version metadata, repository hygiene, the public/private boundary, prototype behavior, formatting, linting, strict types, focused application tests, the production build, accessibility, reduced motion, localized routing, one-shot primary-journey recovery, the bounded Chromium/Firefox/WebKit journey contract, browser-rendered pseudo-localization at the 320-pixel minimum width, and Chromium visual references. CI invokes the same command.
+Implementation uses targeted checks from [testing](docs/testing.md). For an explicitly selected release, install the supported Playwright engines and run `./scripts/validate-repository.sh --full`; CI uses the same full gate. Documentation edits do not require application tests or a release.
 
-## Versioning
-
-Every agent task that produces a committable product-repository change creates one release:
-
-- planned work increments the minor version;
-- unplanned debugging, corrections, or bounded follow-up work increments the patch version;
-- a major version requires explicit human approval;
-- tasks without product-repository changes do not create a product version or tag.
-
-Each release is represented by an immutable `vX.Y.Z` Git tag.
+Release qualification includes version/changelog reconciliation and an immutable annotated `vX.Y.Z` tag. Major-version promotion requires explicit human approval. Operating modes and completion rules are in [AGENTS.md](AGENTS.md).
 
 ## License
 

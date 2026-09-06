@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted.
+Accepted. The provider-output boundary and default-model choice are superseded by decision 0023; the deterministic policy, validation, fallback, and localized-snapshot rules remain in force.
 
 ## Context
 

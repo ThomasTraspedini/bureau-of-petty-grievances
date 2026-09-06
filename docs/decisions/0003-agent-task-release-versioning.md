@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted.
+Historical release cadence; task-triggered release requirements are superseded by the operating modes in [AGENTS.md](../../AGENTS.md).
 
 ## Context
 
@@ -10,7 +10,7 @@ Development proceeds through agent tasks that each leave the product coherent an
 
 ## Decision
 
-The release unit is a completed agent task that changes tracked files in the product repository.
+This record describes the cadence used through the initial development releases. Under the current operating contract, tracked changes alone do not trigger release qualification, a version increment or tagging. Apply release work only at an explicitly selected release boundary.
 
 - Initial version: `0.1.0`.
 - Planned task: increment `MINOR`.
@@ -25,7 +25,7 @@ This convention uses SemVer notation as a product cadence. It does not claim tha
 ## Consequences
 
 - Git history, changelog, version, and agent-task boundaries stay aligned.
-- Documentation-only changes inside the product repository are releases because they change the evaluated product artifact.
+- Documentation-only changes do not automatically create a release under the current operating contract.
 - Work only in private or ignored files does not inflate product versions.
 - `0.9.0` advances to `0.10.0` unless a separately approved task promotes the product to `1.0.0`.
 

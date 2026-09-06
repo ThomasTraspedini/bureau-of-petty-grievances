@@ -27,4 +27,4 @@ Italian becomes public only with recursive catalog and placeholder checks, depar
 
 ## Open considerations
 
-French, German, Spanish, and Brazilian Portuguese remain planned separate locale releases. Cross-locale translation of an already issued determination is not part of this decision.
+French, German, Spanish, and Brazilian Portuguese are now enabled under [decision 0022](0022-multilingual-product-routes.md). Cross-locale translation of an already issued determination is not part of this decision.

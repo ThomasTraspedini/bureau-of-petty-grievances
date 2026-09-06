@@ -13,7 +13,9 @@ It is not a dated delivery plan, a promise that each capability fits one task, o
 - `ready` — dependencies are complete and this is the next capability to begin.
 - `queued` — ordered but waiting for one or more dependencies.
 
-Exactly one capability must be selectable: either one `in_progress` capability or one `ready` capability. Continue `in_progress` work before selecting new work. When a capability completes, the next selection is the first queued row in table order whose dependencies are complete.
+While unfinished capabilities remain, exactly one capability must be selectable: either one `in_progress` capability or one `ready` capability. Continue `in_progress` work before selecting new work. When a capability completes, the next selection is the first queued row in table order whose dependencies are complete.
+
+When every capability is `complete`, no capability is selectable and no next task is required. Do not create artificial work to keep the roadmap active.
 
 ## Capabilities
 
@@ -37,6 +39,17 @@ Exactly one capability must be selectable: either one `in_progress` capability o
 | C15 | Evaluation release | A stable hosted experience, clean-browser verification, evaluator-ready repository, and concise walkthrough make the complete evidence package accessible without coordination. | C14 | queued |
 
 Dependencies express the minimum ordering currently supported by product evidence. A later accepted decision may change them; update this roadmap and record material rationale in the same task.
+
+## Remaining completion work
+
+C00–C13 are implemented; there is no missing feature phase. C14 remains open for the approved physical-device evidence matrix and release-relevant verification of existing refinements. Implemented changes awaiting verification and release closure must not be reimplemented.
+
+C15 follows C14 in two cohesive sequential units:
+
+1. Hosted deployment and operational verification using the existing application and persistence boundaries.
+2. Evaluator evidence: clean-browser access verification, accessible live and repository links, and a walkthrough of at most 60 seconds.
+
+These units do not add capabilities or expand product scope. Mark each capability complete only when its outcome is evidenced.
 
 ## Cross-cutting invariants
 

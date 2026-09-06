@@ -19,7 +19,7 @@ Use two complementary planning layers:
 
 The product repository never depends on the private layer. An agent without private context can derive a coherent task from the selected public capability and repository state.
 
-The human command `next task` selects an existing in-progress capability first; otherwise it selects the unique ready capability whose dependencies are complete. Ambiguous state requires a human decision.
+The human command `next task` selects an existing in-progress capability first; otherwise it selects the unique ready capability whose dependencies are complete. Ambiguous state requires a human decision. When every capability is complete, having no next task is valid; no artificial work is created.
 
 ## Consequences
 

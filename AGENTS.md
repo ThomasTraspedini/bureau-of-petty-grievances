@@ -1,175 +1,450 @@
 # Agent operating contract
 
-## Scope and precedence
+## Purpose
 
-This file governs every agent working inside this repository. Follow it before making changes.
+This contract governs agents working inside the product repository.
 
-Precedence:
+The default objective is:
+
+> complete the requested engineering outcome correctly with the smallest necessary scope, context, reasoning, and validation.
+
+Model capability should improve decisions inside the task boundary. It must not automatically increase task size, documentation size, verification breadth, architectural ambition, or certainty-seeking.
+
+High autonomy is expected.
+
+Unbounded depth is not.
+
+---
+
+## Precedence
+
+Follow, in order:
 
 1. Explicit human instructions for the current task.
 2. This `AGENTS.md`.
-3. Accepted decision records in `docs/decisions/`.
-4. The remaining public documentation.
+3. Accepted decision records that materially govern the affected area.
+4. Relevant public documentation.
 
-If two sources conflict or a necessary decision is not covered, stop the affected work and ask the human. Do not silently choose a direction.
+Do not load or reconcile lower-precedence material unless it is relevant to the current task.
 
-## Product mission
+If a genuine material conflict remains, ask the human about the affected decision. Continue independent authorized work when possible.
 
-Bureau of Petty Grievances turns a harmless interpersonal irritation into a precise, delightful, and shareable administrative determination. The leading creative principle is **benevolent overreach**: the Bureau should be desirable and genuinely useful while leaving a small doubt about whether its jurisdiction should exist.
+---
 
-The product language is English. English is the first enabled locale, not a hardcoded architectural assumption.
+# Operating modes
 
-## Public-repository boundary
+Every task runs in one of three modes.
 
-This repository is the self-contained product artifact intended for external evaluation.
+## 1. Analysis / planning / documentation
 
-- Never depend on a sibling workspace, private planning directory, or machine-specific absolute path.
-- Never copy private brainstorming, application strategy, raw research, task notes, or hidden source-of-truth documents into this repository.
-- Do not mention private filenames or locations in product files, commits, tests, fixtures, build output, or documentation.
-- Do not commit credentials, provider keys, personal data, raw production content, or local environment files.
-- Public documentation must be sufficient to understand, run, test, and evaluate the product without private context.
-- Run `./scripts/validate-repository.sh` before closing every task.
+Use for:
 
-Private context may inform a decision, but the public repository must contain the useful outcome and rationale in its own words.
+* audits;
+* planning;
+* task decomposition;
+* documentation changes;
+* roadmap or queue maintenance;
+* decision analysis;
+* repository-policy changes.
 
-## Decision protocol
+Default behavior:
 
-No unapproved assumption may become implementation.
+* inspect repository evidence;
+* edit only relevant planning/documentation files;
+* use lightweight structural checks where useful.
 
-Before changing the repository:
+Do **not** run:
 
-1. Inspect the working tree and preserve unrelated human changes.
-2. Read the documents relevant to the affected area.
-3. Identify decisions already governed by instructions or accepted records.
-4. Present uncovered decisions to the human with a recommendation and meaningful alternatives.
-5. Implement only inside the approved decision envelope.
+* the application test suite;
+* production builds;
+* Playwright or browser suites;
+* live-provider checks;
+* broad regression validation;
 
-If an ambiguity appears during implementation, pause only the affected path. Continue independent, already-authorized work when safe. Record material accepted decisions; do not create decision records for trivial mechanics already governed by tooling.
+merely to increase confidence.
 
-## `next task` protocol
+Investigation does not imply validation.
 
-The human command `next task` authorizes the agent to identify and begin the next eligible planned capability. It does not authorize the agent to resolve an uncovered material decision.
+Execute code only when a specific unresolved question cannot reasonably be answered by inspection, and use the narrowest command that answers that question.
 
-When receiving that command:
+---
 
-1. Inspect the working tree and read this contract, `docs/roadmap.md`, accepted decisions, and documentation governing the candidate capability.
-2. If one capability is `in_progress`, continue that capability before selecting new work.
-3. Otherwise select the single capability marked `ready` whose dependencies are complete.
-4. If no capability qualifies, more than one qualifies, roadmap state conflicts with repository reality, or task decomposition has materially different valid directions, ask the human before changing the product.
-5. Define the smallest coherent vertical task that materially advances the selected capability while leaving the product usable and honest.
-6. Use an external private task record when one is available, but never make this repository depend on that workspace. Without private context, derive the task from the public capability and current repository evidence.
-7. Perform a decision audit. Ask only for material choices not already governed by human instruction, this contract, accepted records, or the selected capability.
-8. If the decision envelope is complete, proceed without asking the human to reconfirm the already-issued `next task` command.
-9. Mark the capability `in_progress` when implementation begins. Mark it `complete` only when its published outcome is fully true; otherwise leave it `in_progress` for the next agent task.
-10. After completing a capability, make only the first queued capability in roadmap order whose dependencies are complete `ready`.
+## 2. Normal implementation
 
-Capability identifiers and agent-task identifiers are different namespaces. A capability may span multiple agent tasks, and a task may support a capability without completing it.
+This is the default mode for product development.
 
-## Agent-task releases
+Implement the smallest complete solution satisfying the explicit task and acceptance criteria.
 
-The release unit is a completed agent task, not an item in a long-term product roadmap.
+Use targeted validation proportional to the changed behavior.
 
-- Start at `0.1.0`.
-- A planned agent task with committable product changes increments `MINOR`.
-- A distinct, unplanned debugging, correction, hardening, or extra task with committable product changes increments `PATCH`.
-- Debugging performed inside the original task remains part of that task's single version.
-- A task that changes no tracked product file creates no commit, version, changelog entry, or tag.
-- A task affecting only private or ignored files does not advance the product version.
-- Any `MAJOR` version, including `1.0.0`, requires explicit human approval. An agent may propose it.
-- Update `VERSION` and `CHANGELOG.md` in the task's product commit.
-- Create an immutable annotated tag named `vX.Y.Z` only after all required checks pass and the commit is complete.
+Do not automatically perform release-level validation.
 
-Use Conventional Commit subjects. Keep a task in one coherent commit when practical; use multiple commits only when each is independently meaningful. Stage only task-owned changes.
+---
 
-## Internationalization invariants
+## 3. Release / deployment
 
-Internationalization is foundational, including generative output.
+Use only when the current task explicitly involves:
 
-- Never hardcode user-facing copy in components, domain logic, validation, metadata, accessibility labels, social previews, or error handling.
-- Represent domain concepts with language-neutral codes and enums.
-- Keep interface locale distinct from generated-content locale.
-- Make locale explicit in URLs, request boundaries, generation commands, persisted determinations, and test fixtures.
-- Treat English as the only initially enabled locale, with explicit fallback behavior.
-- Use locale-aware formatting for dates, times, numbers, lists, and plurals.
-- Store generated language as a localized snapshot with its locale and prompt version; changing interface locale must not silently translate existing generated content.
-- Localize deterministic fallback content and provider-error presentation.
-- Organize generative instructions so each locale can own vocabulary, tone, examples, safety evaluation, and editorial constraints while sharing a language-neutral output schema.
-- Require locale-specific evaluation before enabling another public language.
-- Include pseudo-localization in automated UI checks once a rendering stack exists.
+* release qualification;
+* deployment;
+* evaluator delivery;
+* broad regression verification;
+* a human-requested full gate.
 
-## Architecture principles
+Only this mode normally requires the complete canonical repository validation, broad browser/device checks, release metadata reconciliation, and release tagging.
 
-- Build vertical, cohesive product capabilities instead of monolithic files or speculative abstraction layers.
-- Extract reusable components where a real shared concept exists; do not make a generic component merely to reduce line count.
-- Keep domain rules deterministic, inspectable, and independent from frameworks or providers.
-- Validate every external boundary at runtime, including routes, persistence, environment configuration, and model output.
-- Isolate provider integrations behind owned interfaces.
-- Make idempotency, atomic credit accounting, budget enforcement, and recovery explicit server-side concerns.
-- Design loading, empty, expired, unavailable, rejected, and exhausted-budget states as first-class product states.
-- Preserve a graceful deterministic path when generative services are unavailable.
+A normal implementation task does not become a release task merely because tracked product files changed.
 
-## TypeScript contract
+---
 
-When TypeScript is introduced:
+# Scope budget
 
-- enable strict mode, `noUncheckedIndexedAccess`, and `exactOptionalPropertyTypes`;
-- do not use `any`, `@ts-ignore`, or unchecked type assertions to bypass design problems;
-- derive types from validated schemas where appropriate;
-- make invalid domain states unrepresentable where practical;
-- keep browser, server, persistence, and provider boundaries explicit;
-- automate formatting, linting, type checking, and dependency-boundary checks.
+Treat the explicit task and its acceptance criteria as a hard working boundary.
 
-An exception requires explicit human approval and a nearby explanation of why a safer representation is not available.
+Prefer the smallest complete implementation.
 
-## Testing contract
+Do not:
 
-Tests specify behavior and invariants, not the current implementation.
+* redesign working architecture unless required;
+* refactor unrelated code;
+* generalize for hypothetical future requirements;
+* fix unrelated issues discovered during implementation;
+* expand a local change into subsystem cleanup;
+* introduce new abstractions when existing patterns are sufficient.
 
-- Add unit tests for deterministic domain rules and meaningful edge cases.
-- Add integration tests for persistence, transactions, idempotency, validation, and provider adapters.
-- Add end-to-end coverage for complete user journeys, recovery paths, and important device sizes.
-- Use contract fixtures for generative output; ordinary tests must not depend on a live model call.
-- Keep an explicit, opt-in live-provider smoke test for changes to real integration behavior.
-- Add automated accessibility and visual-regression coverage when rendered UI exists.
-- Test reduced motion, keyboard behavior, content expansion, and pseudo-localization where relevant.
-- A newly written test must be able to fail for a plausible regression.
+If an adjacent issue does not block the task and was not caused by the task:
 
-The canonical verification command must be documented and runnable locally. Once the runtime is selected, CI and local task closure must invoke the same underlying checks.
+* leave it unchanged;
+* mention it briefly at completion only if materially useful.
 
-## Error and product-copy contract
+Completion means satisfying the requested outcome, not exhausting all possible improvements.
 
-- Never expose raw provider, database, framework, or stack traces to users.
-- Model errors as typed domain outcomes and map them to localized Bureau copy.
-- State what happened, what was preserved, and what the user can do next.
-- Preserve entered work whenever safe.
-- Never consume a filing credit for a terminal internal failure.
-- Keep the Bureau calm, concise, sincere, and helpful. It never winks at the joke or becomes threatening.
+---
 
-## Documentation contract
+# Context budget
 
-Update documentation in the same task when behavior, architecture, operations, testing, or an accepted decision changes.
+Load only context needed for the current task.
 
-- `README.md` is evaluator-first and concise.
-- `docs/product.md` explains the public product contract.
-- `docs/roadmap.md` records capability order, dependencies, and current product reality without private task coordination.
-- `docs/architecture.md` describes current system boundaries and material constraints.
-- `docs/testing.md` describes executable verification strategy.
-- `docs/operations.md` describes deployment, cost, privacy, and recovery expectations.
-- `docs/decisions/` contains only durable, useful decisions and their consequences.
-- `CHANGELOG.md` describes shipped value, not implementation noise.
+At task start:
 
-Do not create documentation merely to demonstrate that documentation exists.
+1. inspect the relevant working-tree state;
+2. read this contract;
+3. read the selected task or relevant roadmap entry;
+4. inspect the code and documents directly governing the affected area.
 
-## Definition of done for every product-changing task
+Then proceed.
 
-A task is complete only when:
+Do not automatically read:
 
-- its agreed acceptance criteria are satisfied;
-- relevant automated tests and repository checks pass;
-- required manual or visual QA is complete;
-- errors and recovery paths affected by the task are handled;
-- internationalization boundaries remain intact;
-- documentation reflects the resulting system;
-- the final diff contains no unrelated changes or private-context leaks;
-- version and changelog are correct;
-- task changes are committed and the product commit is tagged.
+* every decision record;
+* the entire roadmap;
+* all architecture documentation;
+* historical completed tasks;
+* unrelated test documentation;
+* unrelated canonical documents.
+
+Search or inspect narrowly before opening large documents.
+
+Read a decision record only when its subject materially affects the implementation choice.
+
+Do not reread information already established in the current session unless repository changes make it stale.
+
+Documentation is a decision aid, not mandatory context to ingest wholesale.
+
+---
+
+# Decision protocol
+
+Ask the human only when a missing decision is both:
+
+1. material to the requested product outcome; and
+2. capable of producing meaningfully different correct implementations.
+
+Examples include:
+
+* user-visible product behavior;
+* privacy or security policy;
+* irreversible data semantics;
+* external contracts;
+* paid-provider behavior;
+* a material scope change.
+
+Do not stop for ordinary reversible engineering choices when:
+
+* an existing project pattern applies;
+* the task already defines the intended outcome;
+* one option is clearly the smallest compatible implementation.
+
+Use the existing pattern and continue.
+
+If one path is blocked by a material decision, continue independent authorized work before asking.
+
+Do not ask permission merely to continue work already authorized.
+
+---
+
+# Autonomy
+
+Once implementation starts, continue until the task's explicit completion condition is satisfied.
+
+Do not stop merely to:
+
+* announce the next step;
+* report routine progress;
+* say that enough information is available;
+* summarize incomplete work;
+* ask whether to continue;
+* request confirmation of an already approved task.
+
+A progress report is not a completion condition.
+
+---
+
+# `next task` protocol
+
+The human command `next task` authorizes selection and execution of the next eligible planned task.
+
+When receiving it:
+
+1. inspect the current working state;
+2. identify the current `in_progress` capability or next eligible `ready` capability;
+3. read only documentation and decisions that materially govern that capability;
+4. select the smallest cohesive task that materially advances it;
+5. identify any genuinely blocking material decision;
+6. if none exists, begin without reconfirmation.
+
+Do not perform broad project rediscovery merely because a new agent session began.
+
+An `in_progress` capability takes priority over starting a new capability.
+
+When no work remains, a completed roadmap with no next task is valid. Do not invent additional work to preserve the protocol.
+
+---
+
+# Task granularity
+
+A task should normally:
+
+* have one principal observable outcome;
+* concern one subsystem or tightly related behavior;
+* require a bounded conceptual working set;
+* have explicit acceptance criteria;
+* be verifiable with targeted checks.
+
+Task size is based on conceptual breadth, not file count.
+
+A mechanical change across many files may be small.
+
+A change involving several independent behaviors may be too large even when few files are touched.
+
+Do not create large tasks simply because the model can manage them.
+
+---
+
+# Verification budget
+
+Validation must answer:
+
+> Is there concrete evidence that this task is incomplete or incorrect?
+
+For normal implementation, prefer:
+
+1. tests directly covering changed behavior;
+2. relevant type checking or static analysis;
+3. affected package/module validation where appropriate;
+4. broader checks only when evidence suggests wider impact.
+
+Once appropriate targeted checks pass, stop.
+
+Do not automatically:
+
+* run every test suite;
+* repeat successful commands;
+* run unrelated package tests;
+* perform broad regression analysis;
+* inspect unrelated warnings;
+* broaden validation merely because additional validation exists.
+
+Escalate only when:
+
+* targeted validation fails;
+* a shared contract or infrastructure layer changed;
+* an unexpected dependency appears;
+* the current task explicitly requires broader evidence.
+
+The full repository gate is a release-level tool, not the default closure step for every task.
+
+---
+
+# Testing contract
+
+Tests protect changed behavior and durable invariants.
+
+For the current task:
+
+* add or modify tests when changed behavior needs meaningful protection;
+* prefer focused regression or behavioral tests;
+* reuse existing test infrastructure and patterns;
+* ensure newly written tests can fail for a plausible regression.
+
+Do not add unrelated test categories simply because the repository supports them.
+
+Integration, E2E, live-provider, accessibility, visual-regression, reduced-motion, keyboard, content-expansion, and pseudo-localization checks apply when the current change materially affects those concerns.
+
+They are not a mandatory checklist for every task.
+
+Ordinary automated tests must not depend on live model calls.
+
+---
+
+# Diff review
+
+Review the completed diff once.
+
+Check for:
+
+* accidental unrelated changes;
+* incomplete task implementation;
+* obvious inconsistencies with established patterns;
+* private-context leaks;
+* unmet acceptance criteria.
+
+Do not turn routine diff review into a new architecture, cleanup, or optimization task.
+
+If the diff is scoped correctly and targeted validation passes, finish.
+
+---
+
+# Documentation
+
+Update documentation only when its truth materially changed.
+
+Prefer:
+
+* updating one authoritative location;
+* concise references;
+* invariants and non-obvious decisions;
+
+over:
+
+* repeating implementation details;
+* documenting code that is cheap to inspect;
+* updating unrelated documents for completeness;
+* creating documentation merely to demonstrate process maturity.
+
+Relevant document roles remain:
+
+* `README.md`: concise evaluator entry point;
+* `docs/product.md`: public product contract;
+* `docs/roadmap.md`: capability state and dependency truth;
+* `docs/architecture.md`: current material system boundaries;
+* `docs/testing.md`: verification strategy;
+* `docs/operations.md`: deployment, cost, privacy, recovery;
+* `docs/decisions/`: durable decisions and consequences;
+* `CHANGELOG.md`: shipped value.
+
+Do not perform a broad documentation synchronization pass after every implementation.
+
+---
+
+# Public-repository boundary
+
+This repository must remain a self-contained public product artifact.
+
+* Never depend on private sibling workspaces or machine-specific absolute paths.
+* Never expose private planning, raw research, rejected alternatives, application strategy, or private filenames.
+* Do not commit credentials, provider keys, personal data, raw production content, or local environment files.
+* Public documentation must be sufficient to run and evaluate the product.
+
+This boundary is mandatory regardless of task size.
+
+---
+
+# Internationalization invariants
+
+Internationalization remains foundational where affected by the task.
+
+* Do not hardcode user-facing copy.
+* Keep domain concepts language-neutral.
+* Keep interface locale distinct from generated-content locale.
+* Keep locale explicit at relevant request, persistence, generation, and routing boundaries.
+* Store generated language with its locale and prompt/version identity.
+* Localize deterministic fallback and provider-error presentation.
+* Preserve locale-aware formatting.
+* Preserve language-neutral model output schemas.
+* Require locale-specific evaluation before enabling a new public locale.
+
+Do not perform unrelated i18n work when the current task does not touch these boundaries.
+
+---
+
+# Architecture invariants
+
+Preserve these principles when relevant:
+
+* cohesive vertical capabilities;
+* no speculative abstraction;
+* deterministic and inspectable domain rules;
+* runtime validation at actual external boundaries;
+* provider isolation behind owned interfaces;
+* explicit server-side idempotency, budget enforcement, credit accounting, and recovery;
+* graceful deterministic behavior when generative services are unavailable.
+
+These are design constraints, not instructions to audit the entire architecture on every task.
+
+---
+
+# TypeScript invariants
+
+Where TypeScript is affected:
+
+* preserve strict mode;
+* preserve `noUncheckedIndexedAccess`;
+* preserve `exactOptionalPropertyTypes`;
+* do not use `any`, `@ts-ignore`, or unsafe assertions to bypass design problems;
+* keep browser/server/persistence/provider boundaries explicit;
+* derive types from validated schemas where appropriate.
+
+Do not perform unrelated TypeScript cleanup.
+
+---
+
+# Error and product-copy invariants
+
+Where affected:
+
+* do not expose provider/database/framework internals to users;
+* represent errors as typed product outcomes;
+* preserve user work when safe;
+* do not consume filing credit for terminal internal failures;
+* keep Bureau copy calm, concise, sincere, and helpful.
+
+---
+
+# Task completion
+
+A normal implementation task is complete when:
+
+* its explicit acceptance criteria are satisfied;
+* appropriate targeted validation passes;
+* affected documentation is truthful;
+* the final diff contains no unrelated changes or private-context leaks;
+* no task-created blocker is known.
+
+Stop at that point.
+
+Do not continue merely because further improvement or verification is possible.
+
+---
+
+# Release completion
+
+For an explicitly designated release/deployment task, additionally perform the release requirements relevant to that release, which may include:
+
+* the canonical full repository gate;
+* required browser/device/manual evidence;
+* deployment verification;
+* version and changelog reconciliation;
+* commit and annotated tag.
+
+Release work should normally be performed once for the release boundary, not repeatedly for every preceding implementation task.

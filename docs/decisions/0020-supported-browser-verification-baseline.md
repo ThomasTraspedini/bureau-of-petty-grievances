@@ -24,8 +24,8 @@ Compatibility code remains standards-based. Do not add user-agent branches to sa
 - The supported claim is explicitly an automated engine baseline, not a guarantee for every vendor release, extension environment, or physical device.
 - Firefox and WebKit failures in the bounded contract block a release just as Chromium failures do.
 - Visual comparison remains stable and intentional instead of becoming a collection of engine-specific rasterization noise.
-- Physical-device and moderated usability evidence remain necessary before completing cross-journey refinement and the evaluation release.
+- Remaining physical-device evidence is a bounded owner-led pass on Chrome/Safari for macOS, Chrome/Safari for iPhone, and Chrome for Android. The approved pass replaces the earlier moderated/five-participant study requirement.
 
 ## Open considerations
 
-Broader pseudo-localized browser rendering, narrow-width refinement, failure injection, physical-device review, and moderated usability testing remain separate resilience work. Promotion of additional browsers or a specific vendor-version policy requires evidence and a later decision.
+Pseudo-localized narrow-layout and one-shot failure-recovery contracts are implemented. Physical-device evidence and disposition of release-relevant findings remain C14 work. Promotion of additional browsers or a specific vendor-version policy requires evidence and a later decision.

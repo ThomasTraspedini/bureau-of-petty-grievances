@@ -2,7 +2,7 @@
 
 ## Status
 
-The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects department-aware filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, sharing, public consultation, evaluation cost control, transferable standard access, and privacy-preserving product analytics described in decisions 0006 through 0019. The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, access, persistence, and observability boundaries.
+The first complete interaction direction remains rendered as a repository-native prototype. The production application uses the accepted Next.js foundation and now connects department-aware filing, deterministic assessment, locale-aware language, transient issuance, persistent public records, sharing, public consultation, evaluation cost control, transferable standard access, and privacy-preserving product analytics described in the relevant [decision records](decisions/README.md). The prototype remains evidence; production capabilities enter through explicit application, localization, domain, server, provider, access, persistence, and observability boundaries.
 
 ## Application foundation
 
@@ -10,7 +10,7 @@ The production shell uses Next.js 16 App Router, React, strict TypeScript, and `
 
 `/en`, `/it`, `/fr`, `/de`, `/es`, and `/pt-BR` are the enabled application routes. The root redirects to English, unsupported paths resolve to a localized unavailable state, and the route locale controls the document language, catalog, metadata, and navigation. Catalog types are derived from the English reference catalog; recursive tests require every supported catalog to preserve the same keys and placeholders. A request-scoped catalog seam can apply proportional pseudo-localization only when both the dedicated E2E server setting and test header are present; ordinary development and production requests cannot expose that catalog as a public locale or persist it as generated-content language.
 
-The automated browser boundary covers Chromium, Firefox, and WebKit through the versions pinned by Playwright. The complete established regression and pixel-visual contract remains Chromium-based; Firefox and WebKit run a bounded standards-based journey spanning responsive filing, browser storage recovery, deterministic issuance, publication, consultation, sharing fallback, reduced motion, keyboard behavior, and accessibility. Chromium additionally carries expanded pseudo-localized interface copy through the principal journey and private controls at the supported 320-pixel minimum width, with horizontal-containment, essential-action, accessibility, and representative visual assertions. This is an engine-level verification baseline, not a claim about every vendor release or physical device.
+Browser-engine support and its physical-device limits are defined in [testing](testing.md#browser-and-visual-contracts); they are not a universal device-support claim.
 
 Current source ownership is deliberately small:
 
@@ -25,7 +25,7 @@ Current source ownership is deliberately small:
 
 The production filing journey lives at validated `/{locale}/file/{step}` routes and explicitly selects an enabled department before its adaptive fact step. Route codes and stored domain values are language-neutral; localized catalogs provide all visible labels, instructions, errors, accessibility text, and review summaries.
 
-`src/domain/filing` owns a department-discriminated draft boundary with three fact variants per enabled department, normalization, structural limits, and conservative harmless-content boundaries. Digital facts are bounded aggregate counts and intervals with no message or account integration. Domestic facts are bounded quantities, correction distance and effort, or 30-day recurrence supplied by the filer; the application accepts no photos, sensors, home maps, room names, or surveillance. Social facts are bounded option, decision, participant, revision, and notice measures supplied by the filer; the application accepts no calendars, messages, contacts, locations, invitations, guest lists, attendance records, or social-network data. The filing feature owns route progress, responsive controls, review presentation, and a versioned device-local storage envelope. Stored drafts carry their locale and update time, expire after 30 days, and are runtime-validated before entering application state. Version-1 through version-3 envelopes migrate to version `4`; rejected witness text is excluded from storage while the rest of a safe draft remains recoverable.
+`src/domain/filing` owns a department-discriminated draft boundary with three fact variants per enabled department, normalization, structural limits, and conservative harmless-content boundaries. Digital facts are bounded aggregate counts and intervals with no message or account integration. Domestic facts are bounded quantities, correction distance and effort, or 30-day recurrence supplied by the filer; the application accepts no photos, sensors, home maps, room names, or surveillance. Social facts are bounded option, decision, participant, revision, and notice measures supplied by the filer; the application accepts no calendars, messages, contacts, locations, invitations, guest lists, attendance records, or social-network data. The filing feature owns route progress, responsive controls, review presentation, and a versioned device-local storage envelope. Stored drafts carry their locale and update time, expire after 30 days, and are runtime-validated before entering application state. Version-1 through version-3 envelopes migrate to version `4`; rejected witness text is excluded from storage while the rest of a safe draft remains recoverable. Successful completion adds a separate locale-bound, content-free completion marker with the same lifetime. A still-valid pre-marker determination is accepted as migration evidence only when its fully revalidated filing exactly matches the stored draft. The review route preserves the completed draft; an external entry to the opening step consumes the completion evidence and clears the completed draft and transient determination before starting blank. Any correction clears the marker and returns the filing to the ordinary recoverable in-progress lifecycle.
 
 The reviewed filing crosses a server action and is validated again through the same domain boundary. Invalid input returns typed rejection. Accepted input continues through deterministic assessment, paid-access authorization or deterministic continuity, and locale-aware language orchestration before returning a complete transient determination. The action stores no filing content, creates no public identifier, and claims no external investigation; persistence requires a separate informed publication action.
 
@@ -43,13 +43,13 @@ ESLint enforces the domain and provider import direction. The provider adapter c
 
 `src/domain/determination/determination-language.ts` owns schema version `1`, localized section limits, language-neutral grounding codes, and the command derived from a matching filing and assessment. The command fixes the disposition and remedy authority before any provider call. It includes the bounded witness statement but excludes the respondent alias and exact clock time.
 
-Each department owns editorial policy version `1`, prompt guidance, vocabulary anchors, runtime editorial validation, and complete compositional fallback for `en`, `it`, `fr`, `de`, `es`, and `pt-BR`. The locale policies use locally appropriate formal registers while preserving the same calm, precise, sincere Bureau voice. The fallback and provider output share one shape. Validation is local and deterministic: exact schema, locale, disposition, grounding, length, supported numbers, factual anchors, safety, tone, and remedy compliance all precede acceptance. Digital Conduct policy additionally rejects fabricated observation, monitoring, compelled availability, urgency assumptions, and binding response demands. Domestic Affairs rejects household surveillance, external verification, binding control, hygiene or food enforcement, property disposal, financial penalties, and serious safety, access, care, health, or work-duty matters. Social Planning rejects calendar, message, contact, location, attendance, invitation, guest-list, and social-network access; compelled attendance or contact; exclusion; and adjudication of serious obligations or interpersonal harm.
+Each locale/department policy owns its version, prompt guidance, vocabulary anchors, runtime editorial validation, and complete compositional fallback for `en`, `it`, `fr`, `de`, `es`, and `pt-BR`. The locale policies use locally appropriate formal registers while preserving the same calm, precise, sincere Bureau voice. The fallback and provider output share one shape. Validation is local and deterministic: exact schema, locale, disposition, grounding, length, supported numbers, factual anchors, safety, tone, and remedy compliance all precede acceptance. Digital Conduct policy additionally rejects fabricated observation, monitoring, compelled availability, urgency assumptions, and binding response demands. Domestic Affairs rejects household surveillance, external verification, binding control, hygiene or food enforcement, property disposal, financial penalties, and serious safety, access, care, health, or work-duty matters. Social Planning rejects calendar, message, contact, location, attendance, invitation, guest-list, and social-network access; compelled attendance or contact; exclusion; and adjudication of serious obligations or interpersonal harm.
 
-`src/providers/openai-determination-language.ts` implements the first owned adapter with the OpenAI Responses API and strict Structured Outputs. The configurable default model is `gpt-5.6-luna` with low reasoning effort. Provider response storage is disabled, output is bounded, the SDK timeout is 12 seconds, and SDK retries are disabled so the product owns its retry budget. Provider errors and refusals become categorical results without raw text.
+`src/providers/openai-determination-language.ts` implements the first owned adapter with the OpenAI Responses API and strict Structured Outputs. The configurable default model is `gpt-5.6-terra` with low reasoning effort. The provider returns prose only; the adapter deterministically attaches locale, disposition, and grounding before locale validation. Provider response storage is disabled, output is bounded, the SDK timeout is 18 seconds, and SDK retries are disabled so the product owns its retry budget. Provider errors and refusals become categorical results without raw text.
 
 `src/server/determination/generate-determination-language.ts` permits at most two attempts. Invalid output and transient failures may use the second attempt; refusal and terminal configuration or request failures immediately select fallback. Every valid command therefore completes with provider or fallback language, while a mismatched filing and assessment is rejected before the provider boundary.
 
-The filing action invokes this seam after runtime validation and deterministic assessment. A metered provider wrapper must reserve a durable global attempt immediately before each external call; direct configured-provider invocation is not a production path. Source and fallback reason remain internal; both successful paths return the same validated language shape to the determination experience.
+The filing action invokes this seam after runtime validation and deterministic assessment. A metered provider wrapper must reserve a durable global attempt immediately before each external call; direct configured-provider invocation is not a production path. Both successful paths return the same validated language shape. The evaluation-only transient comparison is the narrow source-opacity exception in [decision 0023](decisions/0023-personalized-determination-language.md); it is never persisted or published with the determination.
 
 ## Determination experience boundary
 
@@ -127,113 +127,22 @@ The browser holds one random `jrn_` identifier in tab-scoped `sessionStorage`. E
 
 ## Prototype evidence
 
-The interaction prototype establishes several implementation requirements without choosing a framework:
+The [retained prototype](../prototype/README.md) preserves the accepted interaction direction. Its static modules, state, storage and URLs are evidence rather than production architecture.
 
-- `/prototype/en/` demonstrates an explicit locale route and a separate English interface catalog;
-- the complete Chronology journey preserves and corrects a device-local draft before review;
-- determination language and procedural reconstruction respond to structured prototype facts;
-- public consultation remains separate from the official determination;
-- public-result sharing and private successor authorization are distinct surfaces;
-- content rejection and terminal failure preserve work and state credit consequences explicitly;
-- mobile and desktop compositions share one identity while changing layout deliberately;
-- motion communicates state and has a reduced-motion equivalent.
+## Cross-cutting constraints
 
-The prototype uses static browser modules only. Its state model, storage, validation, and URLs are interaction evidence rather than a production architecture.
+Runtime-validate external input at routes, configuration, persistence, provider and analytics boundaries. Keep deterministic domain policy independent of frameworks, databases and providers; normalize integration errors before they reach product behavior.
 
-## Architectural goals
+Locale is explicit. Issued snapshots retain their content locale and policy identity; changing interface locale never translates an existing determination. Enabling another locale requires its own catalog, fallback, editorial/safety evaluation and layout evidence.
 
-- Fast mobile-first rendering with strong desktop presentation.
-- A complete journey that survives provider and network failure.
-- Server-side protection of generative credentials, quotas, and policy.
-- Deterministic, testable domain decisions before generative language.
-- Persistent public records and consultation responses.
-- Bounded cost and operationally simple deployment.
-- Explicit locale flow across every boundary.
-- Clear vertical ownership without framework-shaped monoliths.
+Generation credits and consultation rely on database transactions and idempotency, not browser state. Public identifiers, private access credentials and visual seeds have separate purposes; seeds must not encode personal content or grant access.
 
-## Product capabilities
-
-The system should evolve through cohesive capabilities:
-
-- `access`: evaluation sessions, standard filing credentials, credits, and invitations;
-- `filing`: adaptive questions, draft preservation, validation, and review;
-- `determination`: deterministic assessment, generative wording, validation, and fallback;
-- `identity`: stable procedural identity and department-specific fact visualization;
-- `public-record`: unlisted rendering, social metadata, reporting, and unpublishing;
-- `consultation`: anonymous participation, repeat-vote resistance, and aggregate results;
-- `operations`: budgets, rate limits, alerts, feature switches, analytics, and data lifecycle.
-
-These names describe boundaries, not a required folder layout. The eventual structure should keep each capability vertical and move shared concepts only when genuine reuse appears.
-
-## Domain and provider boundaries
-
-The deterministic domain must not depend on a UI framework, database SDK, deployment platform, or model provider.
-
-External boundaries require runtime validation:
-
-- environment configuration;
-- route and form input;
-- stored records;
-- model requests and structured responses;
-- analytics payloads;
-- public identifiers and access credentials.
-
-Provider adapters translate owned domain commands into external calls. Provider-specific errors must be normalized before entering product behavior.
-
-## Determination pipeline
-
-1. Validate and normalize input with an explicit locale.
-2. Enforce content and privacy boundaries.
-3. Calculate a deterministic assessment.
-4. Resolve paid access, reserve one logical credit atomically, and enforce request limits.
-5. Reserve one non-refundable global attempt immediately before each permitted provider dispatch.
-6. Build and request bounded, schema-constrained locale-specific output.
-7. Validate grounding, tone, lengths, locale, and prohibited content.
-8. Retry only under an explicit retry policy.
-9. Use localized deterministic fallback after terminal provider failure.
-10. Finalize or refund logical credit without persisting private generation content.
-
-The implemented language stage targets one paid request and permits one additional attempt only for a transient failure or rejected output. Cost optimization does not reduce output quality; strict validation, curated fixtures, fallback, atomic accounting, and the hard dispatch budget protect the product instead.
-
-## Internationalization boundary
-
-Locale must be explicit rather than inferred from global process state.
-
-A determination record should retain at least:
-
-- content locale;
-- prompt or editorial-policy version;
-- language-neutral domain inputs;
-- accepted localized output;
-- deterministic assessment version.
-
-Changing interface locale does not mutate existing generated content. Supporting a new locale requires localized catalogs, deterministic fallback, editorial guidance, prompt evaluation, safety evaluation, and layout verification.
-
-## Identity and public access
-
-Separate identifiers by purpose:
-
-- internal record identity;
-- public unguessable record identity;
-- private evaluation or invitation credential;
-- deterministic visual seed.
-
-A public record must never reveal an invitation or evaluation credential. A visual seed must not encode raw personal content or serve as a public access secret.
-
-## Concurrency and idempotency
-
-Generation and credit changes require an idempotency key and atomic reservation. Repeat submissions must return the established result or safe current state rather than consume another credit.
-
-Consultation updates must be atomic. Repeat-vote resistance should be proportionate and privacy-preserving; it must not create an invasive identity system for a temporary consumer experience.
-
-## Data lifecycle
-
-Records should support explicit lifecycle states such as active, unpublished, archived, and deleted. Retention must remain configurable so the experiment can be continued, exported, or responsibly removed without destructive assumptions embedded in the schema.
+Public-record expiry removes access without implicit destruction. The implemented owner/Bureau transitions and deletion behavior are the lifecycle contract; archival, export or automatic purge require an explicit later decision. See [product](product.md) and [operations](operations.md).
 
 ## Decisions intentionally deferred
 
 - deployment provider;
-- production model promotion and routing beyond the configurable `gpt-5.6-luna` default;
+- production model promotion and routing beyond the configurable `gpt-5.6-terra` default;
 - experimentation, warehouse export, qualitative-feedback capture, and analytics beyond the accepted explicit event contract;
 - account-backed access, payment, entitlement replenishment, and cross-device standard-session recovery;
 - hosting-specific proxy topology, scheduled alert delivery, and broader public-mutation abuse controls.

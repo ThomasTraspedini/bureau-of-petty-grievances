@@ -10,6 +10,13 @@ fail() {
   exit 1
 }
 
+mode="${1:---full}"
+[[ "$#" -le 1 ]] || fail "usage: $0 [--checks-only|--full]"
+case "$mode" in
+  --checks-only|--full) ;;
+  *) fail "usage: $0 [--checks-only|--full]" ;;
+esac
+
 command -v git >/dev/null 2>&1 || fail "git is required"
 command -v rg >/dev/null 2>&1 || fail "ripgrep (rg) is required"
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "run this command inside the product Git repository"
@@ -39,16 +46,24 @@ rg --fixed-strings --quiet "## [$version]" CHANGELOG.md || fail "CHANGELOG.md ha
 package_version="$(node -p "require('./package.json').version")"
 [[ "$package_version" == "$version" ]] || fail "package.json version must match VERSION"
 
-command -v npm >/dev/null 2>&1 || fail "npm is required"
-node_major="$(node -p "process.versions.node.split('.')[0]")"
-[[ "$node_major" == "24" ]] || fail "Node.js 24 is required; found $(node --version)"
-
-ready_count="$(rg --count '\| ready \|$' docs/roadmap.md || true)"
-in_progress_count="$(rg --count '\| in_progress \|$' docs/roadmap.md || true)"
+ready_count="$(rg --count '^\| C[0-9]{2} \|.*\| ready \|$' docs/roadmap.md || true)"
+in_progress_count="$(rg --count '^\| C[0-9]{2} \|.*\| in_progress \|$' docs/roadmap.md || true)"
 ready_count="${ready_count:-0}"
 in_progress_count="${in_progress_count:-0}"
 selectable_count="$((ready_count + in_progress_count))"
-[[ "$selectable_count" -eq 1 ]] || fail "roadmap must contain exactly one ready or in-progress capability"
+capability_count="$(rg --count '^\| C[0-9]{2} \|' docs/roadmap.md || true)"
+complete_count="$(rg --count '^\| C[0-9]{2} \|.*\| complete \|$' docs/roadmap.md || true)"
+queued_count="$(rg --count '^\| C[0-9]{2} \|.*\| queued \|$' docs/roadmap.md || true)"
+capability_count="${capability_count:-0}"
+complete_count="${complete_count:-0}"
+queued_count="${queued_count:-0}"
+[[ "$capability_count" -gt 0 ]] || fail "roadmap must contain capabilities"
+[[ "$((complete_count + queued_count + selectable_count))" -eq "$capability_count" ]] || fail "roadmap contains an invalid capability status"
+if [[ "$complete_count" -eq "$capability_count" ]]; then
+  [[ "$selectable_count" -eq 0 ]] || fail "completed roadmap cannot select more work"
+else
+  [[ "$selectable_count" -eq 1 ]] || fail "unfinished roadmap must contain exactly one ready or in-progress capability"
+fi
 
 prohibited_reference_pattern='(/Users/|Lesto MVP/internal|\.\./internal(?:/|$)|bureau-of-petty-grievances-(foundation|taste-direction)\.md)'
 if rg --line-number --hidden \
@@ -68,6 +83,14 @@ if [[ -n "$tracked_forbidden" ]]; then
   fail "forbidden local or credential-bearing filename is tracked"
 fi
 
+if [[ "$mode" == "--checks-only" ]]; then
+  printf 'Lightweight repository checks passed for version %s.\n' "$version"
+  exit 0
+fi
+
+command -v npm >/dev/null 2>&1 || fail "npm is required"
+node_major="$(node -p "process.versions.node.split('.')[0]")"
+[[ "$node_major" == "24" ]] || fail "Node.js 24 is required; found $(node --version)"
 ./scripts/validate-prototype.sh
 npm run verify:app
 
