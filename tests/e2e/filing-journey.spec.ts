@@ -1367,10 +1367,21 @@ test.describe("filing visual contract", () => {
   }) => {
     await page.setViewportSize({ width: 1045, height: 900 });
     await openFixedSocialDetermination(page, confirmedPlanRevisionDraft);
-    await expect(page.getByText("2 confirmed plan revisions")).toBeVisible();
-    await expect(
-      page.getByText("1 hour’s notice · 10 participants"),
-    ).toBeVisible();
+    const register = page.getByRole("region", {
+      name: "The social decision register is established.",
+    });
+    await expect(register.getByRole("term")).toHaveText([
+      "Post-confirmation revisions",
+      "Participants affected",
+      "Advance notice",
+      "Evidence source",
+    ]);
+    await expect(register.getByRole("definition")).toHaveText([
+      "2",
+      "10",
+      "1 hour",
+      "Filer-submitted counts",
+    ]);
     await expect(page).toHaveScreenshot(
       "social-planning-confirmed-revision-mid-width.png",
       {

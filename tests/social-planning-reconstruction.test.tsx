@@ -46,7 +46,7 @@ for (const locale of ["en", "it", "fr", "de", "es", "pt-BR"] as const) {
         },
       ];
       for (const filing of filings) {
-        it(`renders ${filing.offence} with exact facts including ${value}`, () => {
+        it(`renders ${filing.offence} with exact facts including ${String(value)}`, () => {
           const catalog = getMessageCatalog(locale);
           const copy = catalog.Determination;
           const assessment = assessSocialPlanningFiling(filing);

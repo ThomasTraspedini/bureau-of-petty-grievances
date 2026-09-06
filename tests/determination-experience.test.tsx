@@ -423,7 +423,9 @@ describe("determination experience", () => {
       name: messages.Determination.socialReconstructionTitle,
     });
     expect(
-      within(register).getAllByRole("term").map((node) => node.textContent),
+      within(register)
+        .getAllByRole("term")
+        .map((node) => node.textContent),
     ).toEqual([
       messages.Determination.socialRoundsLabel,
       messages.Determination.socialElapsedLabel,
@@ -431,7 +433,9 @@ describe("determination experience", () => {
       messages.Determination.socialSourceLabel,
     ]);
     expect(
-      within(register).getAllByRole("definition").map((node) => node.textContent),
+      within(register)
+        .getAllByRole("definition")
+        .map((node) => node.textContent),
     ).toEqual(["5", "72 hours", "4", messages.Determination.socialSourceValue]);
     expect(
       screen.getByText(messages.Determination.socialReconstructionBody),

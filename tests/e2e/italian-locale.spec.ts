@@ -102,6 +102,14 @@ test("renders the Italian landing page, opens filing, and passes accessibility c
     .evaluate((element) => {
       element.textContent = "3 settembre 2026";
     });
+  // This journey issues a random reference; its stamp placement is tested
+  // separately. Normalize it alongside the variant and date for visual checks.
+  await page.locator(".remedy-stamp").evaluate((element) => {
+    element.setAttribute(
+      "style",
+      "transform: translate(0px, 0px) rotate(0deg)",
+    );
+  });
   await expect(page).toHaveScreenshot("italian-determination-desktop.png", {
     fullPage: true,
     mask: [page.locator(".determination-metadata > div:first-child strong")],
