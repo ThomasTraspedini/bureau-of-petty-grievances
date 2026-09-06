@@ -35,14 +35,14 @@ When every capability is `complete`, no capability is selectable and no next tas
 | C11 | Standard access and successor invitations | Standard users can redeem filing access and transfer one finite residual allowance along a non-branching successor chain without exposing invitation credentials on public records. | C10 | complete |
 | C12 | Observability and learning | Product and operational events reveal journey health, failures, cost, and behavior without collecting raw personal case content. | C10 | complete |
 | C13 | Department expansion | Chronology, Digital Conduct, Domestic Affairs, and Social Planning each have polished adaptive logic and a distinct fact-visualization grammar within one Bureau identity. | C06 | complete |
-| C14 | Cross-journey resilience and refinement | Complete journeys meet the visual, responsive, accessibility, reduced-motion, pseudo-localization, recovery, and regression-testing bar across supported browsers. | C08, C09, C10 | in_progress |
-| C15 | Evaluation release | A stable hosted experience, clean-browser verification, evaluator-ready repository, and concise walkthrough make the complete evidence package accessible without coordination. | C14 | queued |
+| C14 | Cross-journey resilience and refinement | Complete journeys meet the visual, responsive, accessibility, reduced-motion, pseudo-localization, recovery, and regression-testing bar across supported browsers. | C08, C09, C10 | complete |
+| C15 | Evaluation release | A stable hosted experience, clean-browser verification, evaluator-ready repository, and concise walkthrough make the complete evidence package accessible without coordination. | C14 | ready |
 
 Dependencies express the minimum ordering currently supported by product evidence. A later accepted decision may change them; update this roadmap and record material rationale in the same task.
 
 ## Remaining completion work
 
-C00–C13 are implemented; there is no missing feature phase. C14 remains open for the approved physical-device evidence matrix and release-relevant verification of existing refinements. Implemented changes awaiting verification and release closure must not be reimplemented.
+C00–C14 are complete; there is no missing feature phase. The approved physical-device evidence matrix and the resulting release-relevant refinements have been verified. C15 is the remaining release capability.
 
 C15 follows C14 in two cohesive sequential units:
 

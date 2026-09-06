@@ -28,4 +28,4 @@ Compatibility code remains standards-based. Do not add user-agent branches to sa
 
 ## Open considerations
 
-Pseudo-localized narrow-layout and one-shot failure-recovery contracts are implemented. Physical-device evidence and disposition of release-relevant findings remain C14 work. Promotion of additional browsers or a specific vendor-version policy requires evidence and a later decision.
+Pseudo-localized narrow-layout and one-shot failure-recovery contracts are implemented. C14's physical-device evidence and disposition of release-relevant findings are complete. Promotion of additional browsers or a specific vendor-version policy requires evidence and a later decision.

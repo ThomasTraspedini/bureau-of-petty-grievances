@@ -10,7 +10,7 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 The latest tagged release is `0.21.0`. The application implements four departments and six complete locales, with deterministic and optional provider language, public records, sharing, consultation, access controls and bounded generation costs.
 
-There is no missing feature phase. C14 remains open for physical-device evidence and release-relevant verification; C15 remains for hosted deployment and evaluator evidence. Existing working-tree refinements await closure and are not covered by the last release tag. See the [roadmap](docs/roadmap.md).
+There is no missing feature phase. C14's physical-device evidence and release-relevant refinements are complete; C15 remains for hosted deployment and evaluator evidence. These refinements are not covered by the last release tag. See the [roadmap](docs/roadmap.md).
 
 [Run the application](#run-locally), or [review the complete interaction prototype](prototype/README.md).
 

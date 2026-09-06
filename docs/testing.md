@@ -69,7 +69,7 @@ Chromium owns the complete browser suite and pixel references. Firefox and WebKi
 
 Relevant scenarios cover keyboard behavior, reduced motion, axe-core accessibility, refresh recovery, localized routes, exact retry and 320-pixel pseudo-localization. Failure injection and pseudo-localization require both the dedicated test-server setting and request instruction; neither is an ordinary product mode.
 
-Visual references use bundled fonts, disabled motion and a one-percent pixel tolerance. Update a reference only after manual inspection of the affected viewport, never automatically to clear a failure. Browser-engine automation does not establish physical-device support. C14 still needs the approved owner-led five-environment matrix and disposition of release-relevant findings; a professional moderated study is not required.
+Visual references use bundled fonts, disabled motion and a one-percent pixel tolerance. Update a reference only after manual inspection of the affected viewport, never automatically to clear a failure. Browser-engine automation does not establish physical-device support. The approved owner-led five-environment matrix and disposition of its release-relevant findings are complete; a professional moderated study is not required.
 
 The retained prototype is interaction evidence. Run `./scripts/validate-prototype.sh` when prototype behavior changes or as part of the full gate; do not repeat its manual journey for unrelated production tasks.
 
