@@ -201,7 +201,7 @@ export function DeterminationRecord({
               <Image
                 className="remedy-stamp"
                 style={{
-                  transform: `translate(${stampPlacement.x}px, ${stampPlacement.y}px) rotate(${stampPlacement.rotation}deg)`,
+                  transform: `translate(${String(stampPlacement.x)}px, ${String(stampPlacement.y)}px) rotate(${String(stampPlacement.rotation)}deg)`,
                 }}
                 src={remedyStamp}
                 alt=""
@@ -262,9 +262,7 @@ function ChronologyReconstruction({
 }) {
   const number = new Intl.NumberFormat(locale);
   const minutes = snapshot.assessment.discrepancy.minutes;
-  const markerPosition = `${String(
-    snapshot.assessment.presentation.markerPositionBasisPoints / 100,
-  )}%`;
+  const durationComparison = snapshot.filing.offence === "optimistic_estimate";
 
   let firstLabel: string;
   let firstValue: string;
@@ -293,6 +291,23 @@ function ChronologyReconstruction({
     });
   }
 
+  const endpoints = [
+    { label: firstLabel, value: firstValue, className: "chronology-endpoint" },
+    {
+      label: secondLabel,
+      value: secondValue,
+      className: "chronology-endpoint",
+    },
+  ];
+  const interval = {
+    label: durationComparison ? copy.overrunLabel : copy.discrepancyLabel,
+    value: format(copy.minutesValue, { minutes: number.format(minutes) }),
+    className: "chronology-interval",
+  };
+  const entries = durationComparison
+    ? [endpoints[0], endpoints[1], interval]
+    : [endpoints[0], interval, endpoints[1]];
+
   return (
     <section
       className="chronology-reconstruction"
@@ -303,30 +318,23 @@ function ChronologyReconstruction({
         <h2 id="chronology-title">{copy.chronologyTitle}</h2>
         <p>{copy.chronologyBody}</p>
       </div>
-      <figure className="chronology-figure">
-        <div className="chronology-scale" aria-hidden="true">
-          <span className="chronology-origin" />
-          <span className="chronology-marker" style={{ left: markerPosition }}>
-            <i />
-          </span>
-        </div>
-        <figcaption>
-          <div>
-            <span>{firstLabel}</span>
-            <strong>{firstValue}</strong>
-          </div>
-          <div>
-            <span>{secondLabel}</span>
-            <strong>{secondValue}</strong>
-          </div>
-          <div>
-            <span>{copy.discrepancyLabel}</span>
-            <strong>
-              {format(copy.minutesValue, { minutes: number.format(minutes) })}
-            </strong>
-          </div>
-        </figcaption>
-      </figure>
+      <dl
+        className={
+          durationComparison
+            ? "chronology-durations"
+            : "chronology-relationship"
+        }
+      >
+        {entries.map(
+          (entry) =>
+            entry && (
+              <div key={entry.label} className={entry.className}>
+                <dt>{entry.label}</dt>
+                <dd>{entry.value}</dd>
+              </div>
+            ),
+        )}
+      </dl>
     </section>
   );
 }
@@ -342,11 +350,6 @@ function DigitalConductReconstruction({
 }) {
   const number = new Intl.NumberFormat(locale);
   const evidence = snapshot.assessment.evidence;
-  const displayedItems = Math.min(
-    12,
-    snapshot.assessment.presentation.itemCount,
-  );
-  const marker = `${String(snapshot.assessment.presentation.markerPositionBasisPoints / 100)}%`;
   let primaryLabel: string;
   let primaryValue: string;
   let secondaryLabel: string;
@@ -381,35 +384,30 @@ function DigitalConductReconstruction({
         <h2 id="digital-conduct-title">{copy.digitalReconstructionTitle}</h2>
         <p>{copy.digitalReconstructionBody}</p>
       </div>
-      <figure className="communications-docket">
-        <div className="message-sequence" aria-hidden="true">
-          {Array.from({ length: displayedItems }, (_, index) => (
-            <i
-              key={index}
-              style={{
-                width: `${String(34 + ((index * 17 + snapshot.presentationVariant * 9) % 58))}%`,
-              }}
-            />
-          ))}
+      <dl className="communications-docket">
+        <div>
+          <dt>{primaryLabel}</dt>
+          <dd>{primaryValue}</dd>
         </div>
-        <div className="communications-interval" aria-hidden="true">
-          <span style={{ left: marker }} />
+        <div>
+          <dt>{secondaryLabel}</dt>
+          <dd>{secondaryValue}</dd>
         </div>
-        <figcaption>
+        {evidence.kind === "message_density" ? (
           <div>
-            <span>{primaryLabel}</span>
-            <strong>{primaryValue}</strong>
+            <dt>{copy.digitalBurstLabel}</dt>
+            <dd>
+              {format(copy.minutesValue, {
+                minutes: number.format(evidence.burstMinutes),
+              })}
+            </dd>
           </div>
-          <div>
-            <span>{secondaryLabel}</span>
-            <strong>{secondaryValue}</strong>
-          </div>
-          <div>
-            <span>{copy.digitalDocketLabel}</span>
-            <strong>{copy.digitalDocketValue}</strong>
-          </div>
-        </figcaption>
-      </figure>
+        ) : null}
+        <div>
+          <dt>{copy.digitalDocketLabel}</dt>
+          <dd>{copy.digitalDocketValue}</dd>
+        </div>
+      </dl>
     </section>
   );
 }
@@ -424,11 +422,14 @@ function DomesticAffairsReconstruction({
   locale: InterfaceLocale;
 }) {
   const evidence = snapshot.assessment.evidence;
-  const primaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.primaryBasisPoints / 100))}%`;
-  const secondaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.secondaryBasisPoints / 100))}%`;
+  const number = new Intl.NumberFormat(locale);
+  let primaryLabel: string;
+  let secondaryLabel: string;
   let primaryValue: string;
   let secondaryValue: string;
   if (evidence.kind === "container_remainder") {
+    primaryLabel = copy.domesticRemainingLabel;
+    secondaryLabel = copy.domesticCapacityLabel;
     primaryValue = formatCount(
       copy.servingValue,
       copy.servingsValue,
@@ -442,6 +443,8 @@ function DomesticAffairsReconstruction({
       locale,
     );
   } else if (evidence.kind === "correction_path") {
+    primaryLabel = copy.domesticDistanceLabel;
+    secondaryLabel = copy.domesticCorrectionTimeLabel;
     primaryValue = formatCount(
       copy.stepValue,
       copy.stepsValue,
@@ -455,6 +458,8 @@ function DomesticAffairsReconstruction({
       locale,
     );
   } else {
+    primaryLabel = copy.domesticEmptyPackagesLabel;
+    secondaryLabel = copy.domesticRecurrenceLabel;
     primaryValue = formatCount(
       copy.packageValue,
       copy.packagesValue,
@@ -478,58 +483,37 @@ function DomesticAffairsReconstruction({
         <h2 id="domestic-affairs-title">{copy.domesticReconstructionTitle}</h2>
         <p>{copy.domesticReconstructionBody}</p>
       </div>
-      <figure className="domestic-register">
-        <div
-          className="domestic-register-diagram"
-          data-kind={evidence.kind}
-          aria-hidden="true"
-        >
-          {evidence.kind === "container_remainder" ? (
-            <>
-              <div className="domestic-container-gauge">
-                <i style={{ height: primaryWidth }} />
-              </div>
-              <div className="domestic-container-gauge">
-                <i style={{ height: "100%" }} />
-              </div>
-            </>
-          ) : evidence.kind === "correction_path" ? (
-            <div className="domestic-correction-path">
-              <span />
-              <i style={{ width: secondaryWidth }} />
-              <span />
+      <div className="domestic-register">
+        {evidence.kind === "container_remainder" ? (
+          <div className="domestic-container-gauge" aria-hidden="true">
+            <i
+              style={{
+                height: `${String((evidence.remainingServings / evidence.capacityServings) * 100)}%`,
+              }}
+            />
+          </div>
+        ) : null}
+        <dl className="domestic-facts">
+          {evidence.kind === "correction_path" ? (
+            <div>
+              <dt>{copy.domesticObjectsLabel}</dt>
+              <dd>{number.format(evidence.itemCount)}</dd>
             </div>
-          ) : (
-            <div className="domestic-inventory">
-              {Array.from(
-                {
-                  length: Math.min(
-                    8,
-                    snapshot.assessment.presentation.itemCount,
-                  ),
-                },
-                (_, index) => (
-                  <i key={index} />
-                ),
-              )}
-            </div>
-          )}
-        </div>
-        <figcaption>
+          ) : null}
           <div>
-            <span>{copy.domesticPrimaryLabel}</span>
-            <strong>{primaryValue}</strong>
+            <dt>{primaryLabel}</dt>
+            <dd>{primaryValue}</dd>
           </div>
           <div>
-            <span>{copy.domesticSecondaryLabel}</span>
-            <strong>{secondaryValue}</strong>
+            <dt>{secondaryLabel}</dt>
+            <dd>{secondaryValue}</dd>
           </div>
           <div>
-            <span>{copy.domesticSourceLabel}</span>
-            <strong>{copy.domesticSourceValue}</strong>
+            <dt>{copy.domesticSourceLabel}</dt>
+            <dd>{copy.domesticSourceValue}</dd>
           </div>
-        </figcaption>
-      </figure>
+        </dl>
+      </div>
     </section>
   );
 }
@@ -545,49 +529,47 @@ function SocialPlanningReconstruction({
 }) {
   const number = new Intl.NumberFormat(locale);
   const evidence = snapshot.assessment.evidence;
-  const primaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.primaryBasisPoints / 100))}%`;
-  const secondaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.secondaryBasisPoints / 100))}%`;
-  let primaryValue: string;
-  let secondaryValue: string;
-  if (evidence.kind === "option_tree") {
-    primaryValue = format(copy.socialOptionsValue, {
-      rejected: number.format(evidence.rejectedOptionCount),
-      proposed: number.format(evidence.proposedOptionCount),
-    });
-    secondaryValue = format(copy.socialAlternativesValue, {
-      count: number.format(evidence.alternativeOptionCount),
-      unit:
-        evidence.alternativeOptionCount === 1
-          ? copy.alternativeSingular
-          : copy.alternativesPlural,
-    });
-  } else if (evidence.kind === "decision_history") {
-    primaryValue = format(copy.socialRoundsValue, {
-      count: number.format(evidence.decisionRoundCount),
-    });
-    secondaryValue = format(copy.socialHoursParticipantsValue, {
-      hours: number.format(evidence.elapsedHours),
-      hourUnit:
-        evidence.elapsedHours === 1 ? copy.hourSingular : copy.hourPlural,
-      participants: number.format(evidence.participantCount),
-    });
-  } else {
-    primaryValue = format(copy.socialRevisionsValue, {
-      count: number.format(evidence.revisionCount),
-      unit:
-        evidence.revisionCount === 1
-          ? copy.revisionSingular
-          : copy.revisionPlural,
-    });
-    secondaryValue = format(copy.socialNoticeParticipantsValue, {
-      hours: number.format(evidence.noticeHours),
-      noticeUnit:
-        evidence.noticeHours === 1
-          ? copy.hourPossessiveSingular
-          : copy.hourPossessivePlural,
-      participants: number.format(evidence.participantCount),
-    });
-  }
+  const hours = new Intl.NumberFormat(locale, {
+    style: "unit",
+    unit: "hour",
+    unitDisplay: "long",
+  });
+  const facts =
+    evidence.kind === "option_tree"
+      ? [
+          [
+            copy.socialProposedLabel,
+            number.format(evidence.proposedOptionCount),
+          ],
+          [
+            copy.socialRejectedLabel,
+            number.format(evidence.rejectedOptionCount),
+          ],
+          [
+            copy.socialAlternativesLabel,
+            number.format(evidence.alternativeOptionCount),
+          ],
+        ]
+      : evidence.kind === "decision_history"
+        ? [
+            [
+              copy.socialRoundsLabel,
+              number.format(evidence.decisionRoundCount),
+            ],
+            [copy.socialElapsedLabel, hours.format(evidence.elapsedHours)],
+            [
+              copy.socialParticipantsLabel,
+              number.format(evidence.participantCount),
+            ],
+          ]
+        : [
+            [copy.socialRevisionsLabel, number.format(evidence.revisionCount)],
+            [
+              copy.socialParticipantsLabel,
+              number.format(evidence.participantCount),
+            ],
+            [copy.socialNoticeLabel, hours.format(evidence.noticeHours)],
+          ];
   return (
     <section
       className="social-reconstruction"
@@ -598,39 +580,18 @@ function SocialPlanningReconstruction({
         <h2 id="social-planning-title">{copy.socialReconstructionTitle}</h2>
         <p>{copy.socialReconstructionBody}</p>
       </div>
-      <figure className="social-register">
-        <div className="social-register-diagram" aria-hidden="true">
-          <div className="social-option-tree">
-            <span />
-            {Array.from(
-              {
-                length: Math.min(8, snapshot.assessment.presentation.itemCount),
-              },
-              (_, index) => (
-                <i key={index} data-resolved={index % 3 === 2} />
-              ),
-            )}
+      <dl className="social-register">
+        {facts.map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
           </div>
-          <div className="social-decision-scale">
-            <i style={{ width: primaryWidth }} />
-            <span style={{ left: secondaryWidth }} />
-          </div>
+        ))}
+        <div>
+          <dt>{copy.socialSourceLabel}</dt>
+          <dd>{copy.socialSourceValue}</dd>
         </div>
-        <figcaption>
-          <div>
-            <span>{copy.socialPrimaryLabel}</span>
-            <strong>{primaryValue}</strong>
-          </div>
-          <div>
-            <span>{copy.socialSecondaryLabel}</span>
-            <strong>{secondaryValue}</strong>
-          </div>
-          <div>
-            <span>{copy.socialSourceLabel}</span>
-            <strong>{copy.socialSourceValue}</strong>
-          </div>
-        </figcaption>
-      </figure>
+      </dl>
     </section>
   );
 }

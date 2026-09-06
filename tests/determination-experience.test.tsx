@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { assessChronologyFiling } from "@/domain/determination/chronology-assessment";
@@ -345,12 +345,12 @@ describe("determination experience", () => {
   });
 
   it.each([
-    ["token_remainder", "container_remainder", 2, 0, 0],
-    ["misplaced_object", "correction_path", 0, 1, 0],
-    ["empty_packaging", "empty_inventory", 0, 0, 1],
+    ["token_remainder", 1],
+    ["misplaced_object", 0],
+    ["empty_packaging", 0],
   ] as const)(
-    "renders only the classification-specific Domestic Affairs diagram for %s",
-    async (offence, evidenceKind, gauges, paths, inventories) => {
+    "renders facts and only a proportional container graphic for %s",
+    async (offence, gauges) => {
       const fixture = domesticDeterminationFixture(offence);
       window.sessionStorage.setItem(
         DETERMINATION_SESSION_KEY,
@@ -375,19 +375,15 @@ describe("determination experience", () => {
           name: messages.Determination.domesticReconstructionTitle,
         }),
       ).toBeVisible();
-      const diagram = container.querySelector(
-        `.domestic-register-diagram[data-kind="${evidenceKind}"]`,
-      );
+      const diagram = container.querySelector(".domestic-register");
       expect(diagram).toBeInTheDocument();
       expect(
         diagram?.querySelectorAll(".domestic-container-gauge"),
       ).toHaveLength(gauges);
       expect(
         diagram?.querySelectorAll(".domestic-correction-path"),
-      ).toHaveLength(paths);
-      expect(diagram?.querySelectorAll(".domestic-inventory")).toHaveLength(
-        inventories,
-      );
+      ).toHaveLength(0);
+      expect(diagram?.querySelectorAll(".domestic-inventory")).toHaveLength(0);
       if (offence === "token_remainder") {
         expect(screen.getByText("1 serving")).toBeVisible();
         expect(screen.getByText("8 servings")).toBeVisible();
@@ -395,7 +391,7 @@ describe("determination experience", () => {
           ".domestic-container-gauge i",
         );
         expect(fills?.[0]?.style.height).toBe("12.5%");
-        expect(fills?.[1]?.style.height).toBe("100%");
+        expect(fills).toHaveLength(1);
       }
     },
   );
@@ -423,8 +419,20 @@ describe("determination experience", () => {
         name: messages.Determination.socialReconstructionTitle,
       }),
     ).toBeVisible();
-    expect(screen.getByText("5 decision rounds")).toBeVisible();
-    expect(screen.getByText("72 hours · 4 participants")).toBeVisible();
+    const register = screen.getByRole("region", {
+      name: messages.Determination.socialReconstructionTitle,
+    });
+    expect(
+      within(register).getAllByRole("term").map((node) => node.textContent),
+    ).toEqual([
+      messages.Determination.socialRoundsLabel,
+      messages.Determination.socialElapsedLabel,
+      messages.Determination.socialParticipantsLabel,
+      messages.Determination.socialSourceLabel,
+    ]);
+    expect(
+      within(register).getAllByRole("definition").map((node) => node.textContent),
+    ).toEqual(["5", "72 hours", "4", messages.Determination.socialSourceValue]);
     expect(
       screen.getByText(messages.Determination.socialReconstructionBody),
     ).toBeVisible();
