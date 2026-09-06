@@ -60,6 +60,25 @@ describe("evaluation access domain", () => {
     expect(
       createNetworkDigest(headers, new Date(NOW), { NODE_ENV: "production" }),
     ).toBeNull();
+    expect(
+      createNetworkDigest(new Headers(), new Date(NOW), {
+        BUREAU_NETWORK_HMAC_SECRET: "x".repeat(32),
+        BUREAU_TRUSTED_PROXY_HOPS: "0",
+        NODE_ENV: "production",
+      }),
+    ).toBeNull();
+    expect(
+      createNetworkDigest(new Headers(), new Date(NOW), {
+        BUREAU_NETWORK_HMAC_SECRET: "",
+        NODE_ENV: "development",
+      }),
+    ).toMatch(/^[a-f0-9]{64}$/u);
+    expect(
+      createNetworkDigest(headers, new Date(NOW), {
+        BUREAU_NETWORK_HMAC_SECRET: "",
+        NODE_ENV: "production",
+      }),
+    ).toBeNull();
   });
 });
 

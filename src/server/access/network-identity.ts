@@ -1,5 +1,7 @@
 import { createHmac } from "node:crypto";
 
+const DIRECT_DEVELOPMENT_NETWORK = "direct-development";
+
 export function createNetworkDigest(
   requestHeaders: Pick<Headers, "get">,
   now: Date,
@@ -7,10 +9,11 @@ export function createNetworkDigest(
 ): string | null {
   const configuredSecret = environment.BUREAU_NETWORK_HMAC_SECRET?.trim();
   const secret =
-    configuredSecret ??
-    (environment.NODE_ENV === "production"
-      ? null
-      : "bureau-local-network-boundary-development-only");
+    configuredSecret === undefined || configuredSecret === ""
+      ? environment.NODE_ENV === "production"
+        ? null
+        : "bureau-local-network-boundary-development-only"
+      : configuredSecret;
   if (secret === null || secret.length < 32) return null;
 
   const trustedHopsText = environment.BUREAU_TRUSTED_PROXY_HOPS?.trim();
@@ -23,7 +26,12 @@ export function createNetworkDigest(
     .map((address) => address.trim())
     .filter(Boolean);
   const index = (addresses?.length ?? 0) - 1 - trustedHops;
-  const address = index >= 0 ? addresses?.[index] : null;
+  const address =
+    index >= 0
+      ? addresses?.[index]
+      : environment.NODE_ENV === "production"
+        ? null
+        : DIRECT_DEVELOPMENT_NETWORK;
   if (!address) return null;
 
   const day = now.toISOString().slice(0, 10);

@@ -35,38 +35,47 @@ export function EvaluationAccess({
   const [state, setState] = useState<AccessState>("exchanging");
 
   useEffect(() => {
-    const token = window.location.hash.slice(1);
-    window.history.replaceState(
-      null,
-      "",
-      `${window.location.pathname}${window.location.search}`,
-    );
-    if (!token) {
-      const timer = window.setTimeout(() => {
-        setState("invalid");
-      }, 0);
-      return () => {
-        window.clearTimeout(timer);
-      };
-    }
-    const journeyId = currentAnalyticsJourneyId();
-    const exchange = journeyId
-      ? exchangeToken(token, journeyId)
-      : exchangeToken(token);
-    void exchange
-      .then((result) => {
-        if (result.status === "accepted") {
-          window.location.replace(
-            `/${locale}/file/respondent?notice=evaluation-access`,
-          );
-          return;
-        }
-        setState(result.status);
-      })
-      .catch(() => {
-        setState("unavailable");
-      });
-    return undefined;
+    let invalidTimer: number | undefined;
+    const exchangeCurrentFragment = () => {
+      if (invalidTimer !== undefined) window.clearTimeout(invalidTimer);
+      const token = window.location.hash.slice(1);
+      if (!token) {
+        invalidTimer = window.setTimeout(() => {
+          setState("invalid");
+        }, 0);
+        return;
+      }
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${window.location.search}`,
+      );
+      setState("exchanging");
+      const journeyId = currentAnalyticsJourneyId();
+      const exchange = journeyId
+        ? exchangeToken(token, journeyId)
+        : exchangeToken(token);
+      void exchange
+        .then((result) => {
+          if (result.status === "accepted") {
+            window.location.replace(
+              `/${locale}/file/respondent?notice=evaluation-access`,
+            );
+            return;
+          }
+          setState(result.status);
+        })
+        .catch(() => {
+          setState("unavailable");
+        });
+    };
+
+    exchangeCurrentFragment();
+    window.addEventListener("hashchange", exchangeCurrentFragment);
+    return () => {
+      if (invalidTimer !== undefined) window.clearTimeout(invalidTimer);
+      window.removeEventListener("hashchange", exchangeCurrentFragment);
+    };
   }, [exchangeToken, locale]);
 
   const content = accessContent(state, copy);
