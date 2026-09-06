@@ -2474,7 +2474,9 @@ function TimingFields(props: TimingFieldsProps) {
               props.onFirst(event.target.value);
             }}
           />
-          {props.firstType === "number" ? <span>{props.suffix}</span> : null}
+          {props.firstType === "number" ? (
+            <span className="field-unit">{props.suffix}</span>
+          ) : null}
         </span>
       </label>
       <label>
@@ -2492,7 +2494,7 @@ function TimingFields(props: TimingFieldsProps) {
               props.onSecond(event.target.value);
             }}
           />
-          <span>{props.suffix}</span>
+          <span className="field-unit">{props.suffix}</span>
         </span>
       </label>
     </div>

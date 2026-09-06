@@ -1148,13 +1148,14 @@ a {
 
 .chronology-relationship > div {
   position: relative;
+  border-left: 1px solid transparent;
   padding: 0 0 0 28px;
 }
 
 .chronology-relationship .chronology-endpoint::before {
   position: absolute;
   top: 0;
-  left: -7px;
+  left: -10.5px;
   width: 14px;
   height: 14px;
   border: 3px solid var(--ink-strong);
@@ -1168,7 +1169,7 @@ a {
 }
 
 .chronology-relationship > div:not(:last-child) {
-  border-left: 1px solid rgb(255 255 255 / 42%);
+  border-left-color: rgb(255 255 255 / 42%);
   padding-bottom: 28px;
 }
 
