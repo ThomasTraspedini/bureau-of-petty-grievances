@@ -1599,7 +1599,8 @@ a {
   height: 100%;
   object-fit: contain;
   opacity: 0.88;
-  rotate: -7deg;
+  /* Bounded placement extends at most 13px beyond the seal's box, within
+     the remedy's minimum 24px gap and 40px padding on both layouts. */
 }
 
 .remedy-record h2 {

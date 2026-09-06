@@ -13,6 +13,7 @@ import type { MessageCatalog } from "@/i18n/catalogs";
 import type { InterfaceLocale } from "@/i18n/routing";
 
 import { CivicSeal } from "../application-shell/application-shell";
+import { remedyStampPlacement } from "./remedy-stamp-placement";
 
 type DeterminationCopy = MessageCatalog["Determination"];
 type NavigationCopy = MessageCatalog["Navigation"];
@@ -47,6 +48,7 @@ export function DeterminationRecord({
   afterRecord,
   publicMetadata,
 }: DeterminationRecordProps) {
+  const stampPlacement = remedyStampPlacement(snapshot);
   const digitalConduct = isDigitalConductSnapshot(snapshot);
   const domesticAffairs = isDomesticAffairsSnapshot(snapshot);
   const socialPlanning = isSocialPlanningSnapshot(snapshot);
@@ -198,6 +200,9 @@ export function DeterminationRecord({
             <div className="remedy-seal" aria-hidden="true">
               <Image
                 className="remedy-stamp"
+                style={{
+                  transform: `translate(${stampPlacement.x}px, ${stampPlacement.y}px) rotate(${stampPlacement.rotation}deg)`,
+                }}
                 src={remedyStamp}
                 alt=""
                 width={96}

@@ -195,6 +195,64 @@ describe("determination experience", () => {
     expect(remedyStamp?.getAttribute("src")).toContain("stamp");
   });
 
+  it("keeps stamp placement through reload and public viewing of an existing snapshot", async () => {
+    const fixture = determinationFixture();
+    const now = Date.now();
+    const serialized = serializeDeterminationSession(
+      fixture.draft,
+      fixture.determination,
+      now,
+    );
+    window.sessionStorage.setItem(DETERMINATION_SESSION_KEY, serialized);
+    const privateView = (
+      <DeterminationExperience
+        locale="en"
+        copy={messages.Determination}
+        navigation={messages.Navigation}
+        publicRecord={messages.PublicRecord}
+      />
+    );
+    const first = render(privateView);
+    await screen.findByRole("heading", { name: "Review concerning Marco" });
+    const placement =
+      first.container.querySelector<HTMLElement>(".remedy-stamp")?.style
+        .transform;
+    expect(placement).toMatch(/translate\(.+\) rotate\(.+deg\)/);
+    first.unmount();
+    const reload = render(privateView);
+    await screen.findByRole("heading", { name: "Review concerning Marco" });
+    expect(
+      reload.container.querySelector<HTMLElement>(".remedy-stamp")?.style
+        .transform,
+    ).toBe(placement);
+    reload.unmount();
+
+    const restored = parseDeterminationSession(serialized, now);
+    if (restored.status !== "restored")
+      throw new Error("Snapshot must restore");
+    const publicView = render(
+      <PublicRecordExperience
+        locale="en"
+        publicUrl="https://bureau.example/en/record/example"
+        messages={messages}
+        consultationAggregate={null}
+        record={{
+          snapshotVersion: 1,
+          publicId: `rec_${"A".repeat(22)}`,
+          status: "published",
+          publishedAt: "2026-09-02T12:05:00.000Z",
+          expiresAt: "2027-03-01T12:05:00.000Z",
+          updatedAt: "2026-09-02T12:05:00.000Z",
+          snapshot: restored.snapshot,
+        }}
+      />,
+    );
+    expect(
+      publicView.container.querySelector<HTMLElement>(".remedy-stamp")?.style
+        .transform,
+    ).toBe(placement);
+  });
+
   it("renders expanded pseudo-localized interface copy", async () => {
     const fixture = determinationFixture();
     const pseudo = pseudoLocalizeCatalog(messages);
