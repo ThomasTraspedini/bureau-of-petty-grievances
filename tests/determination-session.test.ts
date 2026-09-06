@@ -251,7 +251,7 @@ describe("tab-scoped determination state", () => {
     ).toBe("invalid");
     expect(
       parseDeterminationSession(
-        value.replace('"version":4', '"version":5'),
+        value.replace('"version":5', '"version":6'),
         now,
       ).status,
     ).toBe("invalid");

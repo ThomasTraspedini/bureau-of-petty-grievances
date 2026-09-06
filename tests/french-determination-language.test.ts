@@ -282,6 +282,8 @@ describe("French determination language", () => {
     ).resolves.toMatchObject({ status: "success", output: language });
     const serialized = JSON.stringify(requests[0]);
     expect(serialized).toContain("français clair");
+    expect(serialized).toContain("procès-verbal");
+    expect(serialized).toContain("requiredSemanticReference");
     expect(serialized).toContain('\\"locale\\":\\"fr\\"');
     expect(serialized).not.toContain("Émile");
   });

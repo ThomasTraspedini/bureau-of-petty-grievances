@@ -187,6 +187,54 @@ describe("Italian determination language", () => {
     }
   });
 
+  it("uses concrete Italian wording for the container-remainder remedy", () => {
+    const filing: DomesticAffairsFiling = {
+      locale: "it",
+      department: "domestic_affairs",
+      respondent: "Luca",
+      relationship: "roommate",
+      offence: "token_remainder",
+      facts: { remainingServings: 1, capacityServings: 8 },
+      impact: "needed_item_unavailable",
+      mitigation: "usually_restocks",
+      statement: "Nel contenitore era rimasta una sola porzione.",
+    };
+    const result = createDomesticAffairsDeterminationLanguageCommand(
+      filing,
+      assessDomesticAffairsFiling(filing),
+    );
+    if (result.status !== "valid")
+      throw new Error("Italian Domestic Affairs command is required.");
+    const fallback = createItalianDomesticAffairsFallback(result.command);
+    expect(fallback.remedy.title).toBe(
+      "Protocollo per la gestione del residuo",
+    );
+    expect(fallback.remedy.instruction.text).toContain(
+      "finire il contenuto del contenitore condiviso prima di riporlo",
+    );
+    expect(fallback.remedy.instruction.text).not.toContain(
+      "completare il contenitore",
+    );
+
+    const validation = validateItalianDomesticAffairsLanguage(
+      {
+        ...fallback,
+        remedy: {
+          title: "Protocollo di completamento del contenitore",
+          instruction: {
+            ...fallback.remedy.instruction,
+            text: "Per le prossime tre occasioni domestiche, il Bureau raccomanda di completare il contenitore condiviso.",
+          },
+        },
+      },
+      result.command,
+    );
+    expect(validation.status).toBe("invalid");
+    if (validation.status === "invalid") {
+      expect(validation.issues).toContain("non_compliant_remedy");
+    }
+  });
+
   it("keeps the Italian fallback and snapshot locale explicit end-to-end", async () => {
     const filing: ChronologyFiling = {
       locale: "it",
@@ -282,6 +330,8 @@ describe("Italian determination language", () => {
     ).resolves.toMatchObject({ status: "success", output: language });
     const serialized = JSON.stringify(requests[0]);
     expect(serialized).toContain("Scrivi in italiano");
+    expect(serialized).toContain("trascrizione d'ufficio");
+    expect(serialized).toContain("requiredSemanticReference");
     expect(serialized).toContain('\\"locale\\":\\"it\\"');
     expect(serialized).not.toContain("Luca");
   });

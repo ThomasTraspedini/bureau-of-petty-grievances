@@ -109,17 +109,40 @@ function socialCommand() {
   return result.command;
 }
 
+function providerProse(
+  language: ReturnType<typeof createEnglishChronologyFallback>,
+) {
+  return {
+    allegation: language.allegation.text,
+    finding: language.finding.text,
+    consequence: language.consequence.text,
+    mitigation: language.mitigation.text,
+    remedy: {
+      title: language.remedy.title,
+      instruction: language.remedy.instruction.text,
+    },
+    closing: language.closing,
+  };
+}
+
 describe("OpenAI determination-language adapter", () => {
-  it("sends one non-persistent Luna structured-output request", async () => {
+  it("sends one non-persistent Terra prose-only structured-output request", async () => {
     const requests: unknown[] = [];
     const language = createEnglishChronologyFallback(command());
+    const expected = {
+      ...language,
+      allegation: {
+        ...language.allegation,
+        grounding: ["offence", "discrepancy", "witness_statement"],
+      },
+    };
     const provider = new OpenAIDeterminationLanguageProvider((request) => {
       requests.push(request);
       return Promise.resolve({
         id: "resp_123",
         model: "gpt-5.6-luna",
         status: "completed",
-        output_text: JSON.stringify(language),
+        output_text: JSON.stringify(providerProse(language)),
         output: [],
         usage: { input_tokens: 420, output_tokens: 210 },
       });
@@ -132,7 +155,7 @@ describe("OpenAI determination-language adapter", () => {
       }),
     ).resolves.toMatchObject({
       status: "success",
-      output: language,
+      output: expected,
       model: "gpt-5.6-luna",
       requestId: "resp_123",
       usage: { inputTokens: 420, outputTokens: 210 },
@@ -162,6 +185,12 @@ describe("OpenAI determination-language adapter", () => {
     });
     expect(JSON.stringify(requests[0])).not.toContain("Marco");
     expect(JSON.stringify(requests[0])).not.toContain("19:30");
+    expect(JSON.stringify(requests[0])).not.toContain("uniqueItems");
+    const serializedSchema = JSON.stringify(requests[0]);
+    expect(serializedSchema).toContain("officer's formal paraphrase");
+    expect(serializedSchema).toContain("requiredSemanticReference");
+    expect(serializedSchema).not.toContain('"grounding"');
+    expect(serializedSchema).toContain('"allegation":{"type":"string"');
   });
 
   it("normalizes refusal without returning refusal text", async () => {

@@ -188,7 +188,7 @@ export function validateSpanishDigitalConductLanguage(
     value,
     command,
     ["offence", "evidence"],
-    [],
+    ["witness_statement"],
     evidenceAnchors(
       command,
       digitalImpact(command.impact),
@@ -205,7 +205,7 @@ export function validateSpanishDomesticAffairsLanguage(
     value,
     command,
     ["offence", "evidence"],
-    [],
+    ["witness_statement"],
     evidenceAnchors(
       command,
       domesticImpact(command.impact),
@@ -222,7 +222,7 @@ export function validateSpanishSocialPlanningLanguage(
     value,
     command,
     ["offence", "evidence"],
-    [],
+    ["witness_statement"],
     evidenceAnchors(
       command,
       socialImpact(command.impact),

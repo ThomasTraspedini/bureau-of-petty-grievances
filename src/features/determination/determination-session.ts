@@ -10,9 +10,13 @@ import {
 import { type FilingDraft, validateFilingDraft } from "@/domain/filing/filing";
 import { assessFiling } from "@/domain/determination/assessment";
 import { isProductLocale, type ProductLocale } from "@/domain/locale";
+import type { DeterminationLanguageDiagnostics } from "@/domain/determination/determination-diagnostics";
 
-export const DETERMINATION_SESSION_KEY = "bpg:determination:en:v4";
+export const DETERMINATION_SESSION_KEY = "bpg:determination:en:v5";
 export function determinationSessionKey(locale: ProductLocale): string {
+  return `bpg:determination:${locale}:v5`;
+}
+export function legacyDeterminationSessionKeyV4(locale: ProductLocale): string {
   return `bpg:determination:${locale}:v4`;
 }
 export const LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY =
@@ -25,6 +29,15 @@ export const DETERMINATION_SESSION_LIFETIME_MS =
   DETERMINATION_TRANSIENT_LIFETIME_MS;
 
 interface DeterminationSessionEnvelope {
+  version: 5;
+  locale: ProductLocale;
+  createdAt: number;
+  draft: FilingDraft;
+  determination: IssuedDetermination;
+  diagnostics: DeterminationLanguageDiagnostics | null;
+}
+
+interface LegacyDeterminationSessionEnvelope {
   version: 1 | 2 | 3 | 4;
   locale: ProductLocale;
   createdAt: number;
@@ -33,20 +46,26 @@ interface DeterminationSessionEnvelope {
 }
 
 export type StoredDeterminationResult =
-  | { status: "restored"; snapshot: DeterminationSnapshot }
+  | {
+      status: "restored";
+      snapshot: DeterminationSnapshot;
+      diagnostics: DeterminationLanguageDiagnostics | null;
+    }
   | { status: "empty" | "expired" | "invalid" };
 
 export function serializeDeterminationSession(
   draft: FilingDraft,
   determination: IssuedDetermination,
   now: number,
+  diagnostics: DeterminationLanguageDiagnostics | null = null,
 ): string {
   const envelope: DeterminationSessionEnvelope = {
-    version: 4,
+    version: 5,
     locale: determination.locale,
     createdAt: now,
     draft,
     determination,
+    diagnostics,
   };
   return JSON.stringify(envelope);
 }
@@ -106,8 +125,13 @@ export function parseDeterminationSession(
       },
       new Date(now),
     );
-    return validated.status === "valid"
-      ? { status: "restored", snapshot: validated.snapshot }
+    const diagnostics = validateDiagnostics(
+      parsed.version === 5 ? parsed.diagnostics : null,
+      validated.status === "valid" ? validated.snapshot : null,
+      now,
+    );
+    return validated.status === "valid" && diagnostics !== "invalid"
+      ? { status: "restored", snapshot: validated.snapshot, diagnostics }
       : { status: "invalid" };
   } catch {
     return { status: "invalid" };
@@ -116,19 +140,26 @@ export function parseDeterminationSession(
 
 function isSessionEnvelope(
   value: unknown,
-): value is DeterminationSessionEnvelope {
+): value is DeterminationSessionEnvelope | LegacyDeterminationSessionEnvelope {
+  const version = isRecord(value) ? value.version : undefined;
+  const keys =
+    version === 5
+      ? [
+          "version",
+          "locale",
+          "createdAt",
+          "draft",
+          "determination",
+          "diagnostics",
+        ]
+      : ["version", "locale", "createdAt", "draft", "determination"];
   if (
-    !isExactRecord(value, [
-      "version",
-      "locale",
-      "createdAt",
-      "draft",
-      "determination",
-    ]) ||
+    !isExactRecord(value, keys) ||
     (value.version !== 1 &&
       value.version !== 2 &&
       value.version !== 3 &&
-      value.version !== 4) ||
+      value.version !== 4 &&
+      value.version !== 5) ||
     !isProductLocale(value.locale) ||
     typeof value.createdAt !== "number" ||
     !Number.isFinite(value.createdAt) ||
@@ -150,8 +181,37 @@ function isSessionEnvelope(
     isProductLocale(determination.locale) &&
     determination.locale === value.locale &&
     isDeterminationReference(determination.reference) &&
-    typeof determination.issuedAt === "string"
+    typeof determination.issuedAt === "string" &&
+    (value.version !== 5 || isDiagnosticsShape(value.diagnostics))
   );
+}
+
+function validateDiagnostics(
+  value: DeterminationLanguageDiagnostics | null,
+  snapshot: DeterminationSnapshot | null,
+  now: number,
+): DeterminationLanguageDiagnostics | null | "invalid" {
+  if (value === null) return null;
+  if (snapshot === null || !isDiagnosticsShape(value)) return "invalid";
+  const validated = validateDeterminationSnapshot(
+    { ...snapshot, language: value.standardLanguage },
+    new Date(now),
+  );
+  return validated.status === "valid" ? value : "invalid";
+}
+
+function isDiagnosticsShape(
+  value: unknown,
+): value is DeterminationLanguageDiagnostics | null {
+  return (
+    value === null ||
+    (isExactRecord(value, ["source", "standardLanguage"]) &&
+      (value.source === "personalized" || value.source === "standard"))
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isExactRecord(

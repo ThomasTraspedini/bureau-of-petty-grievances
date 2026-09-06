@@ -6,6 +6,9 @@ import {
   createIssuedDetermination,
   type IssuedDetermination,
 } from "@/domain/determination/determination-experience";
+import { createDeterminationLanguageCommand } from "@/domain/determination/determination-language";
+import { createDeterministicDeterminationLanguage } from "@/domain/determination/deterministic-language";
+import type { DeterminationLanguageDiagnostics } from "@/domain/determination/determination-diagnostics";
 import type { FilingError } from "@/domain/filing/chronology";
 import { validateFilingDraft } from "@/domain/filing/filing";
 import type {
@@ -23,7 +26,11 @@ import {
 import { generateDeterminationLanguage } from "./generate-determination-language";
 
 export type CompleteFilingResult =
-  | { status: "accepted"; determination: IssuedDetermination }
+  | {
+      status: "accepted";
+      determination: IssuedDetermination;
+      diagnostics?: DeterminationLanguageDiagnostics;
+    }
   | { status: "rejected"; errors: FilingError[] }
   | { status: "limited"; retryAfterSeconds: number }
   | { status: "failed" };
@@ -97,6 +104,15 @@ export async function completeFilingReviewWith(
   } catch {
     return { status: "failed" };
   }
+}
+
+function createDeterminationLanguageCommandOrThrow(
+  filing: Parameters<typeof createDeterminationLanguageCommand>[0],
+  assessment: Parameters<typeof createDeterminationLanguageCommand>[1],
+) {
+  const result = createDeterminationLanguageCommand(filing, assessment);
+  if (result.status === "invalid") throw new Error("assessment mismatch");
+  return result.command;
 }
 
 export async function completeFilingReviewControlledWith(
@@ -263,6 +279,20 @@ export async function completeFilingReviewControlledWith(
         assessment,
         generated.language,
       ),
+      ...(accessKind === "evaluation"
+        ? {
+            diagnostics: {
+              source:
+                generated.source === "provider" ? "personalized" : "standard",
+              standardLanguage: createDeterministicDeterminationLanguage(
+                createDeterminationLanguageCommandOrThrow(
+                  validation.filing,
+                  assessment,
+                ),
+              ),
+            } satisfies DeterminationLanguageDiagnostics,
+          }
+        : {}),
     };
   } catch {
     if (

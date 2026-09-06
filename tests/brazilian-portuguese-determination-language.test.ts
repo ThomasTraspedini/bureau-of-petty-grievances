@@ -287,6 +287,8 @@ describe("Brazilian Portuguese determination language", () => {
     ).resolves.toMatchObject({ status: "success", output: language });
     const serialized = JSON.stringify(requests[0]);
     expect(serialized).toContain("português brasileiro claro");
+    expect(serialized).toContain("transcrição administrativa");
+    expect(serialized).toContain("requiredSemanticReference");
     expect(serialized).toContain('\\"locale\\":\\"pt-BR\\"');
     expect(serialized).not.toContain("Rafael");
   });

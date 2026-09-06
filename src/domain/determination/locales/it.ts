@@ -20,7 +20,7 @@ import {
 } from "@/domain/filing/chronology";
 
 /** Italian editorial policy and deterministic language for every Bureau department. */
-export const IT_EDITORIAL_POLICY_VERSION = 1 as const;
+export const IT_EDITORIAL_POLICY_VERSION = 2 as const;
 
 export const IT_CHRONOLOGY_EDITORIAL_INSTRUCTIONS = instructions(
   "Ufficio della Cronologia",
@@ -32,7 +32,7 @@ export const IT_DIGITAL_CONDUCT_EDITORIAL_INSTRUCTIONS = instructions(
 );
 export const IT_DOMESTIC_AFFAIRS_EDITORIAL_INSTRUCTIONS = instructions(
   "Ufficio degli Affari Domestici",
-  `Non inventare stanze, indirizzi, oggetti, contenuti di contenitori, condizioni igieniche, motivi, proprietà, indagini, fonti esterne o conseguenze. L'Ufficio non ha usato foto, sensori, mappe della casa, inventari o osservazioni fuori dalla pratica. Non richiedere monitoraggio, controlli igienici, restrizioni alimentari, smaltimento di proprietà, pagamenti o azioni in conflitto con esigenze di accesso, sicurezza, cura, salute, lavoro o altre circostanze serie.`,
+  `Non inventare stanze, indirizzi, oggetti, contenuti di contenitori, condizioni igieniche, motivi, proprietà, indagini, fonti esterne o conseguenze. L'Ufficio non ha usato foto, sensori, mappe della casa, inventari o osservazioni fuori dalla pratica. Non richiedere monitoraggio, controlli igienici, restrizioni alimentari, smaltimento di proprietà, pagamenti o azioni in conflitto con esigenze di accesso, sicurezza, cura, salute, lavoro o altre circostanze serie. Per il residuo in un contenitore, non usare «completare il contenitore»: esprimi invece l'azione concreta di finire il contenuto prima di riporlo oppure di segnalare chiaramente il residuo.`,
 );
 export const IT_SOCIAL_PLANNING_EDITORIAL_INSTRUCTIONS = instructions(
   "Ufficio della Pianificazione Sociale",
@@ -188,7 +188,7 @@ export function validateItalianDigitalConductLanguage(
     value,
     command,
     ["offence", "evidence"],
-    [],
+    ["witness_statement"],
     evidenceAnchors(
       command,
       digitalImpact(command.impact),
@@ -205,7 +205,7 @@ export function validateItalianDomesticAffairsLanguage(
     value,
     command,
     ["offence", "evidence"],
-    [],
+    ["witness_statement"],
     evidenceAnchors(
       command,
       domesticImpact(command.impact),
@@ -222,7 +222,7 @@ export function validateItalianSocialPlanningLanguage(
     value,
     command,
     ["offence", "evidence"],
-    [],
+    ["witness_statement"],
     evidenceAnchors(
       command,
       socialImpact(command.impact),
@@ -248,6 +248,8 @@ const OFF_TONE =
   /!|\p{Extended_Pictographic}|\b(?:lol|ahah|scherz|come (?:un )?ai|colpevole|imputato|punizione|criminale|tribunale|giudice|carcere)\b/iu;
 const BINDING =
   /\b(?:deve|devono|dovrà|dovranno|ordinat[oa]|obbligat[oa]|costrett[oa]|esclud|vietat[oa]|multa|pagare|privare|monitor|tracci|pubblicamente|umili|ispezion)\b/iu;
+const UNNATURAL_CONTAINER_COMPLETION =
+  /\b(?:completare il contenitore|completamento del contenitore)\b/iu;
 
 function instructions(department: string, boundary: string): string {
   return `Scrivi il linguaggio ufficiale di una determinazione per il Bureau of Petty Grievances, ${department}.
@@ -485,9 +487,9 @@ function domesticRemedy(
   switch (command.remedy.family) {
     case "container_completion_protocol":
       return {
-        title: "Protocollo di completamento del contenitore",
+        title: "Protocollo per la gestione del residuo",
         anchor: "contenitore",
-        instruction: `Per le prossime ${n} ${c}, il Bureau raccomanda di completare il contenitore condiviso o di rendere chiaramente noto il residuo.`,
+        instruction: `Per le prossime ${n} ${c}, il Bureau raccomanda di finire il contenuto del contenitore condiviso prima di riporlo oppure di segnalare chiaramente la quantità residua.`,
       };
     case "correct_location_protocol":
       return {
@@ -847,6 +849,12 @@ function validate(
     ) ||
     BINDING.test(remedy) ||
     !/\b(?:raccomanda|suggerisce|protocollo)\b/iu.test(remedy)
+  )
+    issues.push("non_compliant_remedy");
+  if (
+    command.department === "domestic_affairs" &&
+    command.remedy.family === "container_completion_protocol" &&
+    UNNATURAL_CONTAINER_COMPLETION.test(remedy)
   )
     issues.push("non_compliant_remedy");
   return issues.length

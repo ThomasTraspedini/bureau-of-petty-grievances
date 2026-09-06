@@ -1140,12 +1140,32 @@ a {
 .domestic-register-diagram {
   display: grid;
   max-width: 760px;
-  grid-template-columns: 118px minmax(220px, 1fr) minmax(140px, 0.65fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: end;
   gap: clamp(24px, 5vw, 58px);
   min-height: 190px;
   padding: 24px 18px 30px;
   border-bottom: 1px solid rgb(255 255 255 / 34%);
+}
+
+.domestic-register-diagram[data-kind="container_remainder"]
+  .domestic-container-gauge {
+  width: min(118px, 100%);
+}
+
+.domestic-register-diagram[data-kind="container_remainder"]
+  .domestic-container-gauge:nth-child(2) {
+  grid-column: 2;
+}
+
+.domestic-register-diagram[data-kind="correction_path"]
+  .domestic-correction-path,
+.domestic-register-diagram[data-kind="empty_inventory"] .domestic-inventory {
+  grid-column: 1 / 3;
+}
+
+.domestic-register-diagram[data-kind="empty_inventory"] .domestic-inventory {
+  grid-template-columns: repeat(4, 44px);
 }
 
 .domestic-container-gauge {
@@ -1158,6 +1178,7 @@ a {
 
 .domestic-container-gauge::before {
   position: absolute;
+  z-index: 1;
   inset: 18px 14px auto;
   height: 1px;
   background: rgb(255 255 255 / 28%);
@@ -1495,6 +1516,67 @@ a {
   margin: 0;
   color: var(--ink-soft);
   font-size: 13px;
+}
+
+.evaluation-language-panel {
+  width: min(1120px, calc(100% - 40px));
+  margin: 32px auto 0;
+  padding: clamp(28px, 5vw, 48px);
+  border: 1px solid color-mix(in srgb, var(--record-accent) 58%, var(--line));
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--record-accent) 8%, var(--paper));
+}
+
+.evaluation-language-panel h2 {
+  margin: 8px 0 12px;
+  font-family: var(--serif);
+  font-size: clamp(28px, 4vw, 40px);
+}
+
+.evaluation-language-panel > p:not(.eyebrow) {
+  max-width: 760px;
+  color: var(--ink-soft);
+}
+
+.evaluation-language-panel details {
+  margin-top: 24px;
+}
+
+.evaluation-language-panel summary {
+  cursor: pointer;
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.evaluation-language-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin-top: 18px;
+}
+
+.evaluation-language-comparison section {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--paper);
+}
+
+.evaluation-language-comparison h3 {
+  margin: 0 0 16px;
+  font-size: 18px;
+}
+
+.evaluation-language-comparison p {
+  overflow-wrap: anywhere;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 720px) {
+  .evaluation-language-comparison {
+    grid-template-columns: 1fr;
+  }
 }
 
 .remedy-record {
@@ -2799,11 +2881,18 @@ footer p {
   }
 
   .domestic-register-diagram {
-    grid-template-columns: 76px minmax(120px, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 118px));
+    gap: 24px;
   }
 
-  .domestic-inventory {
-    display: none;
+  .domestic-register-diagram[data-kind="correction_path"]
+    .domestic-correction-path,
+  .domestic-register-diagram[data-kind="empty_inventory"] .domestic-inventory {
+    grid-column: 1 / -1;
+  }
+
+  .domestic-register-diagram[data-kind="empty_inventory"] .domestic-inventory {
+    grid-template-columns: repeat(4, minmax(0, 36px));
   }
 
   .domestic-register figcaption {

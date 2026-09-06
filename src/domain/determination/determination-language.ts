@@ -68,7 +68,7 @@ export const GROUNDING_REFERENCE_CODES = [
 
 export const DETERMINATION_LANGUAGE_LIMITS = {
   allegation: 220,
-  finding: 280,
+  finding: 420,
   consequence: 180,
   mitigation: 180,
   remedyTitle: 72,
@@ -200,13 +200,14 @@ export type ChronologyLanguageCommandResult =
       reason: "assessment_mismatch";
     };
 
+/**
+ * Provider-facing schema. Deterministic metadata and grounding are deliberately
+ * excluded: the adapter owns those values and attaches them after generation.
+ */
 export const DETERMINATION_LANGUAGE_JSON_SCHEMA: Record<string, unknown> = {
   type: "object",
   additionalProperties: false,
   required: [
-    "schemaVersion",
-    "locale",
-    "disposition",
     "allegation",
     "finding",
     "consequence",
@@ -215,16 +216,10 @@ export const DETERMINATION_LANGUAGE_JSON_SCHEMA: Record<string, unknown> = {
     "closing",
   ],
   properties: {
-    schemaVersion: { type: "integer", const: 1 },
-    locale: { type: "string", enum: ["en", "it", "fr", "de", "es", "pt-BR"] },
-    disposition: {
-      type: "string",
-      enum: DETERMINATION_DISPOSITION_CODES,
-    },
-    allegation: groundedTextSchema(DETERMINATION_LANGUAGE_LIMITS.allegation),
-    finding: groundedTextSchema(DETERMINATION_LANGUAGE_LIMITS.finding),
-    consequence: groundedTextSchema(DETERMINATION_LANGUAGE_LIMITS.consequence),
-    mitigation: groundedTextSchema(DETERMINATION_LANGUAGE_LIMITS.mitigation),
+    allegation: textSchema(DETERMINATION_LANGUAGE_LIMITS.allegation),
+    finding: textSchema(DETERMINATION_LANGUAGE_LIMITS.finding),
+    consequence: textSchema(DETERMINATION_LANGUAGE_LIMITS.consequence),
+    mitigation: textSchema(DETERMINATION_LANGUAGE_LIMITS.mitigation),
     remedy: {
       type: "object",
       additionalProperties: false,
@@ -235,7 +230,7 @@ export const DETERMINATION_LANGUAGE_JSON_SCHEMA: Record<string, unknown> = {
           minLength: 1,
           maxLength: DETERMINATION_LANGUAGE_LIMITS.remedyTitle,
         },
-        instruction: groundedTextSchema(
+        instruction: textSchema(
           DETERMINATION_LANGUAGE_LIMITS.remedyInstruction,
         ),
       },
@@ -247,6 +242,10 @@ export const DETERMINATION_LANGUAGE_JSON_SCHEMA: Record<string, unknown> = {
     },
   },
 };
+
+function textSchema(maxLength: number): Record<string, unknown> {
+  return { type: "string", minLength: 1, maxLength };
+}
 
 export function createChronologyDeterminationLanguageCommand(
   filing: ChronologyFiling,
@@ -447,22 +446,4 @@ function redactProviderWitnessStatement(
   return statement
     .replace(respondentPattern, "[respondent]")
     .replace(/\b(?:[01]\d|2[0-3]):[0-5]\d\b/gu, "[submitted_time]");
-}
-
-function groundedTextSchema(maxLength: number): Record<string, unknown> {
-  return {
-    type: "object",
-    additionalProperties: false,
-    required: ["text", "grounding"],
-    properties: {
-      text: { type: "string", minLength: 1, maxLength },
-      grounding: {
-        type: "array",
-        minItems: 1,
-        maxItems: 4,
-        uniqueItems: true,
-        items: { type: "string", enum: GROUNDING_REFERENCE_CODES },
-      },
-    },
-  };
 }

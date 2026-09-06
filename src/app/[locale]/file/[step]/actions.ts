@@ -41,8 +41,8 @@ export async function completeFilingReview(
     provider: createConfiguredOpenAIDeterminationLanguageProvider(),
     accessRepository: await getRuntimeAccessControlRepository(),
     sessionCredential:
-      requestCookies.get(STANDARD_SESSION_COOKIE)?.value ??
       requestCookies.get(EVALUATION_SESSION_COOKIE)?.value ??
+      requestCookies.get(STANDARD_SESSION_COOKIE)?.value ??
       null,
     networkDigest: createNetworkDigest(requestHeaders, requestTime),
     now: () => new Date(),

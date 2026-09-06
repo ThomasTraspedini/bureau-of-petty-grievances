@@ -17,11 +17,11 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:provider:live": "vitest run --config vitest.live.config.ts",
+    "test:provider:live": "node --env-file-if-exists=.env node_modules/vitest/vitest.mjs run --config vitest.live.config.ts",
     "test:e2e": "playwright test",
-    "records:operate": "node scripts/public-record-operations.mjs",
-    "access:operate": "node scripts/access-operations.mjs",
-    "analytics:operate": "node scripts/analytics-operations.mjs",
+    "records:operate": "node --env-file-if-exists=.env scripts/public-record-operations.mjs",
+    "access:operate": "node --env-file-if-exists=.env scripts/access-operations.mjs",
+    "analytics:operate": "node --env-file-if-exists=.env scripts/analytics-operations.mjs",
     "verify:app": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e"
   },
   "dependencies": {

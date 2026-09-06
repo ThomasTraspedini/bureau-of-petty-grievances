@@ -243,7 +243,15 @@ describe("controlled filing completion", () => {
       controlledDependencies(repository, { generate: provider }),
     );
 
-    expect(result).toMatchObject({ status: "accepted" });
+    expect(result).toMatchObject({
+      status: "accepted",
+      diagnostics: {
+        source: "personalized",
+        standardLanguage: {
+          remedy: { title: "Departure language protocol" },
+        },
+      },
+    });
     expect(reserve).toHaveBeenCalledTimes(1);
     expect(provider).toHaveBeenCalledTimes(1);
     expect(completion).toHaveBeenCalledWith(
@@ -317,6 +325,7 @@ describe("controlled filing completion", () => {
         language: { remedy: { title: "Departure language protocol" } },
       },
     });
+    expect(result).not.toHaveProperty("diagnostics");
     expect(provider).not.toHaveBeenCalled();
   });
 
@@ -376,7 +385,10 @@ describe("controlled filing completion", () => {
       idempotencyKey,
       controlledDependencies(repository, { generate: provider }),
     );
-    expect(result.status).toBe("accepted");
+    expect(result).toMatchObject({
+      status: "accepted",
+      diagnostics: { source: "standard" },
+    });
     expect(provider).not.toHaveBeenCalled();
     expect(completion).toHaveBeenCalledWith(
       `gen_${"r".repeat(22)}`,

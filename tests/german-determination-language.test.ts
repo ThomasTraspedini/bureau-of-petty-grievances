@@ -281,6 +281,8 @@ describe("German determination language", () => {
     ).resolves.toMatchObject({ status: "success", output: language });
     const serialized = JSON.stringify(requests[0]);
     expect(serialized).toContain("klarem, respektvollem Deutsch");
+    expect(serialized).toContain("amtliche Umschreibung");
+    expect(serialized).toContain("requiredSemanticReference");
     expect(serialized).toContain('\\"locale\\":\\"de\\"');
     expect(serialized).not.toContain("Lukas");
   });

@@ -10,7 +10,13 @@ import OpenAI, {
 } from "openai";
 import type { ResponseCreateParamsNonStreaming } from "openai/resources/responses/responses";
 
-import { DETERMINATION_LANGUAGE_JSON_SCHEMA } from "@/domain/determination/determination-language";
+import {
+  DETERMINATION_LANGUAGE_JSON_SCHEMA,
+  DETERMINATION_LANGUAGE_SCHEMA_VERSION,
+  type DeterminationLanguage,
+  type DeterminationLanguageCommand,
+} from "@/domain/determination/determination-language";
+import { createDeterministicDeterminationLanguage } from "@/domain/determination/deterministic-language";
 import {
   buildEnglishChronologyGenerationInput,
   EN_CHRONOLOGY_EDITORIAL_INSTRUCTIONS,
@@ -52,8 +58,8 @@ import {
   type DeterminationLanguageProviderResult,
 } from "@/providers/determination-language-provider";
 
-export const DEFAULT_OPENAI_DETERMINATION_MODEL = "gpt-5.6-luna";
-export const OPENAI_DETERMINATION_TIMEOUT_MS = 12_000;
+export const DEFAULT_OPENAI_DETERMINATION_MODEL = "gpt-5.6-terra";
+export const OPENAI_DETERMINATION_TIMEOUT_MS = 18_000;
 export const OPENAI_DETERMINATION_MAX_RETRIES = 0;
 
 type CreateResponse = (
@@ -78,10 +84,13 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
     attempt: Parameters<DeterminationLanguageProvider["generate"]>[1],
   ): Promise<DeterminationLanguageProviderResult> {
     try {
-      const { instructions, input, editorialPolicyVersion } = generationPolicy(
+      const policy = generationPolicy(
         command,
         attempt.previousValidationIssues,
       );
+      const instructions = `${policy.instructions}\n\n${PROVIDER_PROSE_CONTRACT[command.locale]}`;
+      const input = addSemanticReference(policy.input, command);
+      const editorialPolicyVersion = policy.editorialPolicyVersion;
       const response = await this.createResponse({
         model: this.model,
         store: false,
@@ -107,11 +116,41 @@ export class OpenAIDeterminationLanguageProvider implements DeterminationLanguag
         },
       });
 
-      return normalizeOpenAIResponse(response, this.model);
+      return normalizeOpenAIResponse(response, this.model, command);
     } catch (error: unknown) {
       return normalizeOpenAIError(error);
     }
   }
+}
+
+const PROVIDER_PROSE_CONTRACT = {
+  en: "Return only the prose fields required by the response schema; the server supplies locale, disposition, and factual grounding. Render allegation as an officer's formal paraphrase of the filed account, never as a quotation. Give the finding one precise, unexpectedly attentive bureaucratic observation grounded only in the submitted facts. Preserve verbatim the localized severity term used in the semantic reference finding. Each consequence, mitigation, and remedy must retain at least one distinctive domain term from its matching semantic reference, while the surrounding sentences must be original.",
+  it: "Restituisci solo i campi di prosa previsti dallo schema; locale, disposizione e riferimenti fattuali sono applicati dal server. Redigi l'allegazione come trascrizione d'ufficio del resoconto depositato, con il burocratese formale e involontariamente solenne di un verbale, mai come citazione. Inserisci nell'accertamento un'osservazione amministrativa precisa e sorprendentemente premurosa, fondata solo sui fatti presentati. Conserva alla lettera il termine italiano della gravità usato nell'accertamento del riferimento semantico. Conseguenza, attenuante e rimedio devono mantenere almeno un termine distintivo del rispettivo riferimento semantico, dentro frasi altrimenti originali.",
+  fr: "Retourne uniquement les champs de prose du schéma; le serveur ajoute la langue, la décision et les références factuelles. Rédige l'allégation comme la reformulation formelle d'un procès-verbal, jamais comme une citation. Ajoute au constat une observation administrative précise et étonnamment attentive, fondée uniquement sur les faits déposés. Conserve mot pour mot le terme français de gravité employé dans le constat de la référence sémantique. La conséquence, la circonstance atténuante et le remède doivent chacun conserver au moins un terme distinctif de leur référence sémantique, dans des phrases par ailleurs originales.",
+  de: "Gib ausschließlich die Prosafelder des Schemas zurück; Sprache, Entscheidung und Tatsachenbezüge ergänzt der Server. Formuliere die Darlegung als förmliche amtliche Umschreibung des eingereichten Berichts, nie als Zitat. Ergänze die Feststellung um eine präzise, unerwartet aufmerksame Verwaltungsbeobachtung, die nur auf den eingereichten Tatsachen beruht. Übernimm den lokalisierten Schweregradbegriff aus der Feststellung der semantischen Referenz wortgetreu. Folge, Milderung und Abhilfe müssen jeweils mindestens einen kennzeichnenden Fachbegriff ihrer semantischen Referenz in ansonsten eigenständigen Sätzen beibehalten.",
+  es: "Devuelve únicamente los campos de prosa del esquema; el servidor añade idioma, disposición y referencias fácticas. Redacta la alegación como transcripción administrativa formal del relato presentado, nunca como cita. Incluye en la conclusión una observación burocrática precisa y sorprendentemente atenta, basada solo en los hechos aportados. Conserva literalmente el término español de gravedad utilizado en la conclusión de la referencia semántica. La consecuencia, la atenuante y el remedio deben conservar al menos un término distintivo de su referencia semántica dentro de frases por lo demás originales.",
+  "pt-BR":
+    "Retorne somente os campos de prosa do esquema; o servidor acrescenta idioma, decisão e referências factuais. Redija a alegação como transcrição administrativa formal do relato apresentado, nunca como citação. Inclua na constatação uma observação burocrática precisa e surpreendentemente atenciosa, baseada apenas nos fatos fornecidos. Preserve literalmente o termo brasileiro de gravidade usado na constatação da referência semântica. Consequência, atenuante e remédio devem manter pelo menos um termo distintivo da respectiva referência semântica em frases de redação original.",
+} as const;
+
+function addSemanticReference(
+  input: string,
+  command: DeterminationLanguageCommand,
+): string {
+  const parsed: unknown = JSON.parse(input);
+  const reference = createDeterministicDeterminationLanguage(command);
+  return JSON.stringify({
+    ...(isRecord(parsed) ? parsed : { submittedRecord: command }),
+    requiredSemanticReference: {
+      purpose:
+        "These localized phrases establish validator vocabulary and factual anchors. Preserve their facts and key domain terms, while writing original prose.",
+      allegation: reference.allegation.text,
+      finding: reference.finding.text,
+      consequence: reference.consequence.text,
+      mitigation: reference.mitigation.text,
+      remedy: `${reference.remedy.title}. ${reference.remedy.instruction.text}`,
+    },
+  });
 }
 
 function italianInput(
@@ -139,7 +178,7 @@ type ValidationIssues = Parameters<
 function generationPolicy(
   command: GenerationCommand,
   previousIssues: ValidationIssues,
-): { instructions: string; input: string; editorialPolicyVersion: 1 } {
+): { instructions: string; input: string; editorialPolicyVersion: 1 | 2 } {
   if (command.locale === "it") {
     return {
       instructions:
@@ -350,6 +389,7 @@ export function createConfiguredOpenAIDeterminationLanguageProvider(
 function normalizeOpenAIResponse(
   value: unknown,
   requestedModel: string,
+  command: DeterminationLanguageCommand,
 ): DeterminationLanguageProviderResult {
   if (!isRecord(value)) {
     return { status: "retryable_failure", reason: "provider_unavailable" };
@@ -366,7 +406,8 @@ function normalizeOpenAIResponse(
   }
 
   try {
-    const output: unknown = JSON.parse(value.output_text);
+    const parsed: unknown = JSON.parse(value.output_text);
+    const output = assembleDeterminationLanguage(parsed, command) ?? parsed;
     return {
       status: "success",
       output,
@@ -383,6 +424,60 @@ function normalizeOpenAIResponse(
       ...(usage ? { usage } : {}),
     };
   }
+}
+
+function assembleDeterminationLanguage(
+  value: unknown,
+  command: DeterminationLanguageCommand,
+): DeterminationLanguage | null {
+  if (
+    !isExactRecord(value, [
+      "allegation",
+      "finding",
+      "consequence",
+      "mitigation",
+      "remedy",
+      "closing",
+    ]) ||
+    typeof value.allegation !== "string" ||
+    typeof value.finding !== "string" ||
+    typeof value.consequence !== "string" ||
+    typeof value.mitigation !== "string" ||
+    typeof value.closing !== "string" ||
+    !isExactRecord(value.remedy, ["title", "instruction"]) ||
+    typeof value.remedy.title !== "string" ||
+    typeof value.remedy.instruction !== "string"
+  ) {
+    return null;
+  }
+
+  const incidentGrounding = [
+    "offence",
+    command.department === "chronology" ? "discrepancy" : "evidence",
+  ] as const;
+  return {
+    schemaVersion: DETERMINATION_LANGUAGE_SCHEMA_VERSION,
+    locale: command.locale,
+    disposition: command.disposition,
+    allegation: {
+      text: value.allegation,
+      grounding: [...incidentGrounding, "witness_statement"],
+    },
+    finding: {
+      text: value.finding,
+      grounding: [...incidentGrounding, "severity"],
+    },
+    consequence: { text: value.consequence, grounding: ["impact"] },
+    mitigation: { text: value.mitigation, grounding: ["mitigation"] },
+    remedy: {
+      title: value.remedy.title,
+      instruction: {
+        text: value.remedy.instruction,
+        grounding: ["remedy_family", "remedy_limit", "relationship_context"],
+      },
+    },
+    closing: value.closing,
+  };
 }
 
 function parseUsage(value: unknown) {
@@ -446,4 +541,16 @@ function normalizeOpenAIError(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isExactRecord(
+  value: unknown,
+  keys: readonly string[],
+): value is Record<string, unknown> {
+  if (!isRecord(value)) return false;
+  const actualKeys = Object.keys(value);
+  return (
+    actualKeys.length === keys.length &&
+    keys.every((key) => Object.hasOwn(value, key))
+  );
 }

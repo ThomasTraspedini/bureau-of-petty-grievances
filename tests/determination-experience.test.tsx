@@ -16,6 +16,7 @@ import {
 } from "@/domain/filing/chronology";
 import {
   createEmptyDomesticAffairsDraft,
+  type DomesticAffairsOffenceCode,
   validateDomesticAffairsDraft,
 } from "@/domain/filing/domestic-affairs";
 import {
@@ -67,24 +68,33 @@ function determinationFixture() {
   return { draft, determination };
 }
 
-function domesticDeterminationFixture() {
-  const draft = {
-    ...createEmptyDomesticAffairsDraft(),
-    respondent: "Riley",
-    relationship: "roommate" as const,
-    offence: "misplaced_object" as const,
-    facts: {
-      ...createEmptyDomesticAffairsDraft().facts,
-      misplacedObject: {
-        itemCount: "4",
-        distanceSteps: "8",
-        correctionSeconds: "45",
-      },
-    },
-    impact: "shared_space_obstructed" as const,
-    mitigation: "handles_other_chores" as const,
-    statement: "Four items waited beside their ordinary location.",
-  };
+function domesticDeterminationFixture(
+  offence: DomesticAffairsOffenceCode = "misplaced_object",
+) {
+  const draft = createEmptyDomesticAffairsDraft();
+  draft.respondent = "Riley";
+  draft.relationship = "roommate";
+  draft.offence = offence;
+  draft.impact = "shared_space_obstructed";
+  draft.mitigation = "handles_other_chores";
+  draft.statement = "The household condition remained unresolved.";
+  if (offence === "token_remainder") {
+    draft.facts.tokenRemainder = {
+      remainingServings: "1",
+      capacityServings: "8",
+    };
+  } else if (offence === "misplaced_object") {
+    draft.facts.misplacedObject = {
+      itemCount: "4",
+      distanceSteps: "8",
+      correctionSeconds: "45",
+    };
+  } else {
+    draft.facts.emptyPackaging = {
+      emptyPackageCount: "4",
+      recurrencesInThirtyDays: "6",
+    };
+  }
   const validated = validateDomesticAffairsDraft(draft, "en");
   if (validated.status === "invalid") throw new Error("Invalid fixture.");
   const assessment = assessDomesticAffairsFiling(validated.filing);
@@ -212,6 +222,40 @@ describe("determination experience", () => {
     expect(screen.getByText(pseudo.Determination.transientBody)).toBeVisible();
   });
 
+  it("shows evaluator-only language provenance and comparison", async () => {
+    const fixture = determinationFixture();
+    window.sessionStorage.setItem(
+      DETERMINATION_SESSION_KEY,
+      serializeDeterminationSession(
+        fixture.draft,
+        fixture.determination,
+        Date.now(),
+        {
+          source: "personalized",
+          standardLanguage: fixture.determination.language,
+        },
+      ),
+    );
+
+    render(
+      <DeterminationExperience
+        locale="en"
+        copy={messages.Determination}
+        navigation={messages.Navigation}
+        publicRecord={messages.PublicRecord}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: messages.Determination.evaluationPersonalizedTitle,
+      }),
+    ).toBeVisible();
+    expect(
+      screen.getByText(messages.Determination.evaluationCompareAction),
+    ).toBeVisible();
+  });
+
   it("renders the Domestic Affairs register with its no-access boundary", async () => {
     const fixture = domesticDeterminationFixture();
     window.sessionStorage.setItem(
@@ -241,6 +285,62 @@ describe("determination experience", () => {
       screen.getByText(messages.Determination.domesticReconstructionBody),
     ).toBeVisible();
   });
+
+  it.each([
+    ["token_remainder", "container_remainder", 2, 0, 0],
+    ["misplaced_object", "correction_path", 0, 1, 0],
+    ["empty_packaging", "empty_inventory", 0, 0, 1],
+  ] as const)(
+    "renders only the classification-specific Domestic Affairs diagram for %s",
+    async (offence, evidenceKind, gauges, paths, inventories) => {
+      const fixture = domesticDeterminationFixture(offence);
+      window.sessionStorage.setItem(
+        DETERMINATION_SESSION_KEY,
+        serializeDeterminationSession(
+          fixture.draft,
+          fixture.determination,
+          Date.now(),
+        ),
+      );
+
+      const { container } = render(
+        <DeterminationExperience
+          locale="en"
+          copy={messages.Determination}
+          navigation={messages.Navigation}
+          publicRecord={messages.PublicRecord}
+        />,
+      );
+
+      expect(
+        await screen.findByRole("heading", {
+          name: messages.Determination.domesticReconstructionTitle,
+        }),
+      ).toBeVisible();
+      const diagram = container.querySelector(
+        `.domestic-register-diagram[data-kind="${evidenceKind}"]`,
+      );
+      expect(diagram).toBeInTheDocument();
+      expect(
+        diagram?.querySelectorAll(".domestic-container-gauge"),
+      ).toHaveLength(gauges);
+      expect(
+        diagram?.querySelectorAll(".domestic-correction-path"),
+      ).toHaveLength(paths);
+      expect(diagram?.querySelectorAll(".domestic-inventory")).toHaveLength(
+        inventories,
+      );
+      if (offence === "token_remainder") {
+        expect(screen.getByText("1 serving")).toBeVisible();
+        expect(screen.getByText("8 servings")).toBeVisible();
+        const fills = diagram?.querySelectorAll<HTMLElement>(
+          ".domestic-container-gauge i",
+        );
+        expect(fills?.[0]?.style.height).toBe("12.5%");
+        expect(fills?.[1]?.style.height).toBe("100%");
+      }
+    },
+  );
 
   it("renders the Social Planning register with its no-access boundary", async () => {
     const fixture = socialDeterminationFixture();

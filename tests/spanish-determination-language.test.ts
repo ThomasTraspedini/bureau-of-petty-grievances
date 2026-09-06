@@ -282,6 +282,8 @@ describe("Spanish determination language", () => {
     ).resolves.toMatchObject({ status: "success", output: language });
     const serialized = JSON.stringify(requests[0]);
     expect(serialized).toContain("Escribe en español");
+    expect(serialized).toContain("transcripción administrativa");
+    expect(serialized).toContain("requiredSemanticReference");
     expect(serialized).toContain('\\"locale\\":\\"es\\"');
     expect(serialized).not.toContain("Luca");
   });

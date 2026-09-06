@@ -132,9 +132,6 @@ export function DeterminationRecord({
             <span className="determination-disposition">
               {copy.disposition}
             </span>
-            <p className="determination-allegation">
-              {snapshot.language.allegation.text}
-            </p>
           </header>
 
           {digitalConduct ? (
@@ -193,7 +190,7 @@ export function DeterminationRecord({
           <section className="witness-record" aria-labelledby="witness-title">
             <p className="eyebrow">{copy.witnessKicker}</p>
             <h2 id="witness-title">{copy.witnessTitle}</h2>
-            <blockquote>{snapshot.filing.statement}</blockquote>
+            <blockquote>{snapshot.language.allegation.text}</blockquote>
             <p>{copy.witnessBoundary}</p>
           </section>
 
@@ -421,33 +418,50 @@ function DomesticAffairsReconstruction({
   copy: DeterminationCopy;
   locale: InterfaceLocale;
 }) {
-  const number = new Intl.NumberFormat(locale);
   const evidence = snapshot.assessment.evidence;
   const primaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.primaryBasisPoints / 100))}%`;
   const secondaryWidth = `${String(Math.max(4, snapshot.assessment.presentation.secondaryBasisPoints / 100))}%`;
   let primaryValue: string;
   let secondaryValue: string;
   if (evidence.kind === "container_remainder") {
-    primaryValue = format(copy.servingsValue, {
-      count: number.format(evidence.remainingServings),
-    });
-    secondaryValue = format(copy.servingsValue, {
-      count: number.format(evidence.capacityServings),
-    });
+    primaryValue = formatCount(
+      copy.servingValue,
+      copy.servingsValue,
+      evidence.remainingServings,
+      locale,
+    );
+    secondaryValue = formatCount(
+      copy.servingValue,
+      copy.servingsValue,
+      evidence.capacityServings,
+      locale,
+    );
   } else if (evidence.kind === "correction_path") {
-    primaryValue = format(copy.stepsValue, {
-      count: number.format(evidence.distanceSteps),
-    });
-    secondaryValue = format(copy.secondsValue, {
-      count: number.format(evidence.correctionSeconds),
-    });
+    primaryValue = formatCount(
+      copy.stepValue,
+      copy.stepsValue,
+      evidence.distanceSteps,
+      locale,
+    );
+    secondaryValue = formatCount(
+      copy.secondValue,
+      copy.secondsValue,
+      evidence.correctionSeconds,
+      locale,
+    );
   } else {
-    primaryValue = format(copy.packagesValue, {
-      count: number.format(evidence.emptyPackageCount),
-    });
-    secondaryValue = format(copy.occurrencesValue, {
-      count: number.format(evidence.recurrencesInThirtyDays),
-    });
+    primaryValue = formatCount(
+      copy.packageValue,
+      copy.packagesValue,
+      evidence.emptyPackageCount,
+      locale,
+    );
+    secondaryValue = formatCount(
+      copy.occurrenceValue,
+      copy.occurrencesValue,
+      evidence.recurrencesInThirtyDays,
+      locale,
+    );
   }
   return (
     <section
@@ -460,25 +474,41 @@ function DomesticAffairsReconstruction({
         <p>{copy.domesticReconstructionBody}</p>
       </div>
       <figure className="domestic-register">
-        <div className="domestic-register-diagram" aria-hidden="true">
-          <div className="domestic-container-gauge">
-            <i style={{ height: primaryWidth }} />
-          </div>
-          <div className="domestic-correction-path">
-            <span />
-            <i style={{ width: secondaryWidth }} />
-            <span />
-          </div>
-          <div className="domestic-inventory">
-            {Array.from(
-              {
-                length: Math.min(8, snapshot.assessment.presentation.itemCount),
-              },
-              (_, index) => (
-                <i key={index} />
-              ),
-            )}
-          </div>
+        <div
+          className="domestic-register-diagram"
+          data-kind={evidence.kind}
+          aria-hidden="true"
+        >
+          {evidence.kind === "container_remainder" ? (
+            <>
+              <div className="domestic-container-gauge">
+                <i style={{ height: primaryWidth }} />
+              </div>
+              <div className="domestic-container-gauge">
+                <i style={{ height: "100%" }} />
+              </div>
+            </>
+          ) : evidence.kind === "correction_path" ? (
+            <div className="domestic-correction-path">
+              <span />
+              <i style={{ width: secondaryWidth }} />
+              <span />
+            </div>
+          ) : (
+            <div className="domestic-inventory">
+              {Array.from(
+                {
+                  length: Math.min(
+                    8,
+                    snapshot.assessment.presentation.itemCount,
+                  ),
+                },
+                (_, index) => (
+                  <i key={index} />
+                ),
+              )}
+            </div>
+          )}
         </div>
         <figcaption>
           <div>
@@ -640,4 +670,17 @@ function format(
   return template.replace(/\{([^}]+)\}/gu, (match, name: string) =>
     String(values[name] ?? match),
   );
+}
+
+function formatCount(
+  singular: string,
+  plural: string,
+  count: number,
+  locale: InterfaceLocale,
+): string {
+  const template =
+    new Intl.PluralRules(locale).select(count) === "one" ? singular : plural;
+  return format(template, {
+    count: new Intl.NumberFormat(locale).format(count),
+  });
 }
