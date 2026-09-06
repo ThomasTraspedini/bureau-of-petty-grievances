@@ -12,7 +12,8 @@
     "brandName": "Bureau of Petty Grievances",
     "brandInitial": "BPG",
     "brandDescriptor": "Office for Interpersonal Continuity",
-    "locale": "English"
+    "locale": "English",
+    "chooseLanguage": "Choose language"
   },
   "Access": {
     "metadataTitle": "Evaluation access — Bureau of Petty Grievances",

@@ -12,7 +12,8 @@
     "brandName": "Bureau of Petty Grievances",
     "brandInitial": "BPG",
     "brandDescriptor": "Amt für zwischenmenschliche Kontinuität",
-    "locale": "Deutsch"
+    "locale": "Deutsch",
+    "chooseLanguage": "Sprache wählen"
   },
   "Access": {
     "metadataTitle": "Evaluierungszugang — Bureau of Petty Grievances",

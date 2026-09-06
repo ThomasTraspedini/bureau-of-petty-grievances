@@ -2185,6 +2185,46 @@ a {
   background: var(--ivory-light);
 }
 
+.locale-selector {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.locale-selector summary {
+  cursor: pointer;
+  min-height: 44px;
+  align-content: center;
+}
+
+.locale-options {
+  position: absolute;
+  z-index: 10;
+  top: 100%;
+  right: 0;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  margin: 8px 0 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--ivory-light);
+}
+
+.locale-options a {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 6px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.locale-options a:hover,
+.locale-options a[aria-current="page"] {
+  background: var(--ivory);
+  text-decoration: underline;
+}
+
 .hero {
   display: grid;
   width: min(calc(100% - 32px), var(--max));

@@ -1,4 +1,5 @@
-import type { InterfaceLocale } from "@/i18n/routing";
+import { getMessageCatalog } from "@/i18n/catalogs";
+import { routing, type InterfaceLocale } from "@/i18n/routing";
 
 import { CivicSeal } from "../brand/civic-seal";
 
@@ -11,6 +12,7 @@ export interface ApplicationShellCopy {
     brandInitial: string;
     brandDescriptor: string;
     locale: string;
+    chooseLanguage: string;
   };
   home: {
     eyebrow: string;
@@ -79,9 +81,26 @@ export function ApplicationShell({ locale, copy }: ApplicationShellProps) {
               <small>{navigation.brandDescriptor}</small>
             </span>
           </a>
-          <span className="locale-chip" lang={locale}>
-            {navigation.locale}
-          </span>
+          <details className="locale-selector">
+            <summary className="locale-chip">
+              <span className="sr-only">{navigation.chooseLanguage}: </span>
+              <span lang={locale}>{navigation.locale}</span>
+            </summary>
+            <ul className="locale-options">
+              {routing.locales.map((option) => (
+                <li key={option}>
+                  <a
+                    href={`/${option}`}
+                    lang={option}
+                    hrefLang={option}
+                    aria-current={option === locale ? "page" : undefined}
+                  >
+                    {getMessageCatalog(option).Navigation.locale}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
         </div>
       </header>
 
