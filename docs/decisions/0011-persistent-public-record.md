@@ -12,7 +12,7 @@ The complete Chronology determination existed only in validated tab-scoped state
 
 Publication is an explicit choice during the 30-minute transient lifetime. The filer reviews the fields that will become public, then one idempotent PostgreSQL transaction stores relational lifecycle metadata and a versioned JSONB snapshot containing the validated filing, assessment, localized language, procedural identity, and presentation variant. A failure preserves the transient determination and creates no partial record.
 
-The persistence contract is portable PostgreSQL with Supabase as the first managed target through a server-only pooled `DATABASE_URL`. PGlite supplies an embedded local and test runtime using the same schema and repository behavior. Schema migration is idempotent and runs when the repository starts.
+The persistence contract is portable PostgreSQL with Neon Free as the production target (superseding the initial Supabase target under [0025](0025-production-deployment-stack.md)) through a server-only pooled `DATABASE_URL`. PGlite supplies an embedded local and test runtime using the same schema and repository behavior. Schema migration is idempotent and runs when the repository starts.
 
 The public path uses a random 128-bit base64url identifier. A separate random 256-bit owner credential is carried in a private recovery-link fragment, removed from browser history after use, retained only in tab storage, and persisted only as a SHA-256 digest. Constant-time digest comparison authorizes owner controls. Public paths, metadata, rendered content, and report records never contain the credential.
 

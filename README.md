@@ -58,9 +58,10 @@ use a trusted HTTPS origin reachable by every device and set
 `BUREAU_PUBLIC_ORIGIN` to that same origin. LAN HTTP cannot be the canonical
 public origin; a localhost address is not a usable shared link on other devices.
 
-A deployed full Node.js server should instead set `DATABASE_URL` to a
-PostgreSQL connection string; the initial managed target is Supabase. It must
-also set `BUREAU_PUBLIC_ORIGIN` to the bare public HTTPS origin used by canonical
+Production uses Netlify Free and Neon Free PostgreSQL. Set `DATABASE_URL` to a
+pooled Neon connection string with TLS. Follow the
+[deployment runbook](docs/operations.md#netlify-and-neon-deployment-runbook).
+Also set `BUREAU_PUBLIC_ORIGIN` to the bare public HTTPS origin used by canonical
 metadata and sharing, a strong `BUREAU_NETWORK_HMAC_SECRET`, and the trusted
 proxy-hop count. The application applies its idempotent schema migration when
 the shared database runtime starts.

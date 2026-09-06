@@ -30,3 +30,4 @@ Accepted records:
 - [0022 — Multilingual product routes](0022-multilingual-product-routes.md)
 - [0023 — Personalized determination language](0023-personalized-determination-language.md)
 - [0024 — Completed filing restart semantics](0024-completed-filing-restart-semantics.md)
+- [0025 — Production deployment stack](0025-production-deployment-stack.md)
