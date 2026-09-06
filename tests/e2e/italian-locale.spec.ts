@@ -97,6 +97,11 @@ test("renders the Italian landing page, opens filing, and passes accessibility c
   await page.locator(".determination-shell").evaluate((element) => {
     element.setAttribute("data-variant", "1");
   });
+  await page
+    .locator(".determination-metadata > div:nth-child(2) strong")
+    .evaluate((element) => {
+      element.textContent = "3 settembre 2026";
+    });
   await expect(page).toHaveScreenshot("italian-determination-desktop.png", {
     fullPage: true,
     mask: [page.locator(".determination-metadata > div:first-child strong")],

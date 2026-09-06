@@ -36,11 +36,51 @@ export const FILING_DRAFT_STORAGE_KEY = "bpg:filing:en:v4";
 export function filingDraftStorageKey(locale: ProductLocale): string {
   return `bpg:filing:${locale}:v4`;
 }
+export const FILING_COMPLETION_STORAGE_KEY = "bpg:filing-completed:en:v1";
+export function filingCompletionStorageKey(locale: ProductLocale): string {
+  return `bpg:filing-completed:${locale}:v1`;
+}
 export const LEGACY_DOMESTIC_DRAFT_STORAGE_KEY = "bpg:filing:en:v3";
 export const LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY = "bpg:filing:en:v2";
 export const LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY =
   "bpg:filing:chronology:en:v1";
 export const FILING_DRAFT_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
+
+export type StoredFilingCompletionStatus =
+  "completed" | "empty" | "expired" | "invalid";
+
+export function serializeFilingCompletion(
+  completedAt: number,
+  locale: ProductLocale = "en",
+): string {
+  return JSON.stringify({ version: 1, locale, completedAt });
+}
+
+export function parseFilingCompletion(
+  value: string | null,
+  now: number,
+  locale: ProductLocale = "en",
+): StoredFilingCompletionStatus {
+  if (value === null) return "empty";
+  try {
+    const parsed: unknown = JSON.parse(value);
+    if (
+      !isRecord(parsed) ||
+      Object.keys(parsed).length !== 3 ||
+      parsed.version !== 1 ||
+      parsed.locale !== locale ||
+      typeof parsed.completedAt !== "number" ||
+      !Number.isFinite(parsed.completedAt)
+    )
+      return "invalid";
+    return parsed.completedAt <= now &&
+      now - parsed.completedAt <= FILING_DRAFT_LIFETIME_MS
+      ? "completed"
+      : "expired";
+  } catch {
+    return "invalid";
+  }
+}
 
 interface DraftEnvelope {
   version: 4;

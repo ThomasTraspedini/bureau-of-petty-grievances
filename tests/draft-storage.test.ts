@@ -4,12 +4,37 @@ import { createEmptyChronologyDraft } from "@/domain/filing/chronology";
 import { createEmptyDomesticAffairsDraft } from "@/domain/filing/domestic-affairs";
 import { createEmptySocialPlanningDraft } from "@/domain/filing/social-planning";
 import {
+  FILING_COMPLETION_STORAGE_KEY,
   FILING_DRAFT_LIFETIME_MS,
+  filingCompletionStorageKey,
+  parseFilingCompletion,
   parseStoredDraft,
+  serializeFilingCompletion,
   serializeDraft,
 } from "@/features/filing/draft-storage";
 
 describe("device-local filing drafts", () => {
+  it("validates locale-bound completion markers for the draft lifetime", () => {
+    const now = Date.UTC(2026, 8, 2);
+    expect(FILING_COMPLETION_STORAGE_KEY).toBe(
+      filingCompletionStorageKey("en"),
+    );
+    expect(
+      parseFilingCompletion(serializeFilingCompletion(now, "it"), now, "it"),
+    ).toBe("completed");
+    expect(
+      parseFilingCompletion(serializeFilingCompletion(now, "it"), now, "en"),
+    ).toBe("invalid");
+    expect(
+      parseFilingCompletion(
+        serializeFilingCompletion(now, "it"),
+        now + FILING_DRAFT_LIFETIME_MS + 1,
+        "it",
+      ),
+    ).toBe("expired");
+    expect(parseFilingCompletion('{"version":1}', now)).toBe("invalid");
+  });
+
   it("restores a valid versioned draft within 30 days", () => {
     const now = Date.UTC(2026, 8, 2);
     const draft = { ...createEmptyChronologyDraft(), respondent: "Marco" };

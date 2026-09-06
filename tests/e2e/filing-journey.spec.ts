@@ -46,7 +46,10 @@ import {
   serializeDeterminationSession,
 } from "@/features/determination/determination-session";
 import {
+  FILING_COMPLETION_STORAGE_KEY,
   FILING_DRAFT_STORAGE_KEY,
+  parseFilingCompletion,
+  serializeFilingCompletion,
   serializeDraft,
 } from "@/features/filing/draft-storage";
 
@@ -110,6 +113,41 @@ const completeDomesticDraft = {
   impact: "shared_space_obstructed",
   mitigation: "handles_other_chores",
   statement: "Four items waited beside their ordinary location.",
+} satisfies DomesticAffairsDraft;
+
+const tokenRemainderDomesticDraft = {
+  ...createEmptyDomesticAffairsDraft(),
+  respondent: "Jordan",
+  relationship: "roommate",
+  offence: "token_remainder",
+  facts: {
+    ...createEmptyDomesticAffairsDraft().facts,
+    tokenRemainder: {
+      remainingServings: "1",
+      capacityServings: "8",
+    },
+  },
+  impact: "needed_item_unavailable",
+  mitigation: "usually_restocks",
+  statement: "One serving remained in a container that ordinarily holds eight.",
+} satisfies DomesticAffairsDraft;
+
+const emptyPackagingDomesticDraft = {
+  ...createEmptyDomesticAffairsDraft(),
+  respondent: "Casey",
+  relationship: "roommate",
+  offence: "empty_packaging",
+  facts: {
+    ...createEmptyDomesticAffairsDraft().facts,
+    emptyPackaging: {
+      emptyPackageCount: "4",
+      recurrencesInThirtyDays: "6",
+    },
+  },
+  impact: "false_stock_signal",
+  mitigation: "corrects_when_asked",
+  statement:
+    "Four empty packages remained among the available household stock.",
 } satisfies DomesticAffairsDraft;
 
 const completeSocialDraft = {
@@ -214,8 +252,10 @@ function fixedDigitalDeterminationSession(): string {
   );
 }
 
-function fixedDomesticDeterminationSession(): string {
-  const validation = validateDomesticAffairsDraft(completeDomesticDraft, "en");
+function fixedDomesticDeterminationSession(
+  draft: DomesticAffairsDraft = completeDomesticDraft,
+): string {
+  const validation = validateDomesticAffairsDraft(draft, "en");
   if (validation.status === "invalid") {
     throw new Error(
       "The Domestic Affairs end-to-end fixture must remain valid.",
@@ -232,7 +272,7 @@ function fixedDomesticDeterminationSession(): string {
   const issuedAt = new Date();
   issuedAt.setMilliseconds(0);
   return serializeDeterminationSession(
-    completeDomesticDraft,
+    draft,
     {
       experienceVersion: DETERMINATION_EXPERIENCE_VERSION,
       locale: "en",
@@ -307,19 +347,24 @@ async function openFixedDigitalDetermination(page: Page) {
   ).toBeVisible();
 }
 
-async function openFixedDomesticDetermination(page: Page) {
+async function openFixedDomesticDetermination(
+  page: Page,
+  draft: DomesticAffairsDraft = completeDomesticDraft,
+) {
   await page.addInitScript(
     ({ key, value }) => {
       window.sessionStorage.setItem(key, value);
     },
     {
       key: DETERMINATION_SESSION_KEY,
-      value: fixedDomesticDeterminationSession(),
+      value: fixedDomesticDeterminationSession(draft),
     },
   );
   await page.goto("/en/determination");
   await expect(
-    page.getByRole("heading", { name: "Review concerning Riley" }),
+    page.getByRole("heading", {
+      name: `Review concerning ${draft.respondent}`,
+    }),
   ).toBeVisible();
 }
 
@@ -456,6 +501,11 @@ test("completes, corrects, and receives a Chronology determination", async ({
   await expect(page.getByText("24 minutes later")).toBeVisible();
   await expect(page.getByText("Departure language protocol")).toBeVisible();
   await expect(page.getByText("not a public record")).toBeVisible();
+  const completionMarker = await page.evaluate(
+    (key) => window.localStorage.getItem(key),
+    FILING_COMPLETION_STORAGE_KEY,
+  );
+  expect(parseFilingCompletion(completionMarker, Date.now())).toBe("completed");
 
   await page.reload();
   await expect(
@@ -738,6 +788,60 @@ test("preserves a safe draft across refresh and excludes rejected text", async (
   );
   expect(stored).not.toContain("This describes abuse.");
   expect(stored).toContain("Marco");
+});
+
+test("reviews a completed filing but starts a new one from the Bureau home", async ({
+  page,
+}) => {
+  await page.addInitScript(
+    ({
+      draftKey,
+      completionKey,
+      determinationKey,
+      seededKey,
+      draft,
+      completion,
+      session,
+    }) => {
+      if (window.sessionStorage.getItem(seededKey) !== null) return;
+      window.localStorage.setItem(draftKey, draft);
+      window.localStorage.setItem(completionKey, completion);
+      window.sessionStorage.setItem(determinationKey, session);
+      window.sessionStorage.setItem(seededKey, "true");
+    },
+    {
+      draftKey: storageKey,
+      completionKey: FILING_COMPLETION_STORAGE_KEY,
+      determinationKey: DETERMINATION_SESSION_KEY,
+      seededKey: "bpg:test:completed-filing-seeded",
+      draft: serializeDraft(completeDraft, Date.now()),
+      completion: serializeFilingCompletion(Date.now()),
+      session: fixedDeterminationSession(),
+    },
+  );
+
+  await page.goto("/en/file/review");
+  await expect(page.getByText(completeDraft.statement)).toBeVisible();
+
+  await page.goto("/en");
+  await page.getByRole("link", { name: "File a grievance" }).click();
+  await expect(page).toHaveURL(/\/en\/file\/respondent$/u);
+  await expect(
+    page.getByRole("textbox", { name: "Respondent alias" }),
+  ).toHaveValue("");
+  await expect(page.getByText("Draft restored")).toHaveCount(0);
+  expect(
+    await page.evaluate(
+      ({ completionKey, determinationKey }) => ({
+        completion: window.localStorage.getItem(completionKey),
+        determination: window.sessionStorage.getItem(determinationKey),
+      }),
+      {
+        completionKey: FILING_COMPLETION_STORAGE_KEY,
+        determinationKey: DETERMINATION_SESSION_KEY,
+      },
+    ),
+  ).toEqual({ completion: null, determination: null });
 });
 
 test("supports keyboard choices, reduced motion, and an accessible question", async ({
@@ -1181,6 +1285,30 @@ test.describe("filing visual contract", () => {
       "domestic-affairs-determination-desktop.png",
       {
         fullPage: true,
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
+  });
+
+  test("desktop Domestic Affairs remainder diagram", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await openFixedDomesticDetermination(page, tokenRemainderDomesticDraft);
+    await expect(page.locator(".domestic-reconstruction")).toHaveScreenshot(
+      "domestic-affairs-remainder-diagram-desktop.png",
+      {
+        animations: "disabled",
+        maxDiffPixelRatio: 0.01,
+      },
+    );
+  });
+
+  test("mobile Domestic Affairs empty-inventory diagram", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await openFixedDomesticDetermination(page, emptyPackagingDomesticDraft);
+    await expect(page.locator(".domestic-reconstruction")).toHaveScreenshot(
+      "domestic-affairs-empty-inventory-diagram-mobile.png",
+      {
         animations: "disabled",
         maxDiffPixelRatio: 0.01,
       },

@@ -23,7 +23,13 @@ import {
 import { createEmptyDomesticAffairsDraft } from "@/domain/filing/domestic-affairs";
 import { createEmptySocialPlanningDraft } from "@/domain/filing/social-planning";
 import {
+  DETERMINATION_SESSION_KEY,
+  serializeDeterminationSession,
+} from "@/features/determination/determination-session";
+import {
+  FILING_COMPLETION_STORAGE_KEY,
   FILING_DRAFT_STORAGE_KEY,
+  serializeFilingCompletion,
   serializeDraft,
 } from "@/features/filing/draft-storage";
 import {
@@ -171,6 +177,77 @@ describe("filing journey", () => {
         window.localStorage.getItem(FILING_DRAFT_STORAGE_KEY),
       ).not.toContain("This describes abuse.");
     });
+  });
+
+  it("starts blank at the opening step after a completed filing", async () => {
+    const draft = completeDraft();
+    const now = Date.now();
+    window.localStorage.setItem(
+      FILING_DRAFT_STORAGE_KEY,
+      serializeDraft(draft, now),
+    );
+    window.localStorage.setItem(
+      FILING_COMPLETION_STORAGE_KEY,
+      serializeFilingCompletion(now),
+    );
+    window.sessionStorage.setItem(
+      DETERMINATION_SESSION_KEY,
+      serializeDeterminationSession(draft, completeDetermination(), now),
+    );
+
+    render(
+      <FilingJourney
+        locale="en"
+        step="respondent"
+        returnToReview={false}
+        copy={messages.Filing}
+        navigation={messages.Navigation}
+        completeFiling={completeFiling}
+      />,
+    );
+
+    const alias = await screen.findByRole("textbox", {
+      name: messages.Filing.respondentLabel,
+    });
+    await waitFor(() => expect(alias).toBeEnabled());
+    expect(alias).toHaveValue("");
+    expect(screen.queryByText(messages.Filing.restoredTitle)).toBeNull();
+    expect(
+      window.localStorage.getItem(FILING_COMPLETION_STORAGE_KEY),
+    ).toBeNull();
+    expect(window.sessionStorage.getItem(DETERMINATION_SESSION_KEY)).toBeNull();
+  });
+
+  it("recognizes a matching pre-marker determination as completed", async () => {
+    const draft = completeDraft();
+    const now = Date.now();
+    window.localStorage.setItem(
+      FILING_DRAFT_STORAGE_KEY,
+      serializeDraft(draft, now),
+    );
+    window.sessionStorage.setItem(
+      DETERMINATION_SESSION_KEY,
+      serializeDeterminationSession(draft, completeDetermination(), now),
+    );
+
+    render(
+      <FilingJourney
+        locale="en"
+        step="respondent"
+        returnToReview={false}
+        copy={messages.Filing}
+        navigation={messages.Navigation}
+        completeFiling={completeFiling}
+      />,
+    );
+
+    const alias = await screen.findByRole("textbox", {
+      name: messages.Filing.respondentLabel,
+    });
+    await waitFor(() => expect(alias).toBeEnabled());
+    expect(alias).toHaveValue("");
+    expect(screen.queryByText(messages.Filing.restoredTitle)).toBeNull();
+    expect(window.sessionStorage.getItem(DETERMINATION_SESSION_KEY)).toBeNull();
   });
 
   it("does not announce recovery during ordinary filing navigation", async () => {

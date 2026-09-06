@@ -10,6 +10,7 @@ import {
 } from "react";
 
 import type { IssuedDetermination } from "@/domain/determination/determination-experience";
+import type { DeterminationLanguageDiagnostics } from "@/domain/determination/determination-diagnostics";
 import {
   type ChronologyDraft,
   type FilingError,
@@ -48,17 +49,22 @@ import {
 } from "../access/generation-idempotency";
 import {
   determinationSessionKey,
+  legacyDeterminationSessionKeyV4,
   LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
   LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
   LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
+  parseDeterminationSession,
   serializeDeterminationSession,
 } from "../determination/determination-session";
 import {
+  filingCompletionStorageKey,
   filingDraftStorageKey,
   LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY,
   LEGACY_DOMESTIC_DRAFT_STORAGE_KEY,
   LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY,
+  parseFilingCompletion,
   parseStoredDraft,
+  serializeFilingCompletion,
   serializeDraft,
 } from "./draft-storage";
 import {
@@ -83,7 +89,11 @@ type CompleteFiling = (
   idempotencyKey: unknown,
   journeyId?: unknown,
 ) => Promise<
-  | { status: "accepted"; determination: IssuedDetermination }
+  | {
+      status: "accepted";
+      determination: IssuedDetermination;
+      diagnostics?: DeterminationLanguageDiagnostics;
+    }
   | { status: "rejected"; errors: FilingError[] }
   | { status: "limited"; retryAfterSeconds: number }
   | { status: "failed" }
@@ -156,7 +166,10 @@ export function FilingJourney({
   const [isPending, startTransition] = useTransition();
   const stepStartedAt = useRef<number | null>(null);
   const draftStorageKey = filingDraftStorageKey(locale);
+  const completionStorageKey = filingCompletionStorageKey(locale);
   const currentDeterminationSessionKey = determinationSessionKey(locale);
+  const previousDeterminationSessionKey =
+    legacyDeterminationSessionKeyV4(locale);
   const currentGenerationIdempotencyKey = generationIdempotencyStorageKey(
     locale,
     draft.department,
@@ -165,6 +178,7 @@ export function FilingJourney({
   useEffect(() => {
     stepStartedAt.current = Date.now();
     const timer = window.setTimeout(() => {
+      const now = Date.now();
       const stored = parseStoredDraft(
         window.localStorage.getItem(draftStorageKey) ??
           (locale === "en"
@@ -174,13 +188,74 @@ export function FilingJourney({
               ) ??
               window.localStorage.getItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY))
             : null),
-        Date.now(),
+        now,
         locale,
       );
       const internalNavigationTarget = window.sessionStorage.getItem(
         FILING_INTERNAL_NAVIGATION_STORAGE_KEY,
       );
       window.sessionStorage.removeItem(FILING_INTERNAL_NAVIGATION_STORAGE_KEY);
+      const completionStatus = parseFilingCompletion(
+        window.localStorage.getItem(completionStorageKey),
+        now,
+        locale,
+      );
+      const storedDetermination = parseDeterminationSession(
+        window.sessionStorage.getItem(currentDeterminationSessionKey) ??
+          window.sessionStorage.getItem(previousDeterminationSessionKey) ??
+          (locale === "en"
+            ? (window.sessionStorage.getItem(
+                LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
+              ) ??
+              window.sessionStorage.getItem(
+                LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
+              ) ??
+              window.sessionStorage.getItem(
+                LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
+              ))
+            : null),
+        now,
+        locale,
+      );
+      const validatedStoredDraft =
+        stored.status === "restored"
+          ? validateFilingDraft(stored.draft, locale)
+          : null;
+      const matchingCompletedSession =
+        storedDetermination.status === "restored" &&
+        validatedStoredDraft?.status === "valid" &&
+        JSON.stringify(validatedStoredDraft.filing) ===
+          JSON.stringify(storedDetermination.snapshot.filing);
+      if (
+        step === "respondent" &&
+        internalNavigationTarget === null &&
+        stored.status === "restored" &&
+        (completionStatus === "completed" || matchingCompletedSession)
+      ) {
+        window.localStorage.removeItem(draftStorageKey);
+        window.localStorage.removeItem(completionStorageKey);
+        window.localStorage.removeItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY);
+        window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
+        window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
+        window.sessionStorage.removeItem(currentDeterminationSessionKey);
+        window.sessionStorage.removeItem(previousDeterminationSessionKey);
+        window.sessionStorage.removeItem(
+          LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY,
+        );
+        window.sessionStorage.removeItem(
+          LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
+        );
+        window.sessionStorage.removeItem(
+          LEGACY_CHRONOLOGY_DETERMINATION_SESSION_KEY,
+        );
+        setDraft(createEmptyFilingDraft());
+        setNotice(null);
+        setHydrated(true);
+        return;
+      }
+      if (completionStatus === "expired" || completionStatus === "invalid") {
+        window.localStorage.removeItem(completionStorageKey);
+      }
       setDraft(stored.draft);
       setNotice(
         stored.status === "empty" ||
@@ -203,7 +278,14 @@ export function FilingJourney({
     return () => {
       window.clearTimeout(timer);
     };
-  }, [draftStorageKey, locale, step]);
+  }, [
+    completionStorageKey,
+    currentDeterminationSessionKey,
+    draftStorageKey,
+    locale,
+    previousDeterminationSessionKey,
+    step,
+  ]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -220,7 +302,9 @@ export function FilingJourney({
   const observedPathCode = analyticsPathCode(draft);
 
   function updateDraft(update: (current: FilingDraft) => FilingDraft) {
+    window.localStorage.removeItem(completionStorageKey);
     window.sessionStorage.removeItem(currentDeterminationSessionKey);
+    window.sessionStorage.removeItem(previousDeterminationSessionKey);
     window.sessionStorage.removeItem(LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY);
     window.sessionStorage.removeItem(
       LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
@@ -349,13 +433,19 @@ export function FilingJourney({
           ? await completeFiling(locale, draft, idempotencyKey, journeyId)
           : await completeFiling(locale, draft, idempotencyKey);
         if (result.status === "accepted") {
+          const completedAt = Date.now();
           window.sessionStorage.removeItem(currentGenerationIdempotencyKey);
+          window.localStorage.setItem(
+            completionStorageKey,
+            serializeFilingCompletion(completedAt, locale),
+          );
           window.sessionStorage.setItem(
             currentDeterminationSessionKey,
             serializeDeterminationSession(
               draft,
               result.determination,
-              Date.now(),
+              completedAt,
+              result.diagnostics ?? null,
             ),
           );
           window.location.assign(`/${locale}/determination`);
@@ -378,10 +468,12 @@ export function FilingJourney({
 
   function resetDraft() {
     window.localStorage.removeItem(draftStorageKey);
+    window.localStorage.removeItem(completionStorageKey);
     window.localStorage.removeItem(LEGACY_DOMESTIC_DRAFT_STORAGE_KEY);
     window.localStorage.removeItem(LEGACY_DEPARTMENT_DRAFT_STORAGE_KEY);
     window.localStorage.removeItem(LEGACY_CHRONOLOGY_DRAFT_STORAGE_KEY);
     window.sessionStorage.removeItem(currentDeterminationSessionKey);
+    window.sessionStorage.removeItem(previousDeterminationSessionKey);
     window.sessionStorage.removeItem(LEGACY_DOMESTIC_DETERMINATION_SESSION_KEY);
     window.sessionStorage.removeItem(
       LEGACY_DEPARTMENT_DETERMINATION_SESSION_KEY,
