@@ -2734,7 +2734,7 @@ footer p {
   }
 
   .hero h1 {
-    font-size: clamp(40px, 12.5vw, 68px);
+    font-size: clamp(38px, 12vw, 68px);
   }
 
   .hero-actions,
