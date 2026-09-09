@@ -37,8 +37,32 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Remove unrelated Google Chrome APT source
-        run: sudo rm -f /etc/apt/sources.list.d/google-chrome.list
+      - name: Disable unrelated Google Chrome APT sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          chrome_url='dl.google.com/linux/chrome-stable/deb'
+          for source in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if grep -Fq "$chrome_url" "$source"; then
+              echo "Disabling Chrome APT source: $source"
+              sudo mv -- "$source" "$source.disabled"
+            fi
+          done
+          if [[ -f /etc/apt/sources.list ]] && grep -Fq "$chrome_url" /etc/apt/sources.list; then
+            echo "Disabling Chrome APT entries in: /etc/apt/sources.list"
+            sudo sed -i '\|dl\.google\.com/linux/chrome-stable/deb|s|^|# Disabled Chrome source: |' /etc/apt/sources.list
+          fi
+          for source in /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources; do
+            if grep -Fn "$chrome_url" "$source"; then
+              echo "::error::Chrome repository remains in active APT source: $source"
+              exit 1
+            fi
+          done
+          if [[ -f /etc/apt/sources.list ]] && grep -v '^[[:space:]]*#' /etc/apt/sources.list | grep -Fn "$chrome_url"; then
+            echo "::error::Chrome repository remains active in /etc/apt/sources.list"
+            exit 1
+          fi
       - run: npx playwright install --with-deps chromium
       - run: npm run build
       - name: Run focused Playwright tests
