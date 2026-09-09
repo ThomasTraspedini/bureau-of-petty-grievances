@@ -14,6 +14,7 @@
     "start": "next start",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "prelint": "next typegen",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
