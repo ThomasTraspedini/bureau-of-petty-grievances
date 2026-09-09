@@ -2,6 +2,22 @@
 
 This file records product-repository releases. Versions intentionally omit dates; Git history and tags provide chronology.
 
+## [0.22.1]
+
+Evaluation-release stabilization and refinement following 0.22.0.
+
+### Changed
+
+- Restored and hardened the public Verify pipeline, updated GitHub Actions and runtime setup, and hardened Playwright dependency installation.
+- Made Playwright authorization and transfer fixtures deterministic and retry-safe; retained failure artifacts and added focused diagnostics.
+- Stabilized the pseudo-localized public-record visual state and refreshed reviewed canonical Linux visual baselines.
+- Decomposed the filing question UI into focused modules and extracted SQL access-control row decoding without changing transaction boundaries.
+- Documented the intentional storage-backed hard-navigation lifecycle boundary.
+
+### Fixed
+
+- Respondent focus after hydration and narrow-screen pseudo-localized heading behavior.
+
 ## [0.22.0]
 
 ### Added

@@ -12,7 +12,7 @@ The product explores a simple tension: what if a genuinely competent and benevol
 
 ## Current state
 
-The evaluation release is `0.22.0`. The application implements four departments and six complete locales, with deterministic and optional provider language, public records, sharing, consultation, access controls and bounded generation costs.
+The evaluation release is `0.22.1`. The application implements four departments and six complete locales, with deterministic and optional provider language, public records, sharing, consultation, access controls and bounded generation costs.
 
 C00–C15 are complete, including physical-device refinements, production deployment, and evaluator verification. No planned capability remains. See the [roadmap](docs/roadmap.md).
 
