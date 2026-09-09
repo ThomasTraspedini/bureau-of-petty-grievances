@@ -1190,6 +1190,10 @@ test.describe("filing visual contract", () => {
   test("mobile opening question", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/en/file/respondent");
+    const respondent = page.getByRole("textbox", { name: "Respondent alias" });
+    await expect(respondent).toBeFocused();
+    await respondent.blur();
+    await expect(respondent).not.toBeFocused();
     await expect(page).toHaveScreenshot("filing-respondent-mobile.png", {
       fullPage: true,
       animations: "disabled",
