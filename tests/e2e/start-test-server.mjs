@@ -5,6 +5,7 @@ import process from "node:process";
 import { PGlite } from "@electric-sql/pglite";
 
 import { PUBLIC_RECORD_SCHEMA_SQL } from "../../src/server/public-record/schema.ts";
+import { seedStandardAuthorizations } from "./standard-authorization-fixture.ts";
 
 const databasePath = process.env.BUREAU_EMBEDDED_DATABASE_PATH?.trim();
 const evaluationToken = process.env.BUREAU_E2E_EVALUATION_TOKEN?.trim();
@@ -35,22 +36,7 @@ try {
       createHash("sha256").update(evaluationToken).digest("hex"),
     ],
   );
-  await database.query(
-    `INSERT INTO standard_authorizations (
-       authorization_id, token_digest, status, created_at, expires_at, updated_at
-     ) VALUES ($1, $2, 'available', now(), now() + interval '30 days', now())
-     ON CONFLICT (authorization_id) DO UPDATE SET
-       token_digest = EXCLUDED.token_digest,
-       status = 'available',
-       claimed_at = NULL,
-       entitlement_id = NULL,
-       expires_at = EXCLUDED.expires_at,
-       updated_at = now()`,
-    [
-      `sau_${"s".repeat(22)}`,
-      createHash("sha256").update(standardToken).digest("hex"),
-    ],
-  );
+  await seedStandardAuthorizations(database, standardToken);
   await database.query(
     `INSERT INTO standard_entitlements (
        entitlement_id, status, credit_limit, credits_consumed,

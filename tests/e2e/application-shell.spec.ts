@@ -3,6 +3,7 @@ import AxeBuilder from "@axe-core/playwright";
 const EVALUATION_TOKEN = `eva_${"E".repeat(43)}`;
 const STANDARD_TOKEN = `std_${"S".repeat(43)}`;
 import { expect, test } from "@playwright/test";
+import { standardAuthorizationToken } from "./standard-authorization-fixture";
 
 test("redirects the root to the explicit English locale", async ({ page }) => {
   await page.goto("/");
@@ -108,15 +109,24 @@ test("renders a localized invalid evaluator address without indexing", async ({
 test("redeems one standard authorization without retaining its credential", async ({
   page,
   context,
-}) => {
+}, testInfo) => {
+  const standardToken = standardAuthorizationToken(
+    STANDARD_TOKEN,
+    testInfo.retry,
+  );
   await context.setExtraHTTPHeaders({ "x-forwarded-for": "198.51.100.17" });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(`/en/access#${STANDARD_TOKEN}`);
+  await page.goto(`/en/access#${standardToken}`);
   await expect(
     page.getByRole("heading", { name: "Your filing authority is ready." }),
   ).toBeVisible();
   await expect(page.getByText("5 of 5").first()).toBeVisible();
-  expect(page.url()).not.toContain(STANDARD_TOKEN);
+  expect(page.url()).not.toContain(standardToken);
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Your filing authority is ready." }),
+  ).toBeVisible();
+  await expect(page.getByText("Mar 1, 2099", { exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.cookie)).not.toContain(
     "bpg_standard_session_v1",
   );
