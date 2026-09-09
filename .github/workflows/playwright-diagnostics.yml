@@ -1,0 +1,58 @@
+name: Playwright diagnostics
+
+on:
+  workflow_dispatch:
+    inputs:
+      spec:
+        description: Optional Playwright spec path (Chromium only)
+        required: false
+        type: string
+      grep:
+        description: Optional test-title regular expression
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SPEC: ${{ inputs.spec }}
+      GREP: ${{ inputs.grep }}
+
+    steps:
+      - name: Require a focused selection
+        shell: bash
+        run: |
+          if [[ -z "${SPEC//[[:space:]]/}" && -z "${GREP//[[:space:]]/}" ]]; then
+            echo "::error::Supply spec or grep (or both) to select focused Playwright tests."
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - name: Run focused Playwright tests
+        shell: bash
+        run: |
+          args=(--project=chromium)
+          if [[ -n "${GREP//[[:space:]]/}" ]]; then
+            args+=(--grep "$GREP")
+          fi
+          if [[ -n "${SPEC//[[:space:]]/}" ]]; then
+            args+=(-- "$SPEC")
+          fi
+          npx playwright test "${args[@]}"
+      - name: Upload Playwright failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-diagnostics-failure-artifacts
+          path: test-results/
