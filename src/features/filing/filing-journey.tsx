@@ -628,6 +628,7 @@ export function FilingJourney({
                 <QuestionStep
                   locale={locale}
                   step={step}
+                  hydrated={hydrated}
                   draft={draft}
                   copy={copy}
                   error={error}
@@ -811,6 +812,7 @@ function DeterminationLimited({
 interface QuestionStepProps {
   locale: InterfaceLocale;
   step: FilingStepCode;
+  hydrated: boolean;
   draft: FilingDraft;
   copy: FilingCopy;
   error: FilingErrorCode | null;
@@ -821,12 +823,21 @@ interface QuestionStepProps {
 function QuestionStep({
   locale,
   step,
+  hydrated,
   draft,
   copy,
   error,
   updateDraft,
   goToClassification,
 }: QuestionStepProps) {
+  const respondentRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (hydrated && step === "respondent") {
+      respondentRef.current?.focus();
+    }
+  }, [hydrated, step]);
+
   const errorMessage = error ? errorCopy(error, copy) : null;
   const errorId = errorMessage ? `${step}-error` : undefined;
 
@@ -843,7 +854,7 @@ function QuestionStep({
           {copy.respondentLabel}
         </label>
         <input
-          autoFocus
+          ref={respondentRef}
           className="text-input"
           id="respondent"
           maxLength={32}
