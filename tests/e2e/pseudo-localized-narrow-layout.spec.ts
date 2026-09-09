@@ -209,6 +209,36 @@ test("keeps the pseudo-localized filing, determination, and public record usable
   await expect(page.locator(".consultation-summary")).toContainText("0");
   await expectNarrowLayout(page);
   await expectAccessible(page);
+  // Normalize runtime record values only for the visual comparison.
+  await page.locator(".determination-shell").evaluate((element) => {
+    element.setAttribute("data-variant", "1");
+  });
+  await page
+    .locator(".determination-metadata > div:first-child strong")
+    .evaluate((element) => {
+      element.textContent = "CHR · 2026 · ABC123";
+    });
+  await page
+    .locator(".determination-metadata > div:nth-child(2) strong")
+    .evaluate((element) => {
+      element.textContent = "Sep 3, 2026";
+    });
+  await page
+    .locator(".determination-metadata > div:nth-child(3) strong")
+    .evaluate((element) => {
+      element.textContent = "Sep 3, 2026";
+    });
+  await page
+    .locator(".determination-metadata > div:nth-child(4) strong")
+    .evaluate((element) => {
+      element.textContent = "Oct 3, 2026";
+    });
+  await page.locator(".remedy-stamp").evaluate((element) => {
+    element.setAttribute(
+      "style",
+      "transform: translate(0px, 0px) rotate(0deg)",
+    );
+  });
   await expect(page).toHaveScreenshot(
     "pseudo-localized-public-record-320.png",
     {
