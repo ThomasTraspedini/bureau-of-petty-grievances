@@ -20,6 +20,8 @@ Device-local recovery also stores limited personal language. Preservation theref
 - Alias and witness language are bounded and screened conservatively for unnecessary identifiers and serious or sensitive matters. Rejected witness text is not written to browser storage; the remaining safe draft is preserved.
 - Filing controls remain unavailable until browser storage has been validated and loaded, preventing recovery from overwriting a filer’s first interaction.
 
+Filing step transitions intentionally use full document navigation: each destination re-enters the established storage-backed hydration/recovery protocol with fresh transient React state. This simplifies same-route reset and completed-session/recovery semantics (see [ADR 0024](0024-completed-filing-restart-semantics.md)). The accepted determination transition similarly establishes a clean presentation/reconstruction boundary. Client-side Next navigation could be implemented, but requires an explicit equivalent lifecycle/reset contract; it is not a mechanical replacement.
+
 ## Consequences
 
 - Native browser navigation, refresh recovery, and review correction are first-class behavior rather than incidental client state.
