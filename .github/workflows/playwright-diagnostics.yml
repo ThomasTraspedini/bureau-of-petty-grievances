@@ -11,6 +11,11 @@ on:
         description: Optional test-title regular expression
         required: false
         type: string
+      update_snapshots:
+        description: Generate diagnostic snapshot candidates without committing them
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -22,6 +27,7 @@ jobs:
     env:
       SPEC: ${{ inputs.spec }}
       GREP: ${{ inputs.grep }}
+      UPDATE_SNAPSHOTS: ${{ inputs.update_snapshots }}
 
     steps:
       - name: Require a focused selection
@@ -69,6 +75,9 @@ jobs:
         shell: bash
         run: |
           args=(--project=chromium)
+          if [[ "$UPDATE_SNAPSHOTS" == "true" ]]; then
+            args+=(--update-snapshots)
+          fi
           if [[ -n "${GREP//[[:space:]]/}" ]]; then
             args+=(--grep "$GREP")
           fi
@@ -77,8 +86,29 @@ jobs:
           fi
           npx playwright test "${args[@]}"
       - name: Upload Playwright failure artifacts
-        if: failure()
+        if: failure() || (always() && inputs.update_snapshots)
         uses: actions/upload-artifact@v7
         with:
           name: playwright-diagnostics-failure-artifacts
           path: test-results/
+      - name: Collect diagnostic snapshot candidates
+        if: always() && inputs.update_snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' snapshot; do
+            if [[ -f "$snapshot" ]]; then
+              mkdir -p -- "snapshot-candidates/$(dirname -- "$snapshot")"
+              cp -- "$snapshot" "snapshot-candidates/$snapshot"
+            fi
+          done < <(
+            git diff --name-only --diff-filter=AM -z HEAD -- 'tests/e2e/*-snapshots/*.png'
+            git ls-files --others --exclude-standard -z -- 'tests/e2e/*-snapshots/*.png'
+          )
+      - name: Upload diagnostic snapshot candidates
+        if: always() && inputs.update_snapshots
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-diagnostics-snapshot-candidates
+          path: snapshot-candidates/
+          if-no-files-found: ignore
