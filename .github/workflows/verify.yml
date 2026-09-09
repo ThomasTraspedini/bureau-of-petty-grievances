@@ -19,6 +19,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - name: Remove unrelated Google Chrome APT source
+        run: sudo rm -f /etc/apt/sources.list.d/google-chrome.list
       - run: npx playwright install --with-deps chromium firefox webkit
       - name: Install ripgrep
         run: |
