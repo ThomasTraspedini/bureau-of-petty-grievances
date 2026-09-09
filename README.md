@@ -1,5 +1,7 @@
 # Bureau of Petty Grievances
 
+[![Verify](https://github.com/ThomasTraspedini/bureau-of-petty-grievances/actions/workflows/verify.yml/badge.svg?branch=main)](https://github.com/ThomasTraspedini/bureau-of-petty-grievances/actions/workflows/verify.yml)
+
 > **Harmony, administered.**
 
 **[Try the live demo](https://bureau-of-petty-grievances.netlify.app/)**
