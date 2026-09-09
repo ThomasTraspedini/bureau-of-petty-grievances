@@ -2733,6 +2733,10 @@ footer p {
     font-size: clamp(49px, 16vw, 68px);
   }
 
+  .hero h1 {
+    font-size: clamp(40px, 12.5vw, 68px);
+  }
+
   .hero-actions,
   .button {
     width: 100%;
