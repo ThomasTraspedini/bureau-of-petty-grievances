@@ -60,7 +60,6 @@ declare global {
 }
 
 const storageKey = FILING_DRAFT_STORAGE_KEY;
-const standardSession = `sts_${"T".repeat(43)}`;
 
 test.describe.configure({ mode: "serial" });
 
@@ -959,7 +958,14 @@ test("transfers one fixed residual allowance to exactly one successor", async ({
   page: Page;
   context: BrowserContext;
   browser: Browser;
-}) => {
+}, testInfo) => {
+  const seed = ["X", "Y", "Z"][testInfo.retry];
+  if (seed === undefined) {
+    throw new Error(
+      `No residual-transfer fixture for retry ${String(testInfo.retry)}`,
+    );
+  }
+  const standardSession = `sts_${seed.repeat(43)}`;
   await context.addCookies([
     {
       name: "bpg_standard_session_v1",

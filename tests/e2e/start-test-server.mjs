@@ -37,6 +37,37 @@ try {
     ],
   );
   await seedStandardAuthorizations(database, standardToken);
+  // Independent residual allowances for the initial attempt and both CI retries.
+  for (const seed of ["X", "Y", "Z"]) {
+    const entitlementId = `ste_${seed.repeat(22)}`;
+    const tenureId = `stn_${seed.repeat(22)}`;
+    await database.query(
+      `INSERT INTO standard_entitlements (
+         entitlement_id, status, credit_limit, credits_consumed,
+         created_at, expires_at, updated_at
+       ) VALUES ($1, 'active', 5, 1, now(), now() + interval '180 days', now())`,
+      [entitlementId],
+    );
+    await database.query(
+      `INSERT INTO standard_tenures (
+         tenure_id, entitlement_id, ordinal, status, provider_completions,
+         created_at, updated_at
+       ) VALUES ($1, $2, 1, 'active', 1, now(), now())`,
+      [tenureId, entitlementId],
+    );
+    await database.query(
+      `INSERT INTO standard_sessions (
+         session_id, tenure_id, credential_digest, created_at, expires_at, last_used_at
+       ) VALUES ($1, $2, $3, now(), now() + interval '180 days', now())`,
+      [
+        `ses_${seed.repeat(22)}`,
+        tenureId,
+        createHash("sha256")
+          .update(`sts_${seed.repeat(43)}`)
+          .digest("hex"),
+      ],
+    );
+  }
   await database.query(
     `INSERT INTO standard_entitlements (
        entitlement_id, status, credit_limit, credits_consumed,
