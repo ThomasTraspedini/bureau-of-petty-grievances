@@ -17,7 +17,9 @@ for (const locale of ["en", "it", "fr", "de", "es", "pt-BR"] as const) {
       offence: "optimistic_estimate" as const,
     };
     await page.addInitScript(
-      ({ key, value }) => localStorage.setItem(key, value),
+      ({ key, value }) => {
+        localStorage.setItem(key, value);
+      },
       {
         key: filingDraftStorageKey(locale),
         value: serializeDraft(draft, Date.now(), locale),
